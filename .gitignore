@@ -1,0 +1,27 @@
+# Dependensi & konfigurasi lokal
+/vendor/
+.env
+composer.phar
+
+# Data runtime (jangan pernah di-commit)
+/writable/*.db
+/writable/*.sqlite
+/writable/cache/*
+!/writable/cache/index.html
+/writable/logs/*
+!/writable/logs/index.html
+/writable/session/*
+!/writable/session/index.html
+/writable/uploads/*
+!/writable/uploads/index.html
+/writable/debugbar/*
+!/writable/debugbar/index.html
+/public/uploads/images/*
+!/public/uploads/images/.gitkeep
+
+# Editor / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db

@@ -1,0 +1,8 @@
+# Folder unggahan gambar: larang eksekusi skrip & listing direktori (SK 2722/2026 Bab II A.3)
+Options -Indexes -ExecCGI
+<FilesMatch "\.(php|phtml|php\d|phar|pl|py|cgi|sh|jsp|asp|aspx|shtml)$">
+    Require all denied
+</FilesMatch>
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>

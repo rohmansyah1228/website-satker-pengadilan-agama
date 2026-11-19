@@ -1,0 +1,16 @@
+{
+    "name": "satker/website-peradilan-agama",
+    "description": "Website Satuan Kerja Peradilan Agama sesuai SK Dirjen Badilag No. 2722/DJA/SK.TI1/X/2026",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "codeigniter4/framework": "^4.7",
+        "ezyang/htmlpurifier": "^4.18"
+    },
+    "autoload": {
+        "psr-4": { "App\\": "app/" },
+        "exclude-from-classmap": ["**/Database/Migrations/**"]
+    },
+    "config": { "optimize-autoloader": true, "preferred-install": "dist", "sort-packages": true }
+}

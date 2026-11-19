@@ -1,0 +1,344 @@
+/* ==========================================================================
+   Website Satker Peradilan Agama — diturunkan dari template resmi Badilag
+   (SK Dirjen Badilag No. 2722/DJA/SK.TI1/X/2026). Aset di-host lokal.
+   ========================================================================== */
+/* ==========================================================================
+   1. IDENTITAS VISUAL & PALET WARNA RESMI (BAB III HURUF B SK 2722/2026)
+   - Warna Utama (Primary): #056e4f
+   - Warna Sekunder (Secondary): #ff9900
+   ========================================================================== */
+:root {
+    --pa-primary: #056e4f;
+    --pa-primary-dark: #034d37;
+    --pa-primary-light: #e6f3ef;
+    --pa-secondary: #ff9900;
+    --pa-secondary-hover: #e68a00;
+    --bs-font-sans-serif: 'Inter', sans-serif;
+    --bs-body-font-family: var(--bs-font-sans-serif);
+    --bs-body-bg: #f8f9fa;
+    --base-font-size: 16px;
+}
+
+html {
+    font-size: var(--base-font-size);
+}
+
+/* Utilitas Warna Kustom */
+.bg-pa-primary { background-color: var(--pa-primary) !important; }
+.text-pa-primary { color: var(--pa-primary) !important; }
+.border-pa-primary { border-color: var(--pa-primary) !important; }
+
+.bg-pa-secondary { background-color: var(--pa-secondary) !important; }
+.text-pa-secondary { color: var(--pa-secondary) !important; }
+.border-pa-secondary { border-color: var(--pa-secondary) !important; }
+
+/* Tombol Standar */
+.btn-pa-secondary {
+    background-color: var(--pa-secondary);
+    color: #111827;
+    border-color: var(--pa-secondary);
+    font-weight: 700;
+    transition: all 0.2s ease;
+}
+.btn-pa-secondary:hover, .btn-pa-secondary:focus {
+    background-color: var(--pa-secondary-hover);
+    border-color: var(--pa-secondary-hover);
+    color: #000000;
+    transform: translateY(-1px);
+}
+
+.btn-pa-primary {
+    background-color: var(--pa-primary);
+    color: #ffffff;
+    border-color: var(--pa-primary);
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+.btn-pa-primary:hover, .btn-pa-primary:focus {
+    background-color: var(--pa-primary-dark);
+    border-color: var(--pa-primary-dark);
+    color: #ffffff;
+}
+
+/* Tipografi */
+.font-display { font-family: 'Montserrat', sans-serif; }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: var(--pa-primary); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--pa-primary-dark); }
+
+/* ==========================================================================
+   2. NAVIGASI 6 MENU UTAMA (BAB III HURUF F SK 2722/2026)
+   ========================================================================== */
+.navbar-nav .nav-link {
+    color: #374151;
+    font-weight: 600;
+    font-size: 0.925rem;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s ease;
+}
+.navbar-nav .nav-link:hover {
+    color: var(--pa-primary);
+}
+.navbar-nav .nav-link.active {
+    color: var(--pa-primary) !important;
+    font-weight: 700;
+    border-bottom: 3px solid var(--pa-secondary);
+}
+.dropdown-menu {
+    border-top: 3px solid var(--pa-secondary);
+}
+.dropdown-item {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+.dropdown-item:hover, .dropdown-item:focus {
+    background-color: var(--pa-primary-light);
+    color: var(--pa-primary);
+}
+
+/* Sidebar Sub-Navigasi */
+.sidebar-nav-link {
+    color: #374151;
+    border-left: 4px solid transparent;
+    border-radius: 0.375rem;
+    transition: all 0.2s ease;
+}
+.sidebar-nav-link:hover {
+    background-color: var(--pa-primary-light);
+    color: var(--pa-primary);
+}
+.sidebar-nav-link.active {
+    background-color: var(--pa-primary);
+    color: #ffffff !important;
+    border-left: 4px solid var(--pa-secondary);
+}
+.sidebar-nav-link.active i {
+    color: var(--pa-secondary) !important;
+}
+
+/* ==========================================================================
+   3. HERO SLIDER EKONOMIS (MAKSIMAL 3-5 SLIDE - BAB III HURUF C)
+   ========================================================================== */
+#hero-carousel .carousel-item {
+    min-height: 55vh;
+    position: relative;
+    background-color: var(--pa-primary);
+}
+/* Gambar slider sebagai <img> (alt text + prioritas muat), bukan background-image */
+#hero-carousel .hero-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+#hero-carousel .carousel-item::before {
+    content: '';
+    z-index: 1;
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(5, 110, 79, 0.92) 0%, rgba(5, 110, 79, 0.75) 60%, rgba(3, 77, 55, 0.6) 100%);
+}
+#hero-carousel .hero-content {
+    position: relative;
+    z-index: 10;
+}
+
+/* Kartu Pintasan Layanan (Akses <= 2 Klik) */
+.card-shortcut {
+    transition: all 0.25s ease-in-out;
+    border: 1px solid #e5e7eb;
+    color: #1f2937;
+}
+.card-shortcut:hover {
+    background-color: var(--pa-primary) !important;
+    border-color: var(--pa-primary);
+    color: #ffffff;
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(5, 110, 79, 0.15) !important;
+}
+.card-shortcut .bi {
+    color: var(--pa-primary);
+    transition: color 0.25s ease;
+}
+.card-shortcut:hover .bi {
+    color: var(--pa-secondary);
+}
+.card-shortcut:hover h3 {
+    color: #ffffff !important;
+}
+.card-shortcut:hover p {
+    color: #e5e7eb !important;
+}
+
+/* ==========================================================================
+   4. FITUR AKSESIBILITAS RAMAH DISABILITAS / WCAG (LAMPIRAN II HURUF B)
+   - Pembaca Layar (Screen Reader / Text-to-Speech)
+   - Mode Kontras Tinggi (High Contrast)
+   - Perbesar / Perkecil Teks (Zoom-in / Zoom-out)
+   ========================================================================== */
+.a11y-widget {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 1055;
+}
+.a11y-panel {
+    width: 280px;
+    display: none;
+}
+.a11y-panel.show {
+    display: block;
+}
+
+/* Mode Kontras Tinggi (High Contrast Mode) */
+body.high-contrast {
+    background-color: #000000 !important;
+    color: #ffff00 !important;
+}
+body.high-contrast header,
+body.high-contrast nav,
+body.high-contrast section,
+body.high-contrast .card,
+body.high-contrast .bg-white,
+body.high-contrast .bg-light,
+body.high-contrast .modal-content,
+body.high-contrast footer {
+    background-color: #000000 !important;
+    color: #ffff00 !important;
+    border: 1px solid #ffff00 !important;
+}
+body.high-contrast a,
+body.high-contrast button,
+body.high-contrast h1, body.high-contrast h2, body.high-contrast h3, body.high-contrast h4,
+body.high-contrast p, body.high-contrast span, body.high-contrast td, body.high-contrast th {
+    color: #ffff00 !important;
+}
+body.high-contrast .btn-pa-secondary,
+body.high-contrast .btn-pa-primary {
+    background-color: #ffff00 !important;
+    color: #000000 !important;
+    border: 2px solid #ffffff !important;
+}
+
+/* Line Clamp */
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+}
+
+/* ==========================================================================
+   5. TAMBAHAN IMPLEMENTASI CI4
+   ========================================================================== */
+.skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 2000;
+}
+.skip-link:focus {
+    left: 1rem;
+    top: 1rem;
+}
+:focus-visible {
+    outline: 3px solid var(--pa-secondary);
+    outline-offset: 2px;
+}
+.navbar-brand img.brand-logo { height: 3.2rem; width: auto; }
+.header-container { max-width: 1400px; padding-inline: 1rem; }
+.brand-name { font-size: 1.15rem; }
+.navbar-nav .nav-link { white-space: nowrap; }
+@media (min-width: 1200px) and (max-width: 1399.98px) {
+    .navbar-nav .nav-link { font-size: .84rem; padding: .5rem .45rem; }
+    .brand-name { font-size: 1rem; }
+    .navbar-brand img.brand-logo { height: 2.75rem; }
+    .navbar-brand { gap: .6rem !important; margin-right: .5rem; }
+}
+@media (min-width: 1200px) and (max-width: 1299.98px) {
+    .navbar-brand .text-secondary.small { display: none !important; }
+    .navbar-nav .nav-link { font-size: .8rem; padding: .5rem .32rem; }
+    .navbar-nav.gap-1 { gap: 0 !important; }
+    .brand-name { font-size: .92rem; }
+}
+.dropdown-menu { max-height: 75vh; overflow-y: auto; }
+.text-white-75 { color: rgba(255,255,255,.85) !important; }
+
+/* Konten halaman dari editor */
+.prose { color: #374151; line-height: 1.8; }
+.prose h2, .prose h3, .prose h4 { font-family: 'Montserrat', sans-serif; color: var(--pa-primary); font-weight: 700; margin-top: 1.5rem; }
+.prose h3 { font-size: 1.15rem; }
+.prose h4 { font-size: 1rem; }
+.prose blockquote { background: var(--bs-light); border-left: 4px solid var(--pa-secondary); border-radius: .375rem; padding: 1rem 1.25rem; font-weight: 600; color: var(--pa-primary); }
+.prose blockquote p:last-child { margin-bottom: 0; }
+.prose img { max-width: 100%; height: auto; }
+.prose a { color: var(--pa-primary); font-weight: 600; }
+.prose table { width: 100%; margin-bottom: 1rem; border-collapse: collapse; }
+.prose th, .prose td { border: 1px solid #dee2e6; padding: .5rem; }
+.prose .ql-align-center { text-align: center; }
+.prose .ql-align-right { text-align: right; }
+.prose .ql-align-justify { text-align: justify; }
+
+.page-title { border-bottom: 2px solid var(--pa-secondary); padding-bottom: .5rem; }
+.table thead.table-success th { background-color: var(--pa-primary-light); color: var(--pa-primary-dark); }
+.doc-year summary { cursor: pointer; font-weight: 700; color: var(--pa-primary); padding: .5rem 0; }
+.employee-photo { width: 110px; height: 110px; object-fit: cover; }
+.alert-serta-merta { border-radius: 0; margin: 0; }
+
+/* Dialog pencarian (native <dialog>) */
+dialog.search-dialog {
+    border: 0;
+    border-radius: .75rem;
+    padding: 0;
+    width: min(36rem, calc(100vw - 2rem));
+    box-shadow: 0 1rem 3rem rgba(0,0,0,.25);
+}
+dialog.search-dialog::backdrop { background: rgba(3, 77, 55, .55); overflow: hidden; overscroll-behavior: contain; }
+dialog.search-dialog:modal { overscroll-behavior: contain; }
+
+/* Panel aksesibilitas */
+.a11y-panel { width: 280px; }
+
+/* Kontras tinggi — elemen tambahan */
+body.high-contrast .prose,
+body.high-contrast .prose blockquote,
+body.high-contrast .list-group-item,
+body.high-contrast .table,
+body.high-contrast .table > :not(caption) > * > *,
+body.high-contrast dialog,
+body.high-contrast .dropdown-menu,
+body.high-contrast .dropdown-item,
+body.high-contrast .text-secondary,
+body.high-contrast .text-dark,
+body.high-contrast .text-pa-primary,
+body.high-contrast li, body.high-contrast small, body.high-contrast label, body.high-contrast strong, body.high-contrast summary {
+    background-color: #000000 !important;
+    color: #ffff00 !important;
+    --bs-table-bg: #000;
+    --bs-table-color: #ff0;
+}
+body.high-contrast .card-shortcut .bi, body.high-contrast .bi { color: #ffff00 !important; }
+body.high-contrast #hero-carousel .carousel-item::before { background: #000 !important; opacity: .85; }
+body.high-contrast img { filter: grayscale(1) contrast(1.2); }
+body.high-contrast .form-control { background: #000 !important; color: #ff0 !important; border-color: #ff0 !important; }
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+}
+@media print {
+    header, footer, .a11y-widget, aside, #hero-carousel { display: none !important; }
+}
+
+/* Beranda: grid bebas 12 kolom (posisi diatur di Panel Admin → Tampilan Beranda) */
+.home-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 1.5rem; align-items: stretch; }
+.home-cell { min-width: 0; }
+@media (max-width: 991.98px) {
+    /* layar kecil: semua kotak bertumpuk sesuai urutan (atas→bawah, kiri→kanan) */
+    .home-grid { grid-template-columns: minmax(0, 1fr); }
+    .home-grid > .home-cell { grid-column: 1 / -1 !important; grid-row: auto !important; }
+}
