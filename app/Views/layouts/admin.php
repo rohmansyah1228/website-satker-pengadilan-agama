@@ -54,6 +54,9 @@ $logo = setting('logo') ? media_url(setting('logo')) : base_url('assets/img/logo
     <div>
         <header class="admin-topbar px-3 py-2 d-flex align-items-center gap-2">
             <button type="button" class="btn btn-outline-secondary btn-sm d-lg-none" data-toggle-sidebar aria-controls="adminSidebar" aria-expanded="false"><i class="bi bi-list" aria-hidden="true"></i><span class="visually-hidden">Menu</span></button>
+            <?php if (! $is('', true)): ?>
+                <a href="<?= esc($back ?? admin_url(), 'attr') ?>" id="adminBack" class="btn btn-sm btn-pa-primary admin-back" title="Kembali (Alt+←)"><i class="bi bi-arrow-left" aria-hidden="true"></i> <span data-back-label>Kembali ke Dashboard</span></a>
+            <?php endif ?>
             <a href="<?= site_url('/') ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success"><i class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></i>Lihat Situs</a>
             <div class="ms-auto d-flex align-items-center gap-2 small">
                 <span class="d-none d-sm-inline text-secondary"><i class="bi bi-person" aria-hidden="true"></i> <?= esc($user['name']) ?> · <?= esc(config('SiteStructure')->roles[$user['role']] ?? $user['role']) ?></span>

@@ -143,3 +143,7 @@ html.gb-sizing, html.gb-sizing * { cursor: nwse-resize !important; }
 .pb-embed-preview iframe { width: 100%; border: 1px solid #dbe5e1; border-radius: .5rem; background: #f3f6f5; }
 .pb-add { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; margin-top: .75rem; padding: .6rem; border: 2px dashed #cfdcd6; border-radius: .6rem; background: #fbfdfc; }
 @media (max-width: 575.98px) { .pb-sum { display: none; } .pb-head { flex-wrap: wrap; } }
+
+/* Tombol kembali di bilah atas */
+.admin-back { white-space: nowrap; max-width: 46vw; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 575.98px) { .admin-back [data-back-label] { display: none; } }

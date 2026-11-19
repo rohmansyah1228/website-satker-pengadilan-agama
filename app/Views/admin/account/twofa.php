@@ -1,5 +1,6 @@
 <?= $this->extend('layouts/admin') ?>
 <?= $this->section('content') ?>
+<nav aria-label="breadcrumb"><ol class="breadcrumb small mb-1"><li class="breadcrumb-item"><a href="<?= admin_url('akun') ?>">Akun Saya</a></li><li class="breadcrumb-item active" aria-current="page">MFA</li></ol></nav>
 <h1 class="h3 font-display fw-bold text-pa-primary mb-3">Autentikasi Dua Faktor (MFA)</h1>
 <?php if ($secret): ?>
     <div class="card p-4" style="max-width: 44rem">

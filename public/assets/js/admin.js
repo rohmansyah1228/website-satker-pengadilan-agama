@@ -9,6 +9,20 @@
         b.setAttribute('aria-expanded', open ? 'true' : 'false');
     }));
 
+    // ---------- Tombol Kembali: ke halaman induk menurut breadcrumb (bila ada) ----------
+    const back = document.getElementById('adminBack');
+    if (back) {
+        const crumbs = document.querySelectorAll('#adminMain .breadcrumb a[href]');
+        const parent = crumbs[crumbs.length - 1];
+        if (parent && !back.dataset.fixed) {
+            back.href = parent.href;
+            back.querySelector('[data-back-label]').textContent = 'Kembali ke ' + parent.textContent.trim();
+        }
+        document.addEventListener('keydown', (e) => {
+            if (e.altKey && e.key === 'ArrowLeft' && !e.target.closest('input, textarea, select, [contenteditable]')) { e.preventDefault(); back.click(); }
+        });
+    }
+
     // Editor teks kaya: lihat editor.js (TinyMCE)
 
     // ---------- Dialog konfirmasi hapus (native <dialog>) ----------
