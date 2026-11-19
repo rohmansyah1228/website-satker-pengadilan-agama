@@ -234,6 +234,18 @@ class PageBlocks
         return $u;
     }
 
+    /** Tautan "/halaman" diketik admin → lengkapi dengan alamat situs (berlaku juga bila website di subfolder). */
+    public static function href(string $u): string
+    {
+        if ($u !== '' && $u[0] === '/' && ! str_starts_with($u, '//')) {
+            $basePath = rtrim((string) parse_url(base_url(), PHP_URL_PATH), '/');
+
+            return ($basePath !== '' && str_starts_with($u, $basePath . '/')) ? $u : site_url(ltrim($u, '/'));
+        }
+
+        return content_expand_urls($u);
+    }
+
     public static function isInternal(string $u): bool
     {
         if ($u !== '' && $u[0] === '/') {

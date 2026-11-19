@@ -25,6 +25,7 @@
                                 <td class="text-center text-nowrap">
                                     <?php if ($v === ''): ?><span class="text-secondary" aria-label="tidak ada">—</span>
                                     <?php else:
+                                        $v    = PageBlocks::href($v);
                                         $open = $c['open'] ?? 'popup';
                                         $pv   = $open === 'popup' ? (PageBlocks::previewUrl($v) ?? $v) : null;
                                         $icon = ['popup' => 'bi-eye', 'tab' => 'bi-box-arrow-up-right', 'same' => 'bi-arrow-right-circle'][$open] ?? 'bi-eye'; ?>

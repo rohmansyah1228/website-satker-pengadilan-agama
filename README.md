@@ -109,6 +109,8 @@ php spark serve                 &:: http://localhost:8080
 
 **Keamanan.** `.htaccess` di folder utama mengarahkan semua akses ke `public/` dan menolak akses ke `app/`, `writable/`, `vendor/`, serta `.env`. Bila hosting mengizinkan, lebih baik arahkan **Document Root** domain langsung ke folder `public/`.
 
+**Ganti domain / pindah hosting / dipakai satker lain.** Tidak ada yang perlu diubah. Alamat situs mengikuti domain yang sedang dibuka (subfolder, IP, maupun domain baru), dan gambar serta tautan di dalam isi berita/halaman disimpan tanpa nama domain. Saat memindahkan website, cukup bawa folder website dan database (Export/Import di phpMyAdmin).
+
 **Pembaruan versi di hosting.** Unggah berkas baru dengan menimpa yang lama, **kecuali** `.env`, `writable/`, dan `public/uploads/`. Bila pembaruan membawa perubahan tabel, Dashboard admin menampilkan tombol **Jalankan pembaruan** (khusus Super Admin). Cadangkan database lebih dulu.
 
 ---

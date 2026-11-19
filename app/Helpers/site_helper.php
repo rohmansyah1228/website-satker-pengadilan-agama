@@ -152,3 +152,24 @@ if (! function_exists('plain_excerpt')) {
         return mb_strlen($t) > $len ? rtrim(mb_substr($t, 0, $len)) . '…' : $t;
     }
 }
+
+if (! function_exists('content_collapse_urls')) {
+    /**
+     * Alamat situs di dalam isi (gambar/tautan dari editor) disimpan sebagai penanda {{SITE_URL}}/,
+     * lalu diganti dengan alamat terkini saat ditampilkan — isi tetap benar bila domain/folder berubah.
+     */
+    function content_collapse_urls(string $html): string
+    {
+        $base = rtrim(base_url(), '/') . '/';
+        $alt  = str_starts_with($base, 'https://') ? 'http://' . substr($base, 8) : 'https://' . substr($base, 7);
+
+        return str_replace([$base, $alt], '{{SITE_URL}}/', $html);
+    }
+}
+
+if (! function_exists('content_expand_urls')) {
+    function content_expand_urls(string $html): string
+    {
+        return str_contains($html, '{{SITE_URL}}/') ? str_replace('{{SITE_URL}}/', rtrim(base_url(), '/') . '/', $html) : $html;
+    }
+}

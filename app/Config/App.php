@@ -213,10 +213,20 @@ class App extends BaseConfig
         // app.baseURL kosong di .env → alamat situs dideteksi otomatis, sehingga website langsung
         // berjalan di XAMPP (http://localhost/website-satker/), hosting, maupun "php spark serve".
         // Di server produksi tetap disarankan mengisi app.baseURL secara tetap.
-        // Alamat "localhost" hanya berlaku di komputer itu sendiri; bila website dibuka dari perangkat lain
-        // (HP, laptop lain, IP jaringan) atau lewat Apache XAMPP, alamat juga dideteksi otomatis.
-        $isLocal = (bool) preg_match('#^https?://(localhost|127\.0\.0\.1|\[::1\])(:\d+)?(/|$)#i', $this->baseURL);
-        if ($this->baseURL === '' || ($isLocal && PHP_SAPI !== 'cli')) {
+        // Alamat situs mengikuti domain yang sedang dipakai, sehingga website langsung tampil benar bila
+        // domain berganti, dipindah hosting, dibuka lewat IP/HP, atau dipakai satker lain:
+        //  - app.baseURL kosong            → selalu dideteksi otomatis
+        //  - app.baseURL berisi localhost  → dideteksi otomatis bila dibuka dari perangkat/alamat lain
+        //  - app.baseURL berisi domain     → dipakai bila domainnya sama; bila dibuka lewat domain lain
+        //                                    (mis. domain baru), alamat mengikuti domain tersebut
+        if (PHP_SAPI !== 'cli' && $this->baseURL !== '' && ! empty($_SERVER['HTTP_HOST'])) {
+            $cfgHost = strtolower((string) parse_url($this->baseURL, PHP_URL_HOST) . ((($port = parse_url($this->baseURL, PHP_URL_PORT)) !== null) ? ':' . $port : ''));
+            $isLocal = (bool) preg_match('#^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$#', $cfgHost);
+            if ($isLocal || $cfgHost !== strtolower((string) $_SERVER['HTTP_HOST'])) {
+                $this->baseURL = '';
+            }
+        }
+        if ($this->baseURL === '') {
             $this->baseURL = self::detectBaseURL();
         }
     }

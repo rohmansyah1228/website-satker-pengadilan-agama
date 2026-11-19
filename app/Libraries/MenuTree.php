@@ -8,7 +8,8 @@ class MenuTree
     /** Semua menu sebagai pohon; $activeOnly untuk situs publik. */
     public function tree(bool $activeOnly = true): array
     {
-        $key = 'site_menu_' . ($activeOnly ? 'pub' : 'all');
+        // href berisi alamat situs → cache dipisah per alamat (domain/IP/folder yang sedang dipakai)
+        $key = 'site_menu_' . ($activeOnly ? 'pub' : 'all') . '_' . substr(md5(base_url()), 0, 10);
         if ($activeOnly && ($cached = cache($key))) {
             return $cached;
         }
@@ -56,7 +57,7 @@ class MenuTree
         return match ($r['type']) {
             'page'    => $r['p_section'] ? site_url($r['p_section'] . '/' . $r['p_slug']) : '#',
             'route'   => site_url(ltrim((string) $r['url'], '/')),
-            'url'     => (string) $r['url'],
+            'url'     => \App\Libraries\PageBlocks::href((string) $r['url']),
             'section' => site_url((string) $r['section']),
             default   => '#',
         };
@@ -99,7 +100,6 @@ class MenuTree
 
     public static function flush(): void
     {
-        cache()->delete('site_menu_pub');
-        cache()->delete('site_menu_all');
+        cache()->deleteMatching('site_menu_*');
     }
 }

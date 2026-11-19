@@ -37,6 +37,7 @@ class Filters extends BaseFilters
         'adminauth'     => \App\Filters\AdminAuth::class,
         'visitor'       => \App\Filters\VisitorCounter::class,
         'install'       => \App\Filters\InstallRedirect::class,
+        'siteurls'      => \App\Filters\SiteUrls::class,
         'secheaders'    => \App\Filters\SecurityHeaders::class,
     ];
 
@@ -80,6 +81,7 @@ class Filters extends BaseFilters
             'install' => ['except' => ['pasang', 'pasang/*', 'assets/*']],
         ],
         'after' => [
+            'siteurls',
             'secureheaders',
             'secheaders',
         ],

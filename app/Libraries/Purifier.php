@@ -65,6 +65,7 @@ class Purifier
             $this->p = new \HTMLPurifier($cfg);
         }
 
-        return $this->p->purify($html);
+        // alamat situs sendiri → penanda {{SITE_URL}}/ (diganti alamat terkini saat tampil, lihat Filters\SiteUrls)
+        return content_collapse_urls($this->p->purify(content_expand_urls($html)));
     }
 }
