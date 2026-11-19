@@ -20,7 +20,7 @@ $logo = setting('logo') ? media_url(setting('logo')) : base_url('assets/img/logo
     <link rel="stylesheet" href="<?= asset('assets/vendor/fonts/fonts.css') ?>">
     <link rel="stylesheet" href="<?= asset('assets/vendor/bootstrap/bootstrap.min.css') ?>">
     <link rel="stylesheet" href="<?= asset('assets/vendor/bootstrap-icons/bootstrap-icons.min.css') ?>">
-    <?php if (! empty($richtext)): ?><link rel="stylesheet" href="<?= asset('assets/vendor/quill/quill.snow.css') ?>"><?php endif ?>
+    <meta name="satker-admin" content="<?= esc(json_encode(['base' => rtrim(admin_url(''), '/') . '/', 'assets' => base_url('assets/'), 'csrfName' => csrf_token()]), 'attr') ?>">
     <link rel="stylesheet" href="<?= asset('assets/css/admin.css') ?>">
 </head>
 <body data-moved-dir="<?= esc(session('movedDir') ?? '', 'attr') ?>">
@@ -80,7 +80,7 @@ $logo = setting('logo') ? media_url(setting('logo')) : base_url('assets/img/logo
 <p id="adminLive" class="visually-hidden" role="status"></p>
 
 <script src="<?= asset('assets/vendor/bootstrap/bootstrap.bundle.min.js') ?>" defer></script>
-<?php if (! empty($richtext)): ?><script src="<?= asset('assets/vendor/quill/quill.js') ?>" defer></script><?php endif ?>
+<?php if (! empty($richtext)): ?><script src="<?= asset('assets/vendor/tinymce/tinymce.min.js') ?>" defer></script><script src="<?= asset('assets/js/editor.js') ?>" defer></script><?php endif ?>
 <?php if (! empty($qrcode)): ?><script src="<?= asset('assets/vendor/qrcode/qrcode.js') ?>" defer></script><?php endif ?>
 <script src="<?= asset('assets/js/admin.js') ?>" defer></script>
 <?php if (! empty($pageBuilder)): ?><script src="<?= asset('assets/js/page-builder.js') ?>" defer></script><?php endif ?>

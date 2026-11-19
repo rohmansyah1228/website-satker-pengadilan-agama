@@ -63,6 +63,9 @@ $routes->group($admin, ['namespace' => 'App\Controllers\Admin'], static function
         $routes->post('akun/2fa/nonaktifkan', 'Account::disable2fa');
 
         $routes->get('log', 'Logs::index');
+        $routes->post('editor/gambar', 'Editor::image');
+        $routes->post('editor/pdf', 'Editor::pdf');
+        $routes->get('editor/tautan', 'Editor::links');
         $routes->post('cache/bersihkan', 'Dashboard::clearCache');
 
         // Modul data generik (slider, dokumen, pegawai, dst.) — lihat app/Config/AdminResources.php
@@ -86,6 +89,7 @@ $routes->group('', ['filter' => 'visitor'], static function ($routes) {
     $routes->get('berita/(:segment)', 'Posts::show/$1');
     $routes->get('(:segment)', 'Site::section/$1');
     $routes->get('(:segment)/(:segment)', 'Site::page/$1/$2');
+    $routes->get('(:segment)/(:segment)/(:num)', 'Site::employee/$1/$2/$3');
 });
 
 $routes->set404Override('App\Controllers\Site::notFound');

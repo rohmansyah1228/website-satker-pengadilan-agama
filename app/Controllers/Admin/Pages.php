@@ -152,7 +152,8 @@ class Pages extends AdminController
             $data['section']      = $post['section'];
             $data['slug']         = strtolower($post['slug'] ?: url_title($post['title'], '-', true)) ?: 'halaman';
             $data['module']       = $post['module'] ?? '';
-            $data['module_param'] = $data['module'] === 'documents' || $data['module'] === 'survei' ? implode(',', (array) ($post['doc_codes'] ?? [])) : '';
+            $data['module_param'] = $data['module'] === 'documents' || $data['module'] === 'survei' ? implode(',', (array) ($post['doc_codes'] ?? []))
+                : ($data['module'] === 'pegawai' && ($post['employee_view'] ?? '') === 'tabel' ? 'tabel' : '');
 
             $dup = $this->db->table('pages')->where(['section' => $data['section'], 'slug' => $data['slug']]);
             if ($id) {
@@ -161,6 +162,8 @@ class Pages extends AdminController
             if ($dup->countAllResults() || in_array($data['slug'], ['baru'], true)) {
                 return $this->form(array_merge($old, $post), $id, ['slug' => 'Alamat halaman sudah dipakai pada bagian ini.']);
             }
+        } elseif ($old['module'] === 'pegawai') {
+            $data['module_param'] = ($post['employee_view'] ?? '') === 'tabel' ? 'tabel' : '';
         } elseif ($old['module'] === 'documents' && isset($post['doc_codes'])) {
             // halaman wajib: jenis dokumen bawaan tetap, boleh ditambah jenis lain
             $base                 = array_filter(explode(',', (string) $old['module_param']));

@@ -366,3 +366,21 @@ body.high-contrast .form-control { background: #000 !important; color: #ff0 !imp
 .preview-dialog__head { display: flex; align-items: center; gap: .5rem; padding: .6rem .9rem; border-bottom: 3px solid var(--pa-secondary); background: #fff; }
 .preview-dialog iframe { flex: 1; width: 100%; border: 0; background: #f3f6f5; }
 @media (max-width: 575.98px) { .preview-dialog { width: 100vw; height: 100dvh; max-height: 100dvh; max-width: 100vw; border-radius: 0; } }
+
+/* ---------- Profil pegawai ---------- */
+.emp-card { transition: transform .15s ease, box-shadow .15s ease; }
+.emp-card:hover { transform: translateY(-3px); box-shadow: 0 .5rem 1.25rem rgba(5,110,79,.15); }
+.emp-group-row th { background: var(--pa-primary-light) !important; color: var(--pa-primary); font-weight: 700; }
+.emp-profile { background: linear-gradient(160deg, #fff 0%, #f4faf7 60%, #fff8ec 100%); border: 1px solid #e3ece8; }
+.emp-profile__bar { background: linear-gradient(90deg, var(--pa-primary-dark), var(--pa-primary)); color: #fff; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; padding: 1rem 1.5rem; border-bottom: 4px solid var(--pa-secondary); font-size: 1.1rem; }
+.emp-profile__photo { width: 170px; height: 170px; border-radius: 50%; object-fit: cover; object-position: top; border: 6px solid #fff; box-shadow: 0 .5rem 1.5rem rgba(0,0,0,.15); flex-shrink: 0; }
+.emp-profile__photo--empty { display: grid; place-items: center; background: var(--pa-primary); color: #fff; font-size: 4rem; }
+.emp-profile__badge { display: inline-flex; align-items: center; gap: .35rem; padding: .35rem .85rem; border-radius: 2rem; background: #eaf2ff; color: #1d4ed8; border: 1px solid #bfd3fb; font-size: .82rem; font-weight: 600; }
+.emp-fact { display: flex; align-items: center; gap: 1rem; background: #fff; border: 1px solid #e6ece9; border-radius: .75rem; padding: 1rem 1.25rem; height: 100%; }
+.emp-fact__icon { width: 2.75rem; height: 2.75rem; border-radius: .6rem; display: inline-grid; place-items: center; background: var(--pa-primary-light); color: var(--pa-primary); font-size: 1.25rem; flex-shrink: 0; }
+.emp-fact__icon--alt { background: #fff3dc; color: #b36b00; }
+.emp-fact__icon--sm { width: 2rem; height: 2rem; font-size: 1rem; margin-right: .35rem; }
+.emp-fact__label { font-size: .75rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #6b7280; }
+.emp-bio { background: #fff; border-left: 4px solid var(--pa-secondary); border-radius: .5rem; padding: 1rem 1.25rem; color: #374151; }
+.emp-history { background: #fff; border: 1px solid #e6ece9; border-radius: .75rem; padding: 1.25rem 1.25rem 1rem; }
+.emp-history ol { padding-left: 1.2rem; }

@@ -69,6 +69,14 @@
                     </select>
                     <?php if ($req): ?><input type="hidden" name="module" value="<?= esc($page['module'], 'attr') ?>"><?php endif ?>
                 </div>
+                <div class="mb-3" data-show-when="module=pegawai">
+                    <label for="employee_view" class="form-label fw-semibold">Tampilan daftar pegawai</label>
+                    <select id="employee_view" name="employee_view" class="form-select">
+                        <option value="kartu"<?= ($page['module_param'] ?? '') !== 'tabel' ? ' selected' : '' ?>>Kartu berfoto</option>
+                        <option value="tabel"<?= ($page['module_param'] ?? '') === 'tabel' ? ' selected' : '' ?>>Tabel dengan tombol Detail</option>
+                    </select>
+                    <div class="form-text">Setiap pegawai punya halaman profil sendiri. Data diisi di <a href="<?= admin_url('data/pegawai') ?>">Pejabat &amp; Pegawai</a>.</div>
+                </div>
                 <fieldset class="mb-3" data-show-when="module=documents,survei">
                     <legend class="form-label fw-semibold fs-6">Jenis dokumen yang ditampilkan</legend>
                     <div class="border rounded p-2" style="max-height: 220px; overflow:auto">

@@ -65,8 +65,8 @@ $render = static function (string $col, array $row) use ($fields, $lookups) {
                         <?php endif ?>
                     <?php endforeach ?>
                     <td class="text-end text-nowrap">
-                        <?php if (! empty($res['view']) && ($row['status'] ?? 'published') === 'published'): ?>
-                            <a href="<?= site_url(str_replace('{slug}', $row['slug'] ?? '', $res['view'])) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary" title="Lihat"><i class="bi bi-eye" aria-hidden="true"></i><span class="visually-hidden">Lihat</span></a>
+                        <?php if (! empty($res['view']) && ($row['status'] ?? 'published') === 'published' && ($row['is_active'] ?? 1)): ?>
+                            <a href="<?= site_url(str_replace(['{slug}', '{id}'], [$row['slug'] ?? '', $row['id']], $res['view'])) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary" title="Lihat"><i class="bi bi-eye" aria-hidden="true"></i><span class="visually-hidden">Lihat</span></a>
                         <?php endif ?>
                         <a href="<?= admin_url("data/{$key}/{$row['id']}") ?>" class="btn btn-sm btn-outline-success"><i class="bi bi-pencil" aria-hidden="true"></i> Ubah</a>
                         <?php if (empty($res['locked']) || empty($row[$res['locked']])): ?>

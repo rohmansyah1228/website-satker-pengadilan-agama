@@ -9,39 +9,7 @@
         b.setAttribute('aria-expanded', open ? 'true' : 'false');
     }));
 
-    // ---------- Editor teks kaya (Quill, lisensi BSD) ----------
-    if (window.Quill) {
-        document.querySelectorAll('textarea[data-richtext]').forEach((ta) => {
-            const holder = document.createElement('div');
-            holder.innerHTML = ta.value;
-            ta.hidden = true;
-            ta.after(holder);
-            const quill = new Quill(holder, {
-                theme: 'snow',
-                modules: {
-                    toolbar: [
-                        [{ header: [2, 3, 4, false] }],
-                        ['bold', 'italic', 'underline', 'strike'],
-                        [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
-                        [{ align: [] }],
-                        ['blockquote', 'link'],
-                        ['clean']
-                    ]
-                }
-            });
-            if (ta.id) {
-                const lbl = document.querySelector('label[for="' + ta.id + '"]');
-                quill.root.setAttribute('aria-label', lbl ? lbl.textContent.trim() : 'Isi');
-                if (lbl) lbl.addEventListener('click', () => quill.focus());
-            }
-            const sync = () => {
-                const html = quill.getSemanticHTML().replace(/&nbsp;/g, ' ');
-                ta.value = quill.getText().trim() === '' ? '' : html;
-            };
-            quill.on('text-change', sync);
-            ta.form && ta.form.addEventListener('submit', sync);
-        });
-    }
+    // Editor teks kaya: lihat editor.js (TinyMCE)
 
     // ---------- Dialog konfirmasi hapus (native <dialog>) ----------
     const dlg = document.getElementById('confirmDialog');

@@ -10,18 +10,7 @@
     </nav>
     <p class="font-display h2 fw-bold text-pa-primary mb-4" aria-hidden="true"><?= esc($sectionLabel) ?></p>
     <div class="row g-4">
-        <?php if (! empty($sidebar)): ?>
-        <aside class="col-lg-3 order-2 order-lg-1" aria-label="Sub-menu <?= esc($sectionLabel, 'attr') ?>">
-            <div class="bg-white rounded-3 shadow-sm p-3 position-sticky" style="top: 7.5rem;">
-                <nav class="nav flex-column gap-1">
-                    <?php foreach ($sidebar as $s): ?>
-                        <?php $active = rtrim($s['href'], '/') === rtrim(current_url(), '/'); ?>
-                        <a href="<?= esc($s['href'], 'attr') ?>" class="nav-link sidebar-nav-link fw-semibold py-2 px-3<?= $active ? ' active' : '' ?>"<?= $active ? ' aria-current="page"' : '' ?><?= ($s['type'] ?? '') === 'url' ? ' target="_blank" rel="noopener noreferrer"' : '' ?>><?= esc($s['label']) ?></a>
-                    <?php endforeach ?>
-                </nav>
-            </div>
-        </aside>
-        <?php endif ?>
+        <?= view('site/_page_sidebar', ['sidebar' => $sidebar ?? [], 'sectionLabel' => $sectionLabel, 'activeHref' => current_url()]) ?>
         <div class="<?= ! empty($sidebar) ? 'col-lg-9 order-1 order-lg-2' : 'col-12' ?>">
             <article class="bg-white p-4 p-md-5 rounded-3 shadow-sm">
                 <h1 class="font-display h3 fw-bold text-pa-primary page-title mb-4"><?= esc($page['title']) ?></h1>

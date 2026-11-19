@@ -26,13 +26,41 @@ class Purifier
                 @mkdir($dir, 0775, true);
             }
             $cfg->set('Cache.SerializerPath', $dir);
-            $cfg->set('HTML.Allowed', 'h2,h3,h4,p[class],br,strong,b,em,i,u,s,blockquote,ol,ul,li,a[href|target|rel|title],span[class],code,pre,hr,table,thead,tbody,tr,th,td');
+            $cfg->set('HTML.DefinitionID', 'satker-editor');
+            $cfg->set('HTML.DefinitionRev', 2);
+            $cfg->set('HTML.Doctype', 'XHTML 1.0 Transitional');
+            $cfg->set('HTML.Allowed', implode(',', [
+                'h1[style|id]', 'h2[style|id]', 'h3[style|id]', 'h4[style|id]', 'h5[style|id]', 'h6[style|id]',
+                'p[style|class]', 'div[style|class]', 'span[style|class]', 'br', 'hr', 'blockquote[style]', 'pre', 'code',
+                'strong', 'b', 'em', 'i', 'u', 's', 'strike', 'sub', 'sup', 'small',
+                'ol[style|start|type]', 'ul[style|type]', 'li[style]', 'dl', 'dt', 'dd',
+                'a[href|target|rel|title|id|name]',
+                'img[src|alt|title|width|height|style]',
+                'table[style|border|cellpadding|cellspacing|width|class]', 'caption[style]', 'colgroup', 'col[width|span|style]',
+                'thead', 'tbody', 'tfoot', 'tr[style]', 'th[style|colspan|rowspan|width|scope]', 'td[style|colspan|rowspan|width]',
+                'iframe[src|width|height|title|style|frameborder]',
+            ]));
+            $cfg->set('CSS.AllowedProperties', [
+                'color', 'background-color', 'font-family', 'font-size', 'font-weight', 'font-style', 'text-decoration', 'text-align',
+                'line-height', 'letter-spacing', 'vertical-align', 'width', 'height', 'max-width', 'float', 'list-style-type',
+                'margin', 'margin-left', 'margin-right', 'margin-top', 'margin-bottom', 'padding', 'padding-left', 'padding-right',
+                'border', 'border-collapse', 'border-color', 'border-style', 'border-width', 'border-spacing',
+            ]);
+            $cfg->set('CSS.MaxImgLength', null);
+            $cfg->set('HTML.MaxImgLength', null);
+            $cfg->set('Attr.EnableID', true);
             $cfg->set('Attr.AllowedFrameTargets', ['_blank']);
             $cfg->set('HTML.TargetNoopener', true);
             $cfg->set('HTML.TargetNoreferrer', true);
             $cfg->set('URI.AllowedSchemes', ['http' => true, 'https' => true, 'mailto' => true, 'tel' => true]);
             $cfg->set('Attr.AllowedClasses', ['ql-align-center', 'ql-align-right', 'ql-align-justify', 'ql-indent-1', 'ql-indent-2', 'ql-indent-3']);
+            // iframe hanya dari layanan tepercaya (sematan bebas tersedia lewat blok "Sematkan")
+            $cfg->set('HTML.SafeIframe', true);
+            $cfg->set('URI.SafeIframeRegexp', '%^https://(www\\.youtube(-nocookie)?\\.com/embed/|drive\\.google\\.com/|docs\\.google\\.com/|www\\.google\\.com/maps/embed)%');
             $cfg->set('AutoFormat.RemoveEmpty', true);
+            if ($def = $cfg->maybeGetRawHTMLDefinition()) {
+                $def->addAttribute('iframe', 'allowfullscreen', 'Bool');
+            }
             $this->p = new \HTMLPurifier($cfg);
         }
 

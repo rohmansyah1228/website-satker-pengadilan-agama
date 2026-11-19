@@ -117,12 +117,16 @@
         el._refresh = refreshSum;
 
         // seret-lepas memakai pegangan
-        handle.addEventListener('pointerdown', () => { el.draggable = true; });
+        handle.addEventListener('pointerdown', () => {
+            el.draggable = true;
+            editors('detach'); // editor berbasis iframe harus dilepas sebelum blok dipindah
+            window.addEventListener('pointerup', () => setTimeout(() => { if (!list.querySelector('.pb-dragging')) editors('attach'); }, 0), { once: true });
+        });
         handle.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); move(el, e.key === 'ArrowUp' ? -1 : 1); handle.focus(); }
         });
         el.addEventListener('dragstart', (e) => { el.classList.add('pb-dragging'); e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', ''); } catch (x) { /* abaikan */ } });
-        el.addEventListener('dragend', () => { el.draggable = false; el.classList.remove('pb-dragging'); dirty = true; renumber(); });
+        el.addEventListener('dragend', () => { el.draggable = false; el.classList.remove('pb-dragging'); editors('attach'); dirty = true; renumber(); });
         document.addEventListener('pointerup', () => { if (!el.classList.contains('pb-dragging')) el.draggable = false; });
         refreshSum();
         return el;
@@ -140,10 +144,13 @@
         else if (list.lastElementChild !== dragging) list.append(dragging);
     });
 
+    const editors = (fn) => [...list.children].forEach((b) => b._editor && b._editor[fn]());
     function move(el, dir) {
         const sib = dir < 0 ? el.previousElementSibling : el.nextElementSibling;
         if (!sib) return;
+        editors('detach');
         dir < 0 ? list.insertBefore(el, sib) : list.insertBefore(sib, el);
+        editors('attach');
         dirty = true;
         renumber();
         el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -167,40 +174,23 @@
 
     // ------------------------------------------------------------ TEKS
     function textBlock(d) {
-        const holder = h('div', { class: 'pb-quill' });
-        const wrap = h('div', {}, holder);
-        let get;
-        if (window.Quill) {
-            holder.innerHTML = d.html || '';
-            const q = new Quill(holder, {
-                theme: 'snow',
-                placeholder: 'Tulis teks di sini…',
-                modules: {
-                    toolbar: [
-                        [{ header: [2, 3, 4, false] }],
-                        ['bold', 'italic', 'underline', 'strike'],
-                        [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
-                        [{ align: [] }],
-                        ['blockquote', 'link'],
-                        ['clean']
-                    ]
-                }
-            });
-            q.root.setAttribute('aria-label', 'Isi teks');
-            q.on('text-change', () => { dirty = true; });
-            get = () => ({ type: 'text', html: q.getText().trim() === '' ? '' : q.getSemanticHTML().replace(/&nbsp;/g, ' ') });
-            wrap._focus = () => q.focus();
-            wrap._text = () => q.getText();
+        const ta = h('textarea', { class: 'form-control', rows: 10, 'aria-label': 'Isi teks' });
+        ta.value = d.html || '';
+        const wrap = h('div', { class: 'pb-text' }, ta);
+        let el = null;
+        let api;
+        if (window.SatkerEditor) {
+            api = window.SatkerEditor.init(ta, { height: 420, onChange: () => { dirty = true; el && el._refresh(); } });
         } else {
-            const ta = h('textarea', { class: 'form-control', rows: 6, 'aria-label': 'Isi teks (HTML)' });
-            ta.value = d.html || '';
-            holder.replaceWith(ta);
-            get = () => ({ type: 'text', html: ta.value });
-            wrap._focus = () => ta.focus();
-            wrap._text = () => ta.value.replace(/<[^>]+>/g, ' ');
+            ta.addEventListener('input', () => { dirty = true; });
+            api = { getContent: () => ta.value, focus: () => ta.focus(), text: () => ta.value.replace(/<[^>]+>/g, ' '), detach() {}, attach() {} };
         }
-        const el = shell('text', wrap, { get, summary: () => wrap._text().trim().slice(0, 80) });
-        el._focus = wrap._focus;
+        el = shell('text', wrap, {
+            get: () => { const html = api.getContent(); const t = document.createElement('div'); t.innerHTML = html; return { type: 'text', html: (t.textContent || '').trim() === '' && !/<(img|iframe|table|hr)/i.test(html) ? '' : html }; },
+            summary: () => api.text().trim().slice(0, 80)
+        });
+        el._focus = () => api.focus();
+        el._editor = api;
         return el;
     }
 

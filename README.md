@@ -50,10 +50,12 @@ Aplikasi website satuan kerja Peradilan Agama yang **open source**, dibangun den
 |---|---|
 | **Dashboard Kepatuhan SINOVA** | Cek otomatis 35 kriteria Lampiran II (menyesuaikan PA/PTA), tombol *Salin URL* untuk diinput ke SINOVA |
 | **Tampilan Beranda** | Editor grid bebas 12 kolom: seret kotak ke mana saja, tarik sudut untuk ubah lebar & tinggi, 13 jenis blok |
+| **Editor teks** | Editor lengkap seperti Joomla/JCE: format, jenis & ukuran huruf, warna, perataan, tabel, gambar (unggah langsung/tempel), video & Google Drive, dokumen PDF, tautan internal, tab **Editor / Kode HTML / Pratinjau**, hitung kata. Isi tetap dibersihkan HTMLPurifier |
 | **Halaman** | Isi berbasis blok yang bisa diseret: **teks**, **tabel** (tempel langsung dari Excel; kolom tautan tampil sebagai tombol *Lihat* dengan pratinjau Google Drive/Docs di popup), **gambar**, dan **sematan** (Google Drive, Docs/Sheets/Slides/Form, YouTube, PDF, Google Maps, atau halaman website lain). Ditambah modul data. Halaman wajib SK dikunci alamatnya; perubahan alamat halaman lain otomatis dialihkan (301) |
 | **Menu Navigasi** | Label, urutan, sub-menu hingga 3 level, tautan internal/luar |
 | **Arsip Dokumen** | SAKIP (Renstra, RKT, PK, IKU, LKjIP), keuangan (DIPA, LRA, CALK), RUP, laporan bulanan, SK panjar, survei |
 | **Data** | Berita, slider (maks. 5), pintasan, jadwal sidang, panggilan ghaib, statistik perkara, pegawai, LHKPN, wilayah, pengaduan/hukuman disiplin, laporan akses informasi |
+| **Profil Pegawai** | Setiap pejabat/pegawai punya halaman profil (foto, pangkat, TMT, agama/jenis kelamin, profil singkat, riwayat pendidikan, pekerjaan & diklat). Daftar tampil sebagai kartu berfoto atau tabel dengan tombol *Detail* |
 | **Pengguna & Peran** | Super Admin, Admin Konten, Operator Kepaniteraan / Kesekretariatan / Humas |
 | **Keamanan** | Login dengan **MFA (TOTP)** wajib, pembatasan percobaan, CSRF, HTMLPurifier, log aktivitas |
 
@@ -296,7 +298,7 @@ Dirilis di bawah **[Lisensi MIT](LICENSE)**: bebas dipakai, diubah, dan dibagika
 [HTMLPurifier](http://htmlpurifier.org) (LGPL-2.1) ·
 [Bootstrap 5](https://getbootstrap.com) (MIT) ·
 [Bootstrap Icons](https://icons.getbootstrap.com) (MIT) ·
-[Quill](https://quilljs.com) (BSD-3) ·
+[TinyMCE 6](https://www.tiny.cloud) (MIT) ·
 [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator) (MIT) ·
 font [Inter](https://rsms.me/inter/) & [Montserrat](https://github.com/JulietaUla/Montserrat) (SIL OFL 1.1).
 
