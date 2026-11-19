@@ -24,23 +24,6 @@
                     <label for="title" class="form-label fw-semibold">Judul <span class="text-danger" aria-hidden="true">*</span></label>
                     <input type="text" id="title" name="title" value="<?= esc($page['title'] ?? '', 'attr') ?>" class="form-control form-control-lg" required data-slug-source>
                 </div>
-                <fieldset class="mb-4">
-                    <legend class="form-label fw-semibold fs-6 mb-1">Isi Halaman</legend>
-                    <p class="form-text mt-0 mb-2">Susun isi dari beberapa blok: teks, tabel (kolom tautan tampil sebagai tombol <em>Lihat</em> — cocok untuk tautan Google Drive), gambar, atau halaman lain yang disematkan. Seret <i class="bi bi-grip-vertical" aria-hidden="true"></i> untuk mengubah urutan.</p>
-                    <?php if (! empty($moduleData) && empty($moduleData['settings'])): ?>
-                        <a href="#data-modul" class="alert alert-warning d-flex align-items-center gap-2 py-2 small text-decoration-none mb-2"><i class="bi bi-database" aria-hidden="true"></i><span>Halaman ini juga menampilkan <strong>data <?= esc($moduleData['res']['title']) ?></strong> (<?= number_format($moduleData['total'], 0, ',', '.') ?> data). Kelola datanya di bagian <strong>Data <?= esc($moduleData['res']['title']) ?></strong> di bawah ↓</span></a>
-                    <?php endif ?>
-                    <div id="pbList" class="pb-list" data-media="<?= esc(base_url(), 'attr') ?>"></div>
-                    <div class="pb-add" role="group" aria-label="Tambah blok">
-                        <span class="small fw-semibold text-secondary me-1">Tambah blok:</span>
-                        <?php foreach ($blockTypes as $k => $t): ?>
-                            <button type="button" class="btn btn-sm btn-outline-success" data-pb-add="<?= $k ?>"><i class="bi <?= $t['icon'] ?>" aria-hidden="true"></i> <?= esc($k === 'embed' ? 'Sematkan' : $t['label']) ?></button>
-                        <?php endforeach ?>
-                    </div>
-                    <input type="hidden" name="blocks_json" id="pbJson" value="">
-                    <script type="application/json" id="pbData"><?= json_encode(array_values($blocks), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) ?></script>
-                    <script type="application/json" id="pbConfig"><?= json_encode(['types' => $blockTypes, 'sizes' => $sizes, 'aligns' => $aligns], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) ?></script>
-                </fieldset>
                 <?php if (! empty($moduleData)): $md = $moduleData; ?>
                 <section id="data-modul" class="module-data mb-4" aria-labelledby="mdTitle">
                     <?php if (! empty($md['settings'])): ?>
@@ -72,6 +55,23 @@
                     <?php endif ?>
                 </section>
                 <?php endif ?>
+                <fieldset class="mb-4">
+                    <legend class="form-label fw-semibold fs-6 mb-1"><?= ! empty($moduleData) && empty($moduleData['settings']) ? 'Konten Tambahan Halaman <span class="fw-normal text-secondary">(opsional)</span>' : 'Isi Halaman' ?></legend>
+                    <p class="form-text mt-0 mb-2">Susun isi dari beberapa blok: teks, tabel (kolom tautan tampil sebagai tombol <em>Lihat</em> — cocok untuk tautan Google Drive), gambar, atau halaman lain yang disematkan. Seret <i class="bi bi-grip-vertical" aria-hidden="true"></i> untuk mengubah urutan.</p>
+                    <?php if (! empty($moduleData) && empty($moduleData['settings'])): ?>
+                        <div class="alert alert-light border small py-2 mb-2"><i class="bi bi-info-circle text-pa-primary" aria-hidden="true"></i> Blok di bawah ini (teks, tabel, gambar) hanya tampil di halaman ini sebagai pelengkap, <strong>tidak masuk ke menu <?= esc($moduleData['res']['title']) ?></strong>. Untuk data <?= esc(strtolower($moduleData['res']['title'])) ?>, gunakan bagian <a href="#data-modul">Data <?= esc($moduleData['res']['title']) ?></a> di atas.</div>
+                    <?php endif ?>
+                    <div id="pbList" class="pb-list" data-media="<?= esc(base_url(), 'attr') ?>"></div>
+                    <div class="pb-add" role="group" aria-label="Tambah blok">
+                        <span class="small fw-semibold text-secondary me-1">Tambah blok:</span>
+                        <?php foreach ($blockTypes as $k => $t): ?>
+                            <button type="button" class="btn btn-sm btn-outline-success" data-pb-add="<?= $k ?>"><i class="bi <?= $t['icon'] ?>" aria-hidden="true"></i> <?= esc($k === 'embed' ? 'Sematkan' : $t['label']) ?></button>
+                        <?php endforeach ?>
+                    </div>
+                    <input type="hidden" name="blocks_json" id="pbJson" value="">
+                    <script type="application/json" id="pbData"><?= json_encode(array_values($blocks), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) ?></script>
+                    <script type="application/json" id="pbConfig"><?= json_encode(['types' => $blockTypes, 'sizes' => $sizes, 'aligns' => $aligns], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) ?></script>
+                </fieldset>
                 <div class="mb-0">
                     <label for="image" class="form-label fw-semibold">Gambar Sampul Halaman <span class="fw-normal text-secondary">(opsional)</span></label>
                     <?php if (! empty($page['image'])): ?>

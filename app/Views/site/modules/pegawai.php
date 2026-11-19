@@ -1,5 +1,14 @@
 <?php
+use App\Libraries\PageBlocks;
 $base = site_url("{$page['section']}/{$page['slug']}");
+/** Tautan profil: tautan SIMTEPA (dibuka di penampil popup) atau halaman profil internal. */
+$profile = static function (array $e) use ($base): array {
+    $ext = ! empty($e['profile_url']) ? PageBlocks::cleanUrl((string) $e['profile_url']) : null;
+
+    return $ext
+        ? ['href' => $ext, 'attrs' => ' data-preview="' . esc(PageBlocks::previewUrl($ext) ?? $ext, 'attr') . '" data-preview-title="' . esc($e['name'], 'attr') . '" target="_blank" rel="noopener noreferrer"']
+        : ['href' => $base . '/' . $e['id'], 'attrs' => ''];
+};
 $mode = ($page['module_param'] ?? '') === 'tabel' ? 'tabel' : 'kartu';
 ?>
 <?php if (empty($groups)): ?><p class="text-secondary">Data pegawai belum tersedia.</p><?php endif ?>
@@ -17,7 +26,7 @@ $mode = ($page['module_param'] ?? '') === 'tabel' ? 'tabel' : 'kartu';
                             <td class="fw-semibold"><?= esc($e['name']) ?></td>
                             <td><?= esc($e['position']) ?></td>
                             <td class="d-none d-md-table-cell"><?= esc($e['rank']) ?></td>
-                            <td class="text-center"><a href="<?= $base . '/' . $e['id'] ?>" class="btn btn-sm btn-pa-primary page-link-btn" aria-label="Detail profil <?= esc($e['name'], 'attr') ?>"><i class="bi bi-person-vcard" aria-hidden="true"></i> Detail</a></td>
+                            <td class="text-center"><?php $pl = $profile($e); ?><a href="<?= esc($pl['href'], 'attr') ?>"<?= $pl['attrs'] ?> class="btn btn-sm btn-pa-primary page-link-btn" aria-label="Detail profil <?= esc($e['name'], 'attr') ?>"><i class="bi bi-person-vcard" aria-hidden="true"></i> Detail</a></td>
                         </tr>
                     <?php endforeach ?>
                 </tbody>
@@ -38,7 +47,7 @@ $mode = ($page['module_param'] ?? '') === 'tabel' ? 'tabel' : 'kartu';
                     <?php else: ?>
                         <div class="rounded-circle mx-auto mb-3 employee-photo d-flex align-items-center justify-content-center bg-pa-primary text-white fs-2" aria-hidden="true"><i class="bi bi-person"></i></div>
                     <?php endif ?>
-                    <h3 class="h6 fw-bold text-pa-primary mb-1"><a href="<?= $base . '/' . $e['id'] ?>" class="stretched-link text-reset text-decoration-none"><?= esc($e['name']) ?></a></h3>
+                    <h3 class="h6 fw-bold text-pa-primary mb-1"><?php $pl = $profile($e); ?><a href="<?= esc($pl['href'], 'attr') ?>"<?= $pl['attrs'] ?> class="stretched-link text-reset text-decoration-none"><?= esc($e['name']) ?></a></h3>
                     <?php if ($e['position']): ?><p class="small fw-semibold mb-1" style="color:#b36b00;"><?= esc($e['position']) ?></p><?php endif ?>
                     <?php if ($e['rank']): ?><p class="small text-secondary mb-2"><?= esc($e['rank']) ?></p><?php endif ?>
                     <span class="mt-auto small fw-semibold text-pa-primary" aria-hidden="true">Lihat profil <i class="bi bi-arrow-right"></i></span>
