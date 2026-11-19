@@ -72,6 +72,16 @@
                 'bullist numlist outdent indent | link anchor image media table | subscript superscript charmap hr nonbreaking insertdatetime | removeformat | searchreplace visualblocks | code preview fullscreen'
             ],
             toolbar_mode: 'wrap',
+            // Di HP TinyMCE memakai toolbar geser-samping secara bawaan;
+            // paksa tombol turun ke bawah (berbaris) agar semuanya terlihat.
+            mobile: {
+                menubar: 'edit view insert format table tools',
+                toolbar_mode: 'wrap',
+                toolbar_sticky: false,
+                // Tombol yang sering dipakai saja; sisanya ada di menu Edit/Masukkan/Format/Tabel.
+                toolbar: 'undo redo blocks bold italic underline forecolor alignleft aligncenter alignright alignjustify bullist numlist outdent indent link image media table removeformat code fullscreen',
+                height: (opts.height || 520) + 220
+            },
             toolbar_sticky: true,
             toolbar_sticky_offset: (document.querySelector('.admin-topbar') || { offsetHeight: 0 }).offsetHeight,
             block_formats: 'Paragraf=p; Judul 2=h2; Judul 3=h3; Judul 4=h4; Judul 5=h5; Kutipan=blockquote; Praformat=pre',
