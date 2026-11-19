@@ -73,7 +73,7 @@
             ],
             toolbar_mode: 'wrap',
             toolbar_sticky: true,
-            toolbar_sticky_offset: 0,
+            toolbar_sticky_offset: (document.querySelector('.admin-topbar') || { offsetHeight: 0 }).offsetHeight,
             block_formats: 'Paragraf=p; Judul 2=h2; Judul 3=h3; Judul 4=h4; Judul 5=h5; Kutipan=blockquote; Praformat=pre',
             font_family_formats: 'Inter=Inter,sans-serif; Montserrat=Montserrat,sans-serif; Arial=arial,helvetica,sans-serif; Tahoma=tahoma,arial,sans-serif; Verdana=verdana,geneva,sans-serif; Georgia=georgia,serif; Times New Roman=times new roman,times,serif; Courier New=courier new,courier,monospace',
             font_size_formats: '8pt 9pt 10pt 11pt 12pt 14pt 16pt 18pt 20pt 24pt 28pt 32pt 36pt',
@@ -240,5 +240,5 @@
     }
 
     window.SatkerEditor = { init };
-    document.querySelectorAll('textarea[data-richtext]').forEach((ta) => init(ta));
+    document.querySelectorAll('textarea[data-richtext]').forEach((ta) => init(ta, { height: parseInt(ta.dataset.richtextHeight || '', 10) || undefined }));
 })();

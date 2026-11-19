@@ -28,8 +28,16 @@ $inputName = $inputName ?? $name;
         <?php switch ($type):
             case 'textarea': ?>
                 <textarea id="<?= $id ?>" name="<?= $inputName ?>" rows="4" class="form-control<?= $invalid ?>"<?= $required ? ' required' : '' ?><?= $aria ?>><?= esc((string) $value) ?></textarea>
-            <?php break; case 'richtext': ?>
-                <textarea id="<?= $id ?>" name="<?= $inputName ?>" rows="12" class="form-control<?= $invalid ?>" data-richtext<?= $aria ?>><?= esc((string) $value) ?></textarea>
+            <?php break; case 'richtext':
+                $html = (string) $value;
+                if (trim($html) !== '' && ! preg_match('/<(p|ol|ul|li|br|div|h\d|table|strong|em|a)\b/i', $html)) {
+                    // teks lama (satu per baris) → HTML agar rapi di editor
+                    $lines = array_values(array_filter(array_map(static fn ($l) => trim(preg_replace('/^\s*(\d+[.)]|[-•*])\s+/u', '', $l)), preg_split('/\R/', $html)), 'strlen'));
+                    $html  = ($f['plainAs'] ?? '') === 'ol'
+                        ? '<ol>' . implode('', array_map(static fn ($l) => '<li>' . esc($l) . '</li>', $lines)) . '</ol>'
+                        : implode('', array_map(static fn ($l) => '<p>' . esc($l) . '</p>', $lines));
+                } ?>
+                <textarea id="<?= $id ?>" name="<?= $inputName ?>" rows="12" class="form-control<?= $invalid ?>" data-richtext<?= ! empty($f['height']) ? ' data-richtext-height="' . (int) $f['height'] . '"' : '' ?><?= $aria ?>><?= esc($html) ?></textarea>
             <?php break; case 'select':
                 $opts = $f['options'] ?? ($lookups[$name] ?? []); ?>
                 <select id="<?= $id ?>" name="<?= $inputName ?>" class="form-select<?= $invalid ?>"<?= $required ? ' required' : '' ?><?= $aria ?><?= $disabled ? ' disabled' : '' ?>>

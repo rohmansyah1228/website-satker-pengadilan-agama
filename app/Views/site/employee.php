@@ -1,12 +1,20 @@
 <?= $this->extend('layouts/site') ?>
 <?= $this->section('content') ?>
 <?php
+$isHtml = static fn (?string $t): bool => (bool) preg_match('/<(p|ol|ul|li|br|div|h\d|table|strong|em|a)\b/i', (string) $t);
 $lines = static fn (?string $t): array => array_values(array_filter(array_map(
     static fn ($l) => trim(preg_replace('/^\s*(\d+[.)]|[-•*])\s+/u', '', $l)), preg_split('/\R/', (string) $t)
 ), 'strlen'));
 $pageUrl  = site_url("{$page['section']}/{$page['slug']}");
-$history  = ['Riwayat Pendidikan' => ['bi-mortarboard-fill', $lines($emp['education'])], 'Riwayat Pekerjaan' => ['bi-briefcase-fill', $lines($emp['career'])], 'Riwayat Diklat / Pelatihan' => ['bi-award-fill', $lines($emp['training'] ?? '')]];
-$history  = array_filter($history, static fn ($h) => $h[1]);
+// isi riwayat: HTML dari editor (sudah dibersihkan HTMLPurifier) atau teks lama satu per baris
+$history = [];
+foreach (['Riwayat Pendidikan' => ['bi-mortarboard-fill', 'education'], 'Riwayat Pekerjaan' => ['bi-briefcase-fill', 'career'], 'Riwayat Diklat / Pelatihan' => ['bi-award-fill', 'training']] as $label => [$icon, $col]) {
+    $v = (string) ($emp[$col] ?? '');
+    if (trim(strip_tags($v)) === '') {
+        continue;
+    }
+    $history[$label] = [$icon, $isHtml($v) ? $v : '<ol>' . implode('', array_map(static fn ($l) => '<li>' . esc($l) . '</li>', $lines($v))) . '</ol>'];
+}
 $gender   = ['L' => 'Pria', 'P' => 'Wanita'][$emp['gender'] ?? ''] ?? '';
 $identity = implode('  |  ', array_filter([$emp['religion'] ?? '', $gender]));
 ?>
@@ -53,8 +61,8 @@ $identity = implode('  |  ', array_filter([$emp['religion'] ?? '', $gender]));
                     </div>
                     <?php endif ?>
 
-                    <?php if (trim((string) ($emp['bio'] ?? '')) !== ''): ?>
-                        <div class="emp-bio mb-4"><?= nl2br(esc($emp['bio'])) ?></div>
+                    <?php if (trim(strip_tags((string) ($emp['bio'] ?? ''))) !== ''): ?>
+                        <div class="emp-bio emp-rich mb-4"><?= $isHtml($emp['bio']) ? $emp['bio'] : nl2br(esc($emp['bio'])) ?></div>
                     <?php endif ?>
 
                     <?php if ($history): ?>
@@ -63,7 +71,7 @@ $identity = implode('  |  ', array_filter([$emp['religion'] ?? '', $gender]));
                         <section class="col-md-6" aria-label="<?= esc($label, 'attr') ?>">
                             <div class="emp-history h-100">
                                 <h2 class="h6 fw-bold mb-3"><span class="emp-fact__icon emp-fact__icon--sm"><i class="bi <?= $icon ?>" aria-hidden="true"></i></span> <?= esc($label) ?></h2>
-                                <ol class="mb-0 small text-secondary lh-lg"><?php foreach ($items as $it): ?><li><?= esc($it) ?></li><?php endforeach ?></ol>
+                                <div class="emp-rich small text-secondary lh-lg"><?= $items ?></div>
                             </div>
                         </section>
                         <?php endforeach ?>

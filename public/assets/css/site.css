@@ -384,3 +384,6 @@ body.high-contrast .form-control { background: #000 !important; color: #ff0 !imp
 .emp-bio { background: #fff; border-left: 4px solid var(--pa-secondary); border-radius: .5rem; padding: 1rem 1.25rem; color: #374151; }
 .emp-history { background: #fff; border: 1px solid #e6ece9; border-radius: .75rem; padding: 1.25rem 1.25rem 1rem; }
 .emp-history ol { padding-left: 1.2rem; }
+.emp-rich > :last-child { margin-bottom: 0; }
+.emp-rich ol, .emp-rich ul { padding-left: 1.2rem; margin-bottom: .5rem; }
+.emp-rich table { width: 100%; }
