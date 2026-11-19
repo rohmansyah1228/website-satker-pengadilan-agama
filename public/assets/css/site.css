@@ -387,3 +387,33 @@ body.high-contrast .form-control { background: #000 !important; color: #ff0 !imp
 .emp-rich > :last-child { margin-bottom: 0; }
 .emp-rich ol, .emp-rich ul { padding-left: 1.2rem; margin-bottom: .5rem; }
 .emp-rich table { width: 100%; }
+
+/* ---------- Kepala halaman di layar kecil: nama satker panjang boleh turun baris ---------- */
+@media (max-width: 1199.98px) {
+    .navbar-brand { white-space: normal; min-width: 0; flex: 1 1 0; margin-right: .5rem; gap: .65rem !important; }
+    .navbar-brand > div { min-width: 0; }
+    .brand-name { font-size: clamp(.82rem, 3.4vw, 1.15rem); line-height: 1.2; overflow-wrap: anywhere; }
+    .navbar-brand .text-secondary.small { font-size: clamp(.7rem, 2.6vw, .875rem); }
+    .navbar-brand img.brand-logo { height: clamp(2.4rem, 9vw, 3.2rem); flex-shrink: 0; }
+    .navbar-toggler { flex-shrink: 0; padding: .25rem .4rem; }
+    .navbar-collapse { flex-basis: 100%; }
+}
+/* pengaman: tidak ada isi yang membuat halaman melebar ke samping di HP */
+@media (max-width: 767.98px) {
+    html, body { overflow-x: clip; }
+    .prose img, .prose iframe, .prose video { max-width: 100%; height: auto; }
+    .prose table { display: block; max-width: 100%; overflow-x: auto; }
+    .prose pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+    .prose a { overflow-wrap: anywhere; }
+}
+
+/* label tersembunyi (visually-hidden) di dalam tabel tidak boleh melebarkan halaman */
+.table-responsive { position: relative; }
+
+/* Tombol Disabilitas di HP: bundar berikon agar tidak menutupi isi (label tetap dibaca pembaca layar via aria-label) */
+@media (max-width: 575.98px) {
+    .a11y-widget { bottom: 1rem; right: .85rem; }
+    #a11yToggle { width: 3.1rem; height: 3.1rem; padding: 0 !important; border-radius: 50% !important; display: inline-grid; place-items: center; }
+    #a11yToggle .bi { margin: 0 !important; font-size: 1.45rem !important; }
+    #a11yToggle .a11y-label { display: none; }
+}

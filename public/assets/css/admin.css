@@ -62,7 +62,7 @@ dialog.confirm:modal { overscroll-behavior: contain; }
 .hp-field { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
 
 @media (max-width: 991.98px) {
-  .admin-shell { grid-template-columns: 1fr; }
+  .admin-shell { grid-template-columns: minmax(0, 1fr); }
   .admin-sidebar { position: fixed; inset: 0 auto 0 0; width: 270px; z-index: 1050; transform: translateX(-100%); transition: transform .2s; }
   .admin-sidebar.open { transform: none; }
 }
@@ -124,7 +124,7 @@ html.gb-sizing, html.gb-sizing * { cursor: nwse-resize !important; }
 .pb-tools { display: flex; gap: .25rem; margin-left: auto; flex-shrink: 0; }
 .pb-body { padding: .8rem; }
 .pb-collapsed .pb-body { display: none; }
-.pb-grid-wrap { overflow-x: auto; border-radius: .4rem; }
+.pb-grid-wrap { overflow-x: auto; border-radius: .4rem; position: relative; }
 .pb-grid { min-width: 560px; }
 .pb-grid th { background: #eef6f2; vertical-align: top; min-width: 170px; }
 .pb-grid th.pb-col-link { background: #fff6e6; }
@@ -157,3 +157,20 @@ html.gb-sizing, html.gb-sizing * { cursor: nwse-resize !important; }
 .crud-section:first-child { margin-top: 0; }
 .crud-side__title { font-size: .75rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #6b7280; margin: 0 0 .75rem; padding-top: .25rem; }
 .crud-side .mb-3 + .crud-side__title, .crud-side ul + .crud-side__title { border-top: 1px solid #eef2f0; padding-top: 1rem; }
+
+/* Panel admin di HP: kolom isi tidak boleh melebar karena tabel/isian panjang */
+.admin-shell > div { min-width: 0; }
+/* label tersembunyi (visually-hidden) di dalam tabel tidak boleh melebarkan halaman */
+.table-responsive { position: relative; }
+@media (max-width: 767.98px) {
+    .admin-main { padding: 1rem .75rem; }
+    .admin-main table:not(.pb-grid) { display: block; max-width: 100%; overflow-x: auto; }
+    .admin-main .table-responsive > table { display: table; }
+    .admin-topbar { flex-wrap: wrap; }
+    .admin-topbar .text-secondary { display: none !important; }
+    .admin-main .card.p-4 { padding: 1rem !important; }
+    .rte-tabs .rte-tab { padding: .4rem .6rem; font-size: .8rem; }
+    .pb-tools { flex-wrap: wrap; justify-content: flex-end; }
+    .pb-head { flex-wrap: wrap; }
+    .gb-grid { min-width: 0; }
+}

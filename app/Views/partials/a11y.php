@@ -15,6 +15,6 @@
         </div>
     </div>
     <button type="button" id="a11yToggle" class="btn btn-pa-secondary rounded-pill shadow-lg px-3 py-2 fw-bold float-end border border-2 border-dark" aria-controls="a11yPanel" aria-expanded="false" aria-label="Menu Aksesibilitas Penyandang Disabilitas">
-        <i class="bi bi-universal-access fs-5 me-1" aria-hidden="true"></i> Disabilitas
+        <i class="bi bi-universal-access fs-5 me-1" aria-hidden="true"></i><span class="a11y-label">Disabilitas</span>
     </button>
 </div>
