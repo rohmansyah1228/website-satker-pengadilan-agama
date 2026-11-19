@@ -97,6 +97,60 @@ class Pages extends AdminController
         return redirect()->to(admin_url('halaman'))->with('success', 'Halaman dihapus beserta tautan menunya.');
     }
 
+    /** Modul halaman → data di menu samping (app/Config/AdminResources.php) */
+    private const MODULE_RESOURCES = [
+        'documents' => 'dokumen', 'survei' => 'dokumen', 'pegawai' => 'pegawai', 'yurisdiksi' => 'wilayah',
+        'jadwal' => 'jadwal-sidang', 'ghaib' => 'panggilan-ghaib', 'statistik' => 'statistik-perkara', 'lhkpn' => 'lhkpn',
+        'akses_informasi' => 'akses-informasi', 'pengaduan' => 'pengaduan', 'hukdis' => 'pengaduan',
+    ];
+
+    /**
+     * Data modul yang tampil di halaman ini — sama persis dengan data di menu samping,
+     * sehingga menambah/mengubah dari Ubah Halaman otomatis tampil di menu tersebut.
+     */
+    private function moduleData(array $page, int $id): ?array
+    {
+        $module = (string) ($page['module'] ?? '');
+        if ($module === 'kontak' || $module === 'ecourt') {
+            return can([]) ? ['settings' => true, 'title' => $module === 'kontak' ? 'Alamat & Kontak' : 'Tautan e-Court'] : null;
+        }
+        $key = self::MODULE_RESOURCES[$module] ?? null;
+        $res = $key ? (config('AdminResources')->resources[$key] ?? null) : null;
+        if (! $res || ! can($res['roles'])) {
+            return null;
+        }
+        $back = admin_url('halaman/' . $id) . '#data-modul';
+        $b    = $this->db->table($res['table']);
+        $adds = [];
+        if ($res['table'] === 'documents') {
+            $codes = array_filter(explode(',', (string) $page['module_param']));
+            $types = $codes ? $this->db->table('doc_types')->whereIn('code', $codes)->orderBy('sort')->get()->getResultArray() : [];
+            $b->whereIn('doc_type_id', $types ? array_column($types, 'id') : [0]);
+            foreach ($types as $t) {
+                $adds[] = ['label' => $t['name'], 'url' => admin_url('data/dokumen/baru') . '?' . http_build_query(['jenis' => $t['id'], 'kembali' => $back])];
+            }
+        } else {
+            $adds[] = ['label' => $res['singular'], 'url' => admin_url("data/{$key}/baru") . '?' . http_build_query(['kembali' => $back])];
+        }
+        $order = $res['order'] ?? ['id', 'DESC'];
+        for ($i = 0; $i < count($order); $i += 2) {
+            $b->orderBy($order[$i], $order[$i + 1]);
+        }
+        $total = (clone $b)->countAllResults(false);
+        $rows  = $b->orderBy('id', 'DESC')->get(100)->getResultArray();
+
+        $lookups = [];
+        foreach ($res['fields'] as $name => $f) {
+            if (isset($f['source'])) {
+                [$t, $k, $l]    = $f['source'];
+                $lookups[$name] = array_column($this->db->table($t)->select("{$k}, {$l}")->get()->getResultArray(), $l, $k);
+            }
+        }
+
+        return ['key' => $key, 'res' => $res, 'rows' => $rows, 'total' => $total, 'lookups' => $lookups, 'back' => $back, 'adds' => $adds,
+            'manage' => admin_url("data/{$key}")];
+    }
+
     private function form(array $page, ?int $id, array $errors = [])
     {
         $crit = [];
@@ -112,7 +166,7 @@ class Pages extends AdminController
         $blocks = isset($page['blocks_json']) ? (json_decode((string) $page['blocks_json'], true) ?: []) : $pb->decode($page);
 
         return $this->view('pages/form', [
-            'blocks' => $blocks, 'blockTypes' => PageBlocks::TYPES, 'sizes' => PageBlocks::SIZES, 'aligns' => PageBlocks::ALIGNS,
+            'blocks' => $blocks, 'moduleData' => $id ? $this->moduleData($page, $id) : null, 'blockTypes' => PageBlocks::TYPES, 'sizes' => PageBlocks::SIZES, 'aligns' => PageBlocks::ALIGNS,
             'pageBuilder' => true,
             'title' => $id ? 'Ubah Halaman' : 'Halaman Baru', 'page' => $page, 'id' => $id, 'errors' => $errors,
             'sections' => $this->sections(), 'modules' => config('SiteStructure')->modules, 'criteria' => $crit,

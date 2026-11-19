@@ -22,6 +22,14 @@ class Crud extends AdminController
         $this->authorize($this->res['roles']);
     }
 
+    /** Alamat kembali (mis. dari halaman Ubah Halaman) — hanya alamat panel admin sendiri. */
+    private function returnUrl(): ?string
+    {
+        $u = $this->request->getGetPost('kembali');
+
+        return is_string($u) && str_starts_with($u, admin_url('halaman/')) && ! preg_match('/[\s<>"\\\\]/', $u) ? $u : null;
+    }
+
     /** Jenis dokumen yang boleh dikelola pengguna (berdasarkan bagian). */
     private function allowedDocTypeIds(): ?array
     {
@@ -151,7 +159,7 @@ class Crud extends AdminController
         $this->log('hapus', $this->res['singular'] . ': ' . $this->label($row));
         $this->flushPublic();
 
-        return redirect()->to(admin_url('data/' . $this->key))->with('success', $this->res['singular'] . ' dihapus.');
+        return redirect()->to($this->returnUrl() ?? admin_url('data/' . $this->key))->with('success', $this->res['singular'] . ' dihapus.');
     }
 
     // ------------------------------------------------------------------
@@ -173,7 +181,7 @@ class Crud extends AdminController
     {
         return $this->view('crud/form', [
             'key' => $this->key, 'res' => $this->res, 'row' => $row, 'id' => $id,
-            'lookups' => $this->lookups(), 'errors' => $errors,
+            'lookups' => $this->lookups(), 'errors' => $errors, 'kembali' => $this->returnUrl(),
             'richtext' => (bool) array_filter($this->res['fields'], static fn ($f) => $f[1] === 'richtext'),
         ]);
     }
@@ -364,7 +372,10 @@ class Crud extends AdminController
         }
         $this->flushPublic();
 
-        $redirect = $this->request->getPost('_after') === 'new' ? admin_url("data/{$this->key}/baru") : admin_url("data/{$this->key}");
+        $back     = $this->returnUrl();
+        $redirect = $this->request->getPost('_after') === 'new'
+            ? admin_url("data/{$this->key}/baru") . '?' . http_build_query(array_filter(['kembali' => $back, 'jenis' => $this->res['table'] === 'documents' ? ($data['doc_type_id'] ?? null) : null]))
+            : ($back ?? admin_url("data/{$this->key}"));
 
         return redirect()->to($redirect)->with('success', $r['singular'] . ' tersimpan.');
     }

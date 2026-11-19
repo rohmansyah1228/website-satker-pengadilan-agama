@@ -27,6 +27,9 @@
                 <fieldset class="mb-4">
                     <legend class="form-label fw-semibold fs-6 mb-1">Isi Halaman</legend>
                     <p class="form-text mt-0 mb-2">Susun isi dari beberapa blok: teks, tabel (kolom tautan tampil sebagai tombol <em>Lihat</em> — cocok untuk tautan Google Drive), gambar, atau halaman lain yang disematkan. Seret <i class="bi bi-grip-vertical" aria-hidden="true"></i> untuk mengubah urutan.</p>
+                    <?php if (! empty($moduleData) && empty($moduleData['settings'])): ?>
+                        <a href="#data-modul" class="alert alert-warning d-flex align-items-center gap-2 py-2 small text-decoration-none mb-2"><i class="bi bi-database" aria-hidden="true"></i><span>Halaman ini juga menampilkan <strong>data <?= esc($moduleData['res']['title']) ?></strong> (<?= number_format($moduleData['total'], 0, ',', '.') ?> data). Kelola datanya di bagian <strong>Data <?= esc($moduleData['res']['title']) ?></strong> di bawah ↓</span></a>
+                    <?php endif ?>
                     <div id="pbList" class="pb-list" data-media="<?= esc(base_url(), 'attr') ?>"></div>
                     <div class="pb-add" role="group" aria-label="Tambah blok">
                         <span class="small fw-semibold text-secondary me-1">Tambah blok:</span>
@@ -38,6 +41,37 @@
                     <script type="application/json" id="pbData"><?= json_encode(array_values($blocks), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) ?></script>
                     <script type="application/json" id="pbConfig"><?= json_encode(['types' => $blockTypes, 'sizes' => $sizes, 'aligns' => $aligns], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) ?></script>
                 </fieldset>
+                <?php if (! empty($moduleData)): $md = $moduleData; ?>
+                <section id="data-modul" class="module-data mb-4" aria-labelledby="mdTitle">
+                    <?php if (! empty($md['settings'])): ?>
+                        <h2 id="mdTitle" class="h6 fw-bold mb-1"><i class="bi bi-database text-pa-primary" aria-hidden="true"></i> Data <?= esc($md['title']) ?></h2>
+                        <p class="small text-secondary mb-2">Data modul ini diambil dari Pengaturan situs.</p>
+                        <a href="<?= admin_url('pengaturan') ?>" class="btn btn-sm btn-outline-success"><i class="bi bi-gear" aria-hidden="true"></i> Ubah di Pengaturan</a>
+                    <?php else: ?>
+                        <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-2">
+                            <div>
+                                <h2 id="mdTitle" class="h6 fw-bold mb-1"><i class="bi <?= $md['res']['icon'] ?> text-pa-primary" aria-hidden="true"></i> Data <?= esc($md['res']['title']) ?> <span class="badge text-bg-light border"><?= number_format($md['total'], 0, ',', '.') ?> data</span></h2>
+                                <p class="small text-secondary mb-0">Data ini <strong>sama dengan menu “<?= esc($md['res']['title']) ?>”</strong> di samping. Menambah atau mengubah di sini otomatis tampil di menu tersebut dan di halaman publik.</p>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <?php if (count($md['adds']) === 1): ?>
+                                    <a href="<?= esc($md['adds'][0]['url'], 'attr') ?>" class="btn btn-sm btn-pa-primary"><i class="bi bi-plus-lg" aria-hidden="true"></i> Tambah <?= esc($md['adds'][0]['label']) ?></a>
+                                <?php elseif ($md['adds']): ?>
+                                    <div class="dropdown">
+                                        <button type="button" class="btn btn-sm btn-pa-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-plus-lg" aria-hidden="true"></i> Tambah Dokumen</button>
+                                        <ul class="dropdown-menu dropdown-menu-end"><?php foreach ($md['adds'] as $a): ?><li><a class="dropdown-item" href="<?= esc($a['url'], 'attr') ?>"><?= esc($a['label']) ?></a></li><?php endforeach ?></ul>
+                                    </div>
+                                <?php else: ?>
+                                    <span class="small text-danger">Pilih jenis dokumen di samping lalu Simpan, agar bisa menambah dokumen.</span>
+                                <?php endif ?>
+                                <a href="<?= esc($md['manage'], 'attr') ?>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i> Buka menu <?= esc($md['res']['title']) ?></a>
+                            </div>
+                        </div>
+                        <?= view('admin/crud/_table', ['key' => $md['key'], 'res' => $md['res'], 'rows' => $md['rows'], 'lookups' => $md['lookups'], 'back' => $md['back']]) ?>
+                        <?php if ($md['total'] > count($md['rows'])): ?><p class="small text-secondary mt-2 mb-0">Menampilkan <?= count($md['rows']) ?> data terbaru. <a href="<?= esc($md['manage'], 'attr') ?>">Lihat semua</a>.</p><?php endif ?>
+                    <?php endif ?>
+                </section>
+                <?php endif ?>
                 <div class="mb-0">
                     <label for="image" class="form-label fw-semibold">Gambar Sampul Halaman <span class="fw-normal text-secondary">(opsional)</span></label>
                     <?php if (! empty($page['image'])): ?>

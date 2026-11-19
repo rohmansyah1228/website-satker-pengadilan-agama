@@ -36,8 +36,28 @@
         dlg.returnValue = '';
         dlg.showModal();
     }));
+    // tombol hapus di dalam formulir lain (mis. data modul di Ubah Halaman)
+    let pendingAction = null;
+    document.querySelectorAll('[data-delete-url]').forEach((btn) => btn.addEventListener('click', () => {
+        const run = () => {
+            const f = document.createElement('form');
+            f.method = 'post'; f.action = btn.dataset.deleteUrl; f.hidden = true;
+            const tok = document.querySelector('input[name="csrf_test_name"], input[name^="csrf"]');
+            if (tok) { const t = document.createElement('input'); t.type = 'hidden'; t.name = tok.name; t.value = tok.value; f.append(t); }
+            const k = document.createElement('input'); k.type = 'hidden'; k.name = 'kembali'; k.value = btn.dataset.kembali || ''; f.append(k);
+            document.body.append(f);
+            f.submit();
+        };
+        if (!dlg || typeof dlg.showModal !== 'function') { if (window.confirm(btn.dataset.confirmMsg)) run(); return; }
+        pendingAction = run;
+        dlg.querySelector('[data-confirm-text]').textContent = btn.dataset.confirmMsg;
+        dlg.returnValue = '';
+        dlg.showModal();
+    }));
     if (dlg) {
         dlg.addEventListener('close', () => {
+            if (dlg.returnValue === 'ok' && pendingAction) { const a = pendingAction; pendingAction = null; a(); return; }
+            pendingAction = null;
             if (dlg.returnValue === 'ok' && pendingForm) {
                 pendingForm.dataset.confirmed = '1';
                 pendingForm.requestSubmit ? pendingForm.requestSubmit() : pendingForm.submit();

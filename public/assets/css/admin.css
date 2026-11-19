@@ -147,3 +147,7 @@ html.gb-sizing, html.gb-sizing * { cursor: nwse-resize !important; }
 /* Tombol kembali di bilah atas */
 .admin-back { white-space: nowrap; max-width: 46vw; overflow: hidden; text-overflow: ellipsis; }
 @media (max-width: 575.98px) { .admin-back [data-back-label] { display: none; } }
+
+/* Data modul di halaman Ubah Halaman */
+.module-data { border: 1px solid #dbe5e1; border-left: 4px solid var(--pa-secondary); border-radius: .6rem; padding: 1rem; background: #fffdf8; scroll-margin-top: 4.5rem; }
+.module-data .card { box-shadow: none; border: 1px solid #e5e7eb; }
