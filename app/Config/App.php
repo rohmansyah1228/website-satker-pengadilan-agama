@@ -213,7 +213,10 @@ class App extends BaseConfig
         // app.baseURL kosong di .env → alamat situs dideteksi otomatis, sehingga website langsung
         // berjalan di XAMPP (http://localhost/website-satker/), hosting, maupun "php spark serve".
         // Di server produksi tetap disarankan mengisi app.baseURL secara tetap.
-        if ($this->baseURL === '') {
+        // Alamat "localhost" hanya berlaku di komputer itu sendiri; bila website dibuka dari perangkat lain
+        // (HP, laptop lain, IP jaringan) atau lewat Apache XAMPP, alamat juga dideteksi otomatis.
+        $isLocal = (bool) preg_match('#^https?://(localhost|127\.0\.0\.1|\[::1\])(:\d+)?(/|$)#i', $this->baseURL);
+        if ($this->baseURL === '' || ($isLocal && PHP_SAPI !== 'cli')) {
             $this->baseURL = self::detectBaseURL();
         }
     }
