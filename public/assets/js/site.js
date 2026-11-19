@@ -88,6 +88,29 @@
     // ---------- Jadwal sidang: ganti tanggal otomatis kirim ----------
     document.querySelectorAll('[data-autosubmit]').forEach((el) => el.addEventListener('change', () => el.form && el.form.submit()));
 
+    // ---------- Tombol "Lihat" pada tabel: pratinjau Google Drive/Docs/PDF di popup ----------
+    const pv = document.getElementById('previewDialog');
+    if (pv && typeof pv.showModal === 'function') {
+        const frame = document.getElementById('previewFrame');
+        const open = document.getElementById('previewOpen');
+        const title = document.getElementById('previewTitle');
+        let opener = null;
+        document.addEventListener('click', (e) => {
+            const a = e.target.closest('a[data-preview]');
+            if (!a || e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
+            e.preventDefault();
+            opener = a;
+            title.textContent = a.dataset.previewTitle || 'Pratinjau';
+            frame.title = 'Pratinjau: ' + title.textContent;
+            open.href = a.href;
+            frame.src = a.dataset.preview;
+            pv.showModal();
+        });
+        pv.querySelector('[data-close-preview]').addEventListener('click', () => pv.close());
+        pv.addEventListener('click', (e) => { if (e.target === pv) pv.close(); });
+        pv.addEventListener('close', () => { frame.src = 'about:blank'; opener && opener.focus(); });
+    }
+
     // ---------- Tahun berjalan ----------
     document.querySelectorAll('[data-year]').forEach((el) => { el.textContent = new Date().getFullYear(); });
 })();

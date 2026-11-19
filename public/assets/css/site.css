@@ -342,3 +342,27 @@ body.high-contrast .form-control { background: #000 !important; color: #ff0 !imp
     .home-grid { grid-template-columns: minmax(0, 1fr); }
     .home-grid > .home-cell { grid-column: 1 / -1 !important; grid-row: auto !important; }
 }
+
+/* ---------- Isi halaman berbasis blok ---------- */
+.page-table-wrap { border: 1px solid #dfe7e3; border-radius: .75rem; }
+.page-table thead th { background: var(--pa-primary); color: #fff; font-weight: 600; border-bottom: 3px solid var(--pa-secondary); white-space: nowrap; }
+.page-table tbody tr:nth-child(even) td { background: #f6faf8; }
+.page-table td, .page-table th { padding: .7rem .9rem; }
+.page-table__no { width: 3.5rem; }
+.page-link-btn { min-width: 5.5rem; }
+.page-figure { margin-left: auto; margin-right: auto; }
+.page-figure--start { margin-left: 0; }
+.page-figure--end { margin-right: 0; text-align: right; }
+.page-figure--center { text-align: center; }
+.page-figure--large { max-width: 75%; }
+.page-figure--medium { max-width: 50%; }
+.page-figure--small { max-width: 33%; }
+@media (max-width: 575.98px) { .page-figure--large, .page-figure--medium, .page-figure--small { max-width: 100%; } }
+.page-embed__frame { height: min(var(--embed-h, 640px), 85vh); border: 1px solid #dfe7e3; border-radius: .75rem; overflow: hidden; background: #f3f6f5; }
+.page-embed__frame iframe { width: 100%; height: 100%; border: 0; display: block; }
+.preview-dialog { width: min(1100px, 96vw); height: 92vh; max-height: 92vh; padding: 0; border: 0; border-radius: .75rem; box-shadow: 0 1rem 3rem rgba(0,0,0,.35); }
+.preview-dialog[open] { display: flex; flex-direction: column; }
+.preview-dialog::backdrop { background: rgba(3, 30, 22, .6); }
+.preview-dialog__head { display: flex; align-items: center; gap: .5rem; padding: .6rem .9rem; border-bottom: 3px solid var(--pa-secondary); background: #fff; }
+.preview-dialog iframe { flex: 1; width: 100%; border: 0; background: #f3f6f5; }
+@media (max-width: 575.98px) { .preview-dialog { width: 100vw; height: 100dvh; max-height: 100dvh; max-width: 100vw; border-radius: 0; } }

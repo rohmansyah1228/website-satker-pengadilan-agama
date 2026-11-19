@@ -45,6 +45,7 @@ class Site extends BaseController
         $data     = [
             'title'        => $page['title'],
             'page'         => $page,
+            'blocks'       => (new \App\Libraries\PageBlocks())->decode($page),
             'sectionLabel' => $sections[$section]['label'] ?? ucwords(str_replace('-', ' ', $section)),
             'moduleData'   => $page['module'] ? (new ModuleData())->load($page['module'], (string) $page['module_param'], $page) : [],
             'metaDescription' => $page['meta_description'] ?: plain_excerpt($page['content'], 155),

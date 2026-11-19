@@ -83,6 +83,7 @@ $logo = setting('logo') ? media_url(setting('logo')) : base_url('assets/img/logo
 <?php if (! empty($richtext)): ?><script src="<?= asset('assets/vendor/quill/quill.js') ?>" defer></script><?php endif ?>
 <?php if (! empty($qrcode)): ?><script src="<?= asset('assets/vendor/qrcode/qrcode.js') ?>" defer></script><?php endif ?>
 <script src="<?= asset('assets/js/admin.js') ?>" defer></script>
+<?php if (! empty($pageBuilder)): ?><script src="<?= asset('assets/js/page-builder.js') ?>" defer></script><?php endif ?>
 <?php if (! empty($homeBuilder)): ?><script src="<?= asset('assets/js/home-builder.js') ?>" defer></script><?php endif ?>
 </body>
 </html>

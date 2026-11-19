@@ -24,13 +24,22 @@
                     <label for="title" class="form-label fw-semibold">Judul <span class="text-danger" aria-hidden="true">*</span></label>
                     <input type="text" id="title" name="title" value="<?= esc($page['title'] ?? '', 'attr') ?>" class="form-control form-control-lg" required data-slug-source>
                 </div>
-                <div class="mb-3">
-                    <label for="content" class="form-label fw-semibold">Isi Halaman</label>
-                    <textarea id="content" name="content" data-richtext><?= esc($page['content'] ?? '') ?></textarea>
-                    <div class="form-text">Gunakan Judul 2/3 untuk sub-bagian agar struktur jelas bagi pembaca layar.</div>
-                </div>
+                <fieldset class="mb-4">
+                    <legend class="form-label fw-semibold fs-6 mb-1">Isi Halaman</legend>
+                    <p class="form-text mt-0 mb-2">Susun isi dari beberapa blok: teks, tabel (kolom tautan tampil sebagai tombol <em>Lihat</em> — cocok untuk tautan Google Drive), gambar, atau halaman lain yang disematkan. Seret <i class="bi bi-grip-vertical" aria-hidden="true"></i> untuk mengubah urutan.</p>
+                    <div id="pbList" class="pb-list" data-media="<?= esc(base_url(), 'attr') ?>"></div>
+                    <div class="pb-add" role="group" aria-label="Tambah blok">
+                        <span class="small fw-semibold text-secondary me-1">Tambah blok:</span>
+                        <?php foreach ($blockTypes as $k => $t): ?>
+                            <button type="button" class="btn btn-sm btn-outline-success" data-pb-add="<?= $k ?>"><i class="bi <?= $t['icon'] ?>" aria-hidden="true"></i> <?= esc($k === 'embed' ? 'Sematkan' : $t['label']) ?></button>
+                        <?php endforeach ?>
+                    </div>
+                    <input type="hidden" name="blocks_json" id="pbJson" value="">
+                    <script type="application/json" id="pbData"><?= json_encode(array_values($blocks), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) ?></script>
+                    <script type="application/json" id="pbConfig"><?= json_encode(['types' => $blockTypes, 'sizes' => $sizes, 'aligns' => $aligns], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) ?></script>
+                </fieldset>
                 <div class="mb-0">
-                    <label for="image" class="form-label fw-semibold">Gambar Halaman</label>
+                    <label for="image" class="form-label fw-semibold">Gambar Sampul Halaman <span class="fw-normal text-secondary">(opsional)</span></label>
                     <?php if (! empty($page['image'])): ?>
                         <div class="d-flex align-items-center gap-3 mb-2"><img src="<?= media_url($page['image']) ?>" alt="Gambar saat ini" style="max-height: 110px" class="rounded border">
                             <div class="form-check"><input type="checkbox" class="form-check-input" id="image_rm" name="image__remove" value="1"><label class="form-check-label small" for="image_rm">Hapus gambar</label></div></div>

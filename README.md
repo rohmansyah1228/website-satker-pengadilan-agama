@@ -50,7 +50,7 @@ Aplikasi website satuan kerja Peradilan Agama yang **open source**, dibangun den
 |---|---|
 | **Dashboard Kepatuhan SINOVA** | Cek otomatis 35 kriteria Lampiran II (menyesuaikan PA/PTA), tombol *Salin URL* untuk diinput ke SINOVA |
 | **Tampilan Beranda** | Editor grid bebas 12 kolom: seret kotak ke mana saja, tarik sudut untuk ubah lebar & tinggi, 13 jenis blok |
-| **Halaman** | Editor teks kaya + gambar + modul data. Halaman wajib SK dikunci alamatnya; perubahan alamat halaman lain otomatis dialihkan (301) |
+| **Halaman** | Isi berbasis blok yang bisa diseret: **teks**, **tabel** (tempel langsung dari Excel; kolom tautan tampil sebagai tombol *Lihat* dengan pratinjau Google Drive/Docs di popup), **gambar**, dan **sematan** (Google Drive, Docs/Sheets/Slides/Form, YouTube, PDF, Google Maps, atau halaman website lain). Ditambah modul data. Halaman wajib SK dikunci alamatnya; perubahan alamat halaman lain otomatis dialihkan (301) |
 | **Menu Navigasi** | Label, urutan, sub-menu hingga 3 level, tautan internal/luar |
 | **Arsip Dokumen** | SAKIP (Renstra, RKT, PK, IKU, LKjIP), keuangan (DIPA, LRA, CALK), RUP, laporan bulanan, SK panjar, survei |
 | **Data** | Berita, slider (maks. 5), pintasan, jadwal sidang, panggilan ghaib, statistik perkara, pegawai, LHKPN, wilayah, pengaduan/hukuman disiplin, laporan akses informasi |

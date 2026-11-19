@@ -2,6 +2,7 @@
 
 namespace App\Controllers\Admin;
 
+use App\Libraries\PageBlocks;
 use CodeIgniter\Exceptions\PageNotFoundException;
 use RuntimeException;
 
@@ -86,6 +87,9 @@ class Pages extends AdminController
         }
         $this->db->table('menus')->where(['type' => 'page', 'page_id' => $id])->delete();
         service('uploader')->deleteImage($p['image']);
+        foreach ((new PageBlocks())->images((new PageBlocks())->decode($p)) as $img) {
+            service('uploader')->deleteImage($img);
+        }
         $this->db->table('pages')->where('id', $id)->delete();
         $this->log('hapus', 'Halaman: ' . $p['title']);
         $this->flushPublic();
@@ -104,7 +108,12 @@ class Pages extends AdminController
             }
         }
 
+        $pb     = new PageBlocks();
+        $blocks = isset($page['blocks_json']) ? (json_decode((string) $page['blocks_json'], true) ?: []) : $pb->decode($page);
+
         return $this->view('pages/form', [
+            'blocks' => $blocks, 'blockTypes' => PageBlocks::TYPES, 'sizes' => PageBlocks::SIZES, 'aligns' => PageBlocks::ALIGNS,
+            'pageBuilder' => true,
             'title' => $id ? 'Ubah Halaman' : 'Halaman Baru', 'page' => $page, 'id' => $id, 'errors' => $errors,
             'sections' => $this->sections(), 'modules' => config('SiteStructure')->modules, 'criteria' => $crit,
             'docTypes' => $this->db->table('doc_types')->orderBy('sort')->get()->getResultArray(),
@@ -134,7 +143,6 @@ class Pages extends AdminController
 
         $data = [
             'title'            => trim($post['title']),
-            'content'          => service('purifier')->clean((string) ($post['content'] ?? '')),
             'status'           => $required ? 'published' : $post['status'],
             'meta_description' => trim((string) ($post['meta_description'] ?? '')),
             'updated_by'       => $this->user['id'],
@@ -159,6 +167,36 @@ class Pages extends AdminController
             $data['module_param'] = implode(',', array_unique(array_merge($base, (array) $post['doc_codes'])));
         }
 
+        // ---- isi halaman (blok) ----
+        $pb       = new PageBlocks();
+        $raw      = (string) ($post['blocks_json'] ?? '[]');
+        $decoded  = strlen($raw) <= 4_000_000 ? json_decode($raw, true) : null;
+        if (! is_array($decoded)) {
+            return $this->form(array_merge($old, $post), $id, ['blocks' => 'Isi halaman tidak terbaca. Muat ulang halaman lalu coba lagi.']);
+        }
+        $oldImages = $id ? $pb->images($pb->decode($old)) : [];
+        $newFiles  = [];
+        [$blocks, $blockErrors] = $pb->sanitize($decoded, $oldImages, function (string $key) use (&$newFiles): ?string {
+            $f = $this->request->getFile('block_file.' . $key);
+            if (! $f || $f->getError() === UPLOAD_ERR_NO_FILE) {
+                return null;
+            }
+
+            return $newFiles[] = service('uploader')->storeImage($f, 1600);
+        });
+        $dropNew = static function () use (&$newFiles): void {
+            foreach ($newFiles as $f) {
+                service('uploader')->deleteImage($f);
+            }
+        };
+        if ($blockErrors) {
+            $dropNew();
+
+            return $this->form(array_merge($old, $post), $id, $blockErrors);
+        }
+        $data['blocks']  = json_encode($blocks, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $data['content'] = $pb->searchText($blocks);
+
         $file = $this->request->getFile('image');
         try {
             if ($file && $file->getError() !== UPLOAD_ERR_NO_FILE) {
@@ -169,7 +207,12 @@ class Pages extends AdminController
                 $data['image'] = null;
             }
         } catch (RuntimeException $e) {
+            $dropNew();
+
             return $this->form(array_merge($old, $post), $id, ['image' => $e->getMessage()]);
+        }
+        foreach (array_diff($oldImages, $pb->images($blocks)) as $unused) {
+            service('uploader')->deleteImage($unused);
         }
 
         if ($id) {
