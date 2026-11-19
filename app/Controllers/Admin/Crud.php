@@ -177,9 +177,41 @@ class Crud extends AdminController
         return $row;
     }
 
+    /** Halaman publik yang menampilkan data menu ini (untuk panel kanan form). */
+    private function shownOn(array $row): array
+    {
+        $table = $this->res['table'];
+        if ($table === 'posts') {
+            return [['label' => 'Berita & Publikasi', 'url' => site_url('berita')]];
+        }
+        if (in_array($table, ['sliders', 'shortcuts'], true)) {
+            return [['label' => 'Beranda', 'url' => site_url('/')]];
+        }
+        $modules = array_keys(array_filter(Pages::MODULE_RESOURCES, fn ($k) => $k === $this->key));
+        if (! $modules) {
+            return [];
+        }
+        $codes = $table === 'documents' ? array_column($this->db->table('doc_types')->select('id, code')->get()->getResultArray(), 'id', 'code') : [];
+        $out   = [];
+        foreach ($this->db->table('pages')->whereIn('module', $modules)->where('status', 'published')->get()->getResultArray() as $p) {
+            $item = ['label' => $p['title'], 'url' => site_url("{$p['section']}/{$p['slug']}"), 'edit' => admin_url('halaman/' . $p['id'])];
+            if ($table === 'documents') {
+                // dokumen: tampil di halaman yang memilih jenis dokumennya (disaring di browser saat jenis dipilih)
+                $item['types'] = array_values(array_filter(array_map(static fn ($c) => $codes[$c] ?? null, explode(',', (string) $p['module_param']))));
+                if (! $item['types']) {
+                    continue;
+                }
+            }
+            $out[] = $item;
+        }
+
+        return $out;
+    }
+
     private function form(array $row, ?int $id, array $errors = [])
     {
         return $this->view('crud/form', [
+            'shownOn' => $this->shownOn($row),
             'key' => $this->key, 'res' => $this->res, 'row' => $row, 'id' => $id,
             'lookups' => $this->lookups(), 'errors' => $errors, 'kembali' => $this->returnUrl(),
             'richtext' => (bool) array_filter($this->res['fields'], static fn ($f) => $f[1] === 'richtext'),
@@ -372,6 +404,11 @@ class Crud extends AdminController
         }
         $this->flushPublic();
 
+        if ($this->request->getPost('_after') === 'view' && ! empty($r['view'])) {
+            $saved = $this->db->table($table)->where('id', $id)->get()->getRowArray();
+
+            return redirect()->to(site_url(str_replace(['{slug}', '{id}'], [$saved['slug'] ?? '', $id], $r['view'])))->with('success', $r['singular'] . ' tersimpan.');
+        }
         $back     = $this->returnUrl();
         $redirect = $this->request->getPost('_after') === 'new'
             ? admin_url("data/{$this->key}/baru") . '?' . http_build_query(array_filter(['kembali' => $back, 'jenis' => $this->res['table'] === 'documents' ? ($data['doc_type_id'] ?? null) : null]))

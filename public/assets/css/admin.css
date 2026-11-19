@@ -151,3 +151,9 @@ html.gb-sizing, html.gb-sizing * { cursor: nwse-resize !important; }
 /* Data modul di halaman Ubah Halaman */
 .module-data { border: 1px solid #dbe5e1; border-left: 4px solid var(--pa-secondary); border-radius: .6rem; padding: 1rem; background: #fffdf8; scroll-margin-top: 4.5rem; }
 .module-data .card { box-shadow: none; border: 1px solid #e5e7eb; }
+
+/* Form data menu (tata letak seperti Ubah Halaman) */
+.crud-section { font-size: .8rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--pa-primary); border-bottom: 1px solid #e5e7eb; padding-bottom: .4rem; margin: 1rem 0 1rem; }
+.crud-section:first-child { margin-top: 0; }
+.crud-side__title { font-size: .75rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #6b7280; margin: 0 0 .75rem; padding-top: .25rem; }
+.crud-side .mb-3 + .crud-side__title, .crud-side ul + .crud-side__title { border-top: 1px solid #eef2f0; padding-top: 1rem; }

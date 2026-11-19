@@ -23,6 +23,24 @@
         });
     }
 
+    // ---------- Form data: "Tampil di halaman" mengikuti jenis dokumen yang dipilih ----------
+    const shown = document.querySelector('[data-shown-on]');
+    const typeSel = document.getElementById('f_doc_type_id');
+    if (shown && typeSel && shown.querySelector('[data-types]')) {
+        const sync = () => {
+            let n = 0;
+            shown.querySelectorAll('li[data-types]').forEach((li) => {
+                const on = li.dataset.types.split(',').includes(typeSel.value);
+                li.hidden = !on;
+                if (on) n++;
+            });
+            shown.querySelector('[data-shown-none]').hidden = n > 0 || !typeSel.value;
+            shown.querySelector('h2').hidden = !typeSel.value;
+        };
+        typeSel.addEventListener('change', sync);
+        sync();
+    }
+
     // Editor teks kaya: lihat editor.js (TinyMCE)
 
     // ---------- Dialog konfirmasi hapus (native <dialog>) ----------

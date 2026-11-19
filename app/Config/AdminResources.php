@@ -237,5 +237,80 @@ class AdminResources extends BaseConfig
                 ],
             ],
         ];
+
+        /*
+         * Tata letak form tambah/ubah (mengikuti tampilan Ubah Halaman):
+         *   main  = kolom kiri, dikelompokkan per bagian (judul bagian => field)
+         *   side  = panel kanan (pengaturan) beserta tombol Simpan
+         *   intro = petunjuk singkat di atas form
+         * Field yang tidak disebut otomatis masuk kolom kiri.
+         */
+        $layouts = [
+            'berita' => [
+                'main'  => ['' => ['title', 'excerpt', 'content']],
+                'side'  => ['Publikasi' => ['status', 'category', 'published_at', 'author'], 'Gambar Utama' => ['image', 'image_alt']],
+                'intro' => 'Tulis berita, pengumuman, atau artikel. Gambar utama tampil di daftar berita dan di atas isi.',
+            ],
+            'slider' => [
+                'main'  => ['Teks Slide' => ['badge', 'title', 'subtitle'], 'Tombol' => ['button_text', 'button_url', 'button2_text', 'button2_url']],
+                'side'  => ['Gambar' => ['image', 'image_alt'], 'Tampilan' => ['sort', 'is_active']],
+                'intro' => 'Slide tampil bergantian di bagian atas Beranda (maksimal 5 slide aktif).',
+            ],
+            'pintasan' => [
+                'main'  => ['' => ['title', 'description', 'url']],
+                'side'  => ['Tampilan' => ['icon', 'sort', 'is_active']],
+                'intro' => 'Pintasan layanan tampil sebagai kotak ikon di Beranda.',
+            ],
+            'dokumen' => [
+                'main'  => ['' => ['title'], 'Berkas' => ['file_id', 'external_url']],
+                'side'  => ['Klasifikasi' => ['doc_type_id', 'year', 'month']],
+                'intro' => 'Dokumen otomatis tampil di halaman yang memakai jenis dokumen ini (lihat panel kanan).',
+            ],
+            'jenis-dokumen' => [
+                'main'  => ['' => ['name', 'code', 'description']],
+                'side'  => ['Pengaturan' => ['section', 'period', 'min_years', 'sort']],
+            ],
+            'jadwal-sidang' => [
+                'main'  => ['' => ['case_number', 'agenda']],
+                'side'  => ['Waktu & Tempat' => ['hearing_date', 'hearing_time', 'room']],
+                'intro' => 'Jadwal tampil di halaman Jadwal Persidangan sesuai tanggal sidang.',
+            ],
+            'panggilan-ghaib' => [
+                'main'  => ['' => ['party_name', 'case_number'], 'Relaas' => ['file_id']],
+                'side'  => ['Sidang' => ['hearing_date'], 'Tampilan' => ['is_active']],
+            ],
+            'statistik-perkara' => [
+                'main'  => ['Jumlah Perkara' => ['carried_over', 'received', 'decided', 'remaining']],
+                'side'  => ['Periode' => ['year', 'month']],
+                'intro' => 'Sisa Perkara dihitung otomatis bila dikosongkan: sisa bulan lalu + masuk − putus.',
+            ],
+            'pegawai' => [
+                'main'  => ['' => ['name', 'position', 'rank', 'profile_url'], 'Profil Singkat' => ['bio'], 'Riwayat' => ['education', 'career', 'training']],
+                'side'  => ['Foto' => ['photo'], 'Data Pegawai' => ['grp', 'tmt', 'religion', 'gender'], 'Tampilan' => ['sort', 'is_active']],
+            ],
+            'lhkpn' => [
+                'main'  => ['' => ['name', 'position'], 'Berkas' => ['file_id']],
+                'side'  => ['Periode' => ['year']],
+                'intro' => 'Unggah Ikhtisar Kekayaan, minimal 2 tahun terakhir untuk setiap pejabat wajib lapor.',
+            ],
+            'wilayah' => [
+                'main'  => ['' => ['name']],
+                'side'  => ['Tampilan' => ['sort']],
+            ],
+            'pengaduan' => [
+                'main'  => ['' => ['initials', 'violation', 'description'], 'Penanganan' => ['status', 'penalty']],
+                'side'  => ['Klasifikasi' => ['kind', 'year']],
+                'intro' => 'Gunakan inisial (bukan nama lengkap) untuk melindungi privasi pihak yang dilaporkan.',
+            ],
+            'akses-informasi' => [
+                'main'  => ['Permohonan Informasi' => ['received', 'avg_days', 'granted_full', 'granted_partial', 'rejected', 'reject_reasons']],
+                'side'  => ['Periode' => ['year', 'month']],
+            ],
+        ];
+        foreach ($layouts as $k => $l) {
+            if (isset($this->resources[$k])) {
+                $this->resources[$k]['layout'] = $l;
+            }
+        }
     }
 }

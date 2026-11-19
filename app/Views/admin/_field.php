@@ -77,7 +77,7 @@ $inputName = $inputName ?? $name;
             <?php break; case 'email': ?>
                 <input type="email" id="<?= $id ?>" name="<?= $inputName ?>" value="<?= esc((string) $value, 'attr') ?>" class="form-control<?= $invalid ?>" autocomplete="off" spellcheck="false"<?= $aria ?>>
             <?php break; default: ?>
-                <input type="text" id="<?= $id ?>" name="<?= $inputName ?>" value="<?= esc((string) $value, 'attr') ?>" class="form-control<?= $invalid ?>"<?= $required ? ' required' : '' ?><?= $aria ?><?= $disabled ?><?= ! empty($f['slugSource']) ? ' data-slug-source' : '' ?>>
+                <input type="text" id="<?= $id ?>" name="<?= $inputName ?>" value="<?= esc((string) $value, 'attr') ?>" class="form-control<?= ! empty($f['large']) ? ' form-control-lg' : '' ?><?= $invalid ?>"<?= $required ? ' required' : '' ?><?= $aria ?><?= $disabled ?><?= ! empty($f['slugSource']) ? ' data-slug-source' : '' ?>>
         <?php endswitch ?>
     <?php endif ?>
     <?php if (! empty($f['help'])): ?><div id="<?= $id ?>_help" class="form-text"><?= esc($f['help']) ?></div><?php endif ?>

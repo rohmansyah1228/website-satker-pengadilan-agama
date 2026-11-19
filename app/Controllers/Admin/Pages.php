@@ -98,7 +98,7 @@ class Pages extends AdminController
     }
 
     /** Modul halaman → data di menu samping (app/Config/AdminResources.php) */
-    private const MODULE_RESOURCES = [
+    public const MODULE_RESOURCES = [
         'documents' => 'dokumen', 'survei' => 'dokumen', 'pegawai' => 'pegawai', 'yurisdiksi' => 'wilayah',
         'jadwal' => 'jadwal-sidang', 'ghaib' => 'panggilan-ghaib', 'statistik' => 'statistik-perkara', 'lhkpn' => 'lhkpn',
         'akses_informasi' => 'akses-informasi', 'pengaduan' => 'pengaduan', 'hukdis' => 'pengaduan',
