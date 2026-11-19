@@ -89,4 +89,38 @@ class ModuleData
 
         return [];
     }
+
+    /**
+     * Apakah data modul kosong? Bila halaman sudah punya isi sendiri, modul yang kosong
+     * tidak ditampilkan (tidak muncul tulisan "… belum tersedia").
+     * Modul berfilter/berbasis tanggal (jadwal, statistik, pengunjung, kontak, e-Court) selalu tampil.
+     */
+    public static function isEmpty(string $module, array $data): bool
+    {
+        switch ($module) {
+            case 'documents':
+                foreach ($data['groups'] ?? [] as $g) {
+                    if (! empty($g['years'])) {
+                        return false;
+                    }
+                }
+
+                return true;
+
+            case 'pegawai':
+                return empty($data['groups']);
+
+            case 'yurisdiksi':
+                return empty($data['items']);
+
+            case 'ghaib':
+            case 'lhkpn':
+            case 'akses_informasi':
+            case 'pengaduan':
+            case 'hukdis':
+                return empty($data['rows']);
+        }
+
+        return false;
+    }
 }

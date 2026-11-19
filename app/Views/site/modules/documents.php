@@ -1,12 +1,13 @@
-<?php if (empty($groups)): ?>
+<?php
+// hanya jenis dokumen yang sudah ada dokumennya yang ditampilkan
+$filled = array_filter($groups, static fn ($g) => ! empty($g['years']));
+?>
+<?php if (! $filled && empty($hideEmpty)): ?>
     <p class="text-secondary">Belum ada dokumen.</p>
 <?php endif ?>
-<?php foreach ($groups as $g): ?>
+<?php foreach ($filled as $g): ?>
     <section class="mb-4" aria-labelledby="dt<?= $g['type']['id'] ?>">
         <h2 id="dt<?= $g['type']['id'] ?>" class="h5 fw-bold text-dark mb-3"><i class="bi bi-folder2-open text-pa-secondary me-2" aria-hidden="true"></i><?= esc($g['type']['name']) ?></h2>
-        <?php if (! $g['years']): ?>
-            <p class="text-secondary small">Dokumen belum tersedia.</p>
-        <?php endif ?>
         <?php $first = true; foreach ($g['years'] as $year => $docs): ?>
             <details class="doc-year border-bottom"<?= $first ? ' open' : '' ?>>
                 <summary>Tahun <?= (int) $year ?> <span class="badge bg-pa-primary-subtle text-pa-primary ms-1" style="background: var(--pa-primary-light);"><?= count($docs) ?></span></summary>

@@ -28,7 +28,12 @@
                     <?= view('site/page_blocks/' . $b['type'], ['b' => $b]) ?>
                 <?php endforeach ?>
 
-                <?php if ($page['module']): ?>
+                <?php
+                // Modul tanpa data disembunyikan bila halaman sudah punya isi sendiri
+                $hasOwnContent = (bool) $blocks;
+                $showModule    = $page['module'] && ! ($hasOwnContent && \App\Libraries\ModuleData::isEmpty($page['module'], $moduleData));
+                ?>
+                <?php if ($showModule): ?>
                     <?= view('site/modules/' . $page['module'], $moduleData + ['page' => $page]) ?>
                 <?php endif ?>
 

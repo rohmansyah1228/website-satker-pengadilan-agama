@@ -8,4 +8,4 @@
 </div>
 <?php if (setting('survey_period')): ?><p class="small text-secondary">Periode survei: <?= esc(setting('survey_period')) ?></p><?php endif ?>
 <?php if (setting('survey_url')): ?><a href="<?= esc(setting('survey_url'), 'attr') ?>" target="_blank" rel="noopener noreferrer" class="btn btn-pa-secondary mb-4"><i class="bi bi-pencil-square me-1" aria-hidden="true"></i>Isi Kuesioner Survei</a><?php endif ?>
-<?= view('site/modules/documents', ['groups' => $groups ?? []]) ?>
+<?= view('site/modules/documents', ['groups' => $groups ?? [], 'hideEmpty' => true]) ?>
