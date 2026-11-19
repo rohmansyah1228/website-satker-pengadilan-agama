@@ -26,6 +26,8 @@ class PageBlocks
     public const MAX_ROWS   = 1000;
     public const SIZES      = ['full' => 'Penuh', 'large' => 'Besar (75%)', 'medium' => 'Sedang (50%)', 'small' => 'Kecil (33%)'];
     public const ALIGNS     = ['center' => 'Tengah', 'start' => 'Kiri', 'end' => 'Kanan'];
+    /** Cara membuka tautan pada kolom tombol tabel */
+    public const OPEN_MODES = ['popup' => 'Tampilkan di halaman ini', 'tab' => 'Buka di tab baru', 'same' => 'Pindah ke halaman tujuan'];
 
     /** Blok sebuah halaman; halaman lama (tanpa blok) dibaca sebagai satu blok teks. */
     public function decode(array $page): array
@@ -77,11 +79,16 @@ class PageBlocks
                     $cols = [];
                     foreach (array_slice((array) ($b['cols'] ?? []), 0, self::MAX_COLS) as $c) {
                         $kind   = ($c['kind'] ?? '') === 'link' ? 'link' : 'text';
-                        $cols[] = [
+                        $col    = [
                             'label'  => $this->str($c['label'] ?? '', 120),
                             'kind'   => $kind,
                             'button' => $kind === 'link' ? ($this->str($c['button'] ?? '', 30) ?: 'Lihat') : '',
                         ];
+                        if ($kind === 'link') {
+                            $col['open']   = isset(self::OPEN_MODES[$c['open'] ?? '']) ? $c['open'] : 'popup';
+                            $col['newtab'] = ! array_key_exists('newtab', $c) || ! empty($c['newtab']);
+                        }
+                        $cols[] = $col;
                     }
                     if (! $cols) {
                         break;

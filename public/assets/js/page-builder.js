@@ -219,7 +219,7 @@
             heading: d.heading || '',
             numbered: d.numbered !== undefined ? !!d.numbered : true,
             cols: (d.cols && d.cols.length ? d.cols : [{ label: 'Uraian', kind: 'text' }, { label: 'Dokumen', kind: 'link', button: 'Lihat' }])
-                .map((c) => ({ label: c.label || '', kind: c.kind === 'link' ? 'link' : 'text', button: c.button || 'Lihat' })),
+                .map((c) => ({ label: c.label || '', kind: c.kind === 'link' ? 'link' : 'text', button: c.button || 'Lihat', open: c.open || 'popup', newtab: c.newtab !== false })),
             rows: (d.rows && d.rows.length ? d.rows : [['', ''], ['', '']]).map((r) => [...r])
         };
         let el = null;
@@ -241,7 +241,7 @@
             const data = parseTsv(text);
             if (!data.length) return;
             const width = Math.min(MAX_COLS, c0 + Math.max(...data.map((r) => r.length)));
-            while (st.cols.length < width) st.cols.push({ label: 'Kolom ' + (st.cols.length + 1), kind: 'text', button: 'Lihat' });
+            while (st.cols.length < width) st.cols.push({ label: 'Kolom ' + (st.cols.length + 1), kind: 'text', button: 'Lihat', open: 'popup', newtab: true });
             while (st.rows.length < r0 + data.length) st.rows.push([]);
             fit();
             data.forEach((r, ri) => r.forEach((v, ci) => { if (c0 + ci < st.cols.length) st.rows[r0 + ri][c0 + ci] = v; }));
@@ -267,8 +267,21 @@
                     kind.setAttribute('aria-label', 'Jenis kolom ' + (ci + 1));
                     kind.addEventListener('change', () => { c.kind = kind.value; dirty = true; render(); });
                     const btn = c.kind === 'link' ? h('input', { type: 'text', class: 'form-control form-control-sm', value: c.button, maxlength: 30, placeholder: 'Lihat', 'aria-label': 'Tulisan tombol kolom ' + (ci + 1), title: 'Tulisan pada tombol', oninput: (e) => { c.button = e.target.value; dirty = true; } }) : null;
+                    let openOpts = null;
+                    if (c.kind === 'link') {
+                        c.open = c.open || 'popup';
+                        if (c.newtab === undefined) c.newtab = true;
+                        const open = select({ popup: 'Tampilkan di halaman ini (popup)', tab: 'Buka di tab baru', same: 'Pindah ke halaman tujuan' }, c.open);
+                        open.setAttribute('aria-label', 'Cara membuka tautan kolom ' + (ci + 1));
+                        open.title = 'Cara membuka tautan';
+                        const nt = h('input', { type: 'checkbox', class: 'form-check-input', id: 'pbnt' + nid(), checked: c.newtab });
+                        nt.addEventListener('change', () => { c.newtab = nt.checked; dirty = true; });
+                        const ntWrap = h('div', { class: 'form-check small mb-0', hidden: c.open !== 'popup' }, nt, h('label', { class: 'form-check-label', for: nt.id, text: 'Tampilkan tombol "Buka di tab baru"' }));
+                        open.addEventListener('change', () => { c.open = open.value; ntWrap.hidden = c.open !== 'popup'; dirty = true; });
+                        openOpts = h('div', { class: 'd-flex flex-column gap-1' }, open, ntWrap);
+                    }
                     return h('th', { scope: 'col', class: c.kind === 'link' ? 'pb-col-link' : '' },
-                        h('div', { class: 'pb-colhead' }, lab, h('div', { class: 'd-flex gap-1' }, kind, btn),
+                        h('div', { class: 'pb-colhead' }, lab, h('div', { class: 'd-flex gap-1' }, kind, btn), openOpts,
                             h('div', { class: 'pb-coltools' },
                                 iconBtn('bi-arrow-left', 'Geser kolom ke kiri', () => { if (ci > 0) { swapCol(ci, ci - 1); } }),
                                 iconBtn('bi-arrow-right', 'Geser kolom ke kanan', () => { if (ci < st.cols.length - 1) { swapCol(ci, ci + 1); } }),
@@ -368,7 +381,7 @@
                     const ths = gridWrap.querySelectorAll('thead th input'); ths.length && ths[ths.length - 2] && ths[ths.length - 2].focus();
                 } }, icon('bi-plus-lg'), ' Kolom'),
                 h('button', { type: 'button', class: 'btn btn-sm btn-outline-secondary', onclick: () => { pastePanel.hidden = !pastePanel.hidden; if (!pastePanel.hidden) pasteArea.focus(); } }, icon('bi-clipboard-plus'), ' Tempel dari Excel'),
-                h('span', { class: 'form-text ms-auto' }, 'Kolom "Tombol tautan": isi dengan tautan Google Drive/Docs atau website lain — dibuka di dalam website (popup). Tautan ke halaman website sendiri dibuka biasa.')),
+                h('span', { class: 'form-text ms-auto' }, 'Kolom "Tombol tautan": isi dengan tautan Google Drive/Docs atau halaman lain. Atur cara membukanya di judul kolom.')),
             pastePanel);
 
         el = shell('table', body, {

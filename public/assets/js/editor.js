@@ -85,9 +85,10 @@
             link_assume_external_targets: 'https',
             link_title: false,
             link_target_list: [
-                { title: 'Tampilkan di dalam website (popup)', value: 'tampil' },
+                { title: 'Tampilkan di halaman ini (popup)', value: 'tampil' },
+                { title: 'Tampilkan di halaman ini, tanpa tombol "Buka di tab baru"', value: 'tampil-saja' },
                 { title: 'Pindah ke halaman tujuan', value: '' },
-                { title: 'Tab baru', value: '_blank' }
+                { title: 'Buka di tab baru', value: '_blank' }
             ],
             link_list: (success) => linkList().then(success),
             image_advtab: true,

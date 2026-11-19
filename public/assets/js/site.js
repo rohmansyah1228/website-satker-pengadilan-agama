@@ -115,9 +115,10 @@
         const frame = document.getElementById('previewFrame');
         const open = document.getElementById('previewOpen');
         const title = document.getElementById('previewTitle');
+        const hint = document.getElementById('previewHint');
         let opener = null;
         document.addEventListener('click', (e) => {
-            const a = e.target.closest('a[data-preview], a[target="tampil"]');
+            const a = e.target.closest('a[data-preview], a[target="tampil"], a[target="tampil-saja"]');
             if (!a || e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
             if (!/^https?:$/.test(a.protocol)) return;
             e.preventDefault();
@@ -129,6 +130,9 @@
             title.textContent = label;
             frame.title = 'Tampilan: ' + title.textContent;
             open.href = a.href;
+            const showNewTab = a.dataset.newtab !== '0' && a.target !== 'tampil-saja';
+            open.hidden = !showNewTab;
+            if (hint) hint.classList.toggle('d-lg-inline', showNewTab);
             frame.src = a.dataset.preview || viewerSrc(a.href);
             pv.showModal();
         });

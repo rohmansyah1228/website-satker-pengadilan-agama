@@ -24,9 +24,12 @@
                             <?php if ($c['kind'] === 'link'): ?>
                                 <td class="text-center text-nowrap">
                                     <?php if ($v === ''): ?><span class="text-secondary" aria-label="tidak ada">—</span>
-                                    <?php else: $int = PageBlocks::isInternal($v); $pv = PageBlocks::previewUrl($v) ?? ($int ? null : $v); /* tautan luar ditampilkan di dalam website */ ?>
-                                        <a href="<?= esc($v, 'attr') ?>" class="btn btn-sm btn-pa-primary page-link-btn"<?= $pv ? ' data-preview="' . esc($pv, 'attr') . '"' : '' ?><?= $int ? '' : ' target="_blank" rel="noopener noreferrer"' ?> aria-label="<?= esc(trim($c['button'] . ' ' . ($c['label'] !== '' ? $c['label'] . ' ' : '') . $rowLabel), 'attr') ?>" data-preview-title="<?= esc($rowLabel ?: $c['label'], 'attr') ?>">
-                                            <i class="bi <?= $pv ? 'bi-eye' : 'bi-arrow-right-circle' ?>" aria-hidden="true"></i> <?= esc($c['button']) ?>
+                                    <?php else:
+                                        $open = $c['open'] ?? 'popup';
+                                        $pv   = $open === 'popup' ? (PageBlocks::previewUrl($v) ?? $v) : null;
+                                        $icon = ['popup' => 'bi-eye', 'tab' => 'bi-box-arrow-up-right', 'same' => 'bi-arrow-right-circle'][$open] ?? 'bi-eye'; ?>
+                                        <a href="<?= esc($v, 'attr') ?>" class="btn btn-sm btn-pa-primary page-link-btn"<?= $pv ? ' data-preview="' . esc($pv, 'attr') . '"' . (($c['newtab'] ?? true) ? '' : ' data-newtab="0"') : '' ?><?= $open === 'same' ? '' : ' target="_blank" rel="noopener noreferrer"' ?> aria-label="<?= esc(trim($c['button'] . ' ' . ($c['label'] !== '' ? $c['label'] . ' ' : '') . $rowLabel), 'attr') ?>" data-preview-title="<?= esc($rowLabel ?: $c['label'], 'attr') ?>">
+                                            <i class="bi <?= $icon ?>" aria-hidden="true"></i> <?= esc($c['button']) ?>
                                         </a>
                                     <?php endif ?>
                                 </td>
