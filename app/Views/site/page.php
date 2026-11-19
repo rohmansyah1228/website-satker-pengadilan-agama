@@ -37,14 +37,4 @@
         </div>
     </div>
 </div>
-<?php if (array_filter($blocks, static fn ($b) => $b['type'] === 'table')): ?>
-<dialog id="previewDialog" class="preview-dialog" aria-labelledby="previewTitle">
-    <div class="preview-dialog__head">
-        <h2 id="previewTitle" class="h6 fw-bold mb-0 me-auto text-truncate">Pratinjau</h2>
-        <a id="previewOpen" href="#" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener noreferrer"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i><span class="d-none d-sm-inline"> Buka di tab baru</span></a>
-        <button type="button" class="btn btn-sm btn-pa-primary" data-close-preview aria-label="Tutup pratinjau"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
-    </div>
-    <iframe id="previewFrame" title="Pratinjau dokumen" src="about:blank" allow="fullscreen" sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms allow-downloads allow-presentation"></iframe>
-</dialog>
-<?php endif ?>
 <?= $this->endSection() ?>

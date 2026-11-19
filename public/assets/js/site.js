@@ -88,7 +88,28 @@
     // ---------- Jadwal sidang: ganti tanggal otomatis kirim ----------
     document.querySelectorAll('[data-autosubmit]').forEach((el) => el.addEventListener('change', () => el.form && el.form.submit()));
 
-    // ---------- Tombol "Lihat" pada tabel: pratinjau Google Drive/Docs/PDF di popup ----------
+    // ---------- Penampil di dalam website: tombol "Lihat" (tabel) & tautan bertarget "tampil" (editor) ----------
+    // Google Drive/Docs/YouTube diubah ke alamat tampilan; situs lain ditampilkan apa adanya.
+    const viewerSrc = (u) => {
+        let p;
+        try { p = new URL(u, location.href); } catch (e) { return u; }
+        const host = p.hostname.toLowerCase(), path = p.pathname;
+        let m;
+        if (host === 'drive.google.com') {
+            if ((m = path.match(/\/file\/d\/([\w-]+)/))) return 'https://drive.google.com/file/d/' + m[1] + '/preview';
+            if ((m = path.match(/\/folders\/([\w-]+)/))) return 'https://drive.google.com/embeddedfolderview?id=' + m[1] + '#list';
+            if (p.searchParams.get('id')) return 'https://drive.google.com/file/d/' + p.searchParams.get('id') + '/preview';
+        }
+        if (host === 'docs.google.com') {
+            if ((m = path.match(/^\/forms\/(?:u\/\d+\/)?d\/(e\/)?([\w-]+)/))) return 'https://docs.google.com/forms/d/' + (m[1] || '') + m[2] + '/viewform?embedded=true';
+            if ((m = path.match(/^\/(document|spreadsheets|presentation)\/(?:u\/\d+\/)?d\/([\w-]+)/))) return 'https://docs.google.com/' + m[1] + '/d/' + m[2] + '/preview';
+        }
+        if (/^(www\.|m\.)?youtube\.com$|^youtu\.be$/.test(host)) {
+            const id = host === 'youtu.be' ? path.slice(1) : (p.searchParams.get('v') || '');
+            if (/^[\w-]{6,20}$/.test(id)) return 'https://www.youtube-nocookie.com/embed/' + id;
+        }
+        return p.href;
+    };
     const pv = document.getElementById('previewDialog');
     if (pv && typeof pv.showModal === 'function') {
         const frame = document.getElementById('previewFrame');
@@ -96,14 +117,19 @@
         const title = document.getElementById('previewTitle');
         let opener = null;
         document.addEventListener('click', (e) => {
-            const a = e.target.closest('a[data-preview]');
+            const a = e.target.closest('a[data-preview], a[target="tampil"]');
             if (!a || e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
+            if (!/^https?:$/.test(a.protocol)) return;
             e.preventDefault();
             opener = a;
-            title.textContent = a.dataset.previewTitle || 'Pratinjau';
-            frame.title = 'Pratinjau: ' + title.textContent;
+            const row = a.closest('tr');
+            const rowLabel = row ? [...row.cells].map((c) => c.textContent.trim()).find((t) => t && !/^\d+\.?$/.test(t) && t !== a.textContent.trim()) : '';
+            let label = a.dataset.previewTitle || a.title || a.textContent.trim();
+            if (!label || label.length < 3 || /^(lihat|detail|unduh|klik|buka)/i.test(label)) label = rowLabel || a.hostname;
+            title.textContent = label;
+            frame.title = 'Tampilan: ' + title.textContent;
             open.href = a.href;
-            frame.src = a.dataset.preview;
+            frame.src = a.dataset.preview || viewerSrc(a.href);
             pv.showModal();
         });
         pv.querySelector('[data-close-preview]').addEventListener('click', () => pv.close());

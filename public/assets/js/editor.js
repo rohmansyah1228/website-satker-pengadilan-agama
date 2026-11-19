@@ -81,10 +81,14 @@
             content_css: [ASSETS + 'vendor/fonts/fonts.css'],
             content_style: 'body{font-family:Inter,sans-serif;font-size:16px;line-height:1.7;color:#1f2937;margin:1rem 1.25rem} h2,h3,h4{font-family:Montserrat,sans-serif;color:#056e4f} table{border-collapse:collapse} td,th{padding:.4rem .6rem} img{max-width:100%;height:auto} blockquote{border-left:4px solid #ff9900;margin-left:0;padding-left:1rem;color:#4b5563}',
             convert_urls: false,
-            link_default_target: '',
+            link_default_target: 'tampil',
             link_assume_external_targets: 'https',
             link_title: false,
-            target_list: [{ title: 'Jendela yang sama', value: '' }, { title: 'Tab baru', value: '_blank' }],
+            link_target_list: [
+                { title: 'Tampilkan di dalam website (popup)', value: 'tampil' },
+                { title: 'Pindah ke halaman tujuan', value: '' },
+                { title: 'Tab baru', value: '_blank' }
+            ],
             link_list: (success) => linkList().then(success),
             image_advtab: true,
             image_caption: false,

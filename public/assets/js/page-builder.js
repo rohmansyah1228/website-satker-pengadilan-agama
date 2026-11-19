@@ -368,7 +368,7 @@
                     const ths = gridWrap.querySelectorAll('thead th input'); ths.length && ths[ths.length - 2] && ths[ths.length - 2].focus();
                 } }, icon('bi-plus-lg'), ' Kolom'),
                 h('button', { type: 'button', class: 'btn btn-sm btn-outline-secondary', onclick: () => { pastePanel.hidden = !pastePanel.hidden; if (!pastePanel.hidden) pasteArea.focus(); } }, icon('bi-clipboard-plus'), ' Tempel dari Excel'),
-                h('span', { class: 'form-text ms-auto' }, 'Kolom "Tombol tautan": isi dengan tautan Google Drive/Docs atau halaman lain. Pengunjung melihat tombol, misalnya "Lihat".')),
+                h('span', { class: 'form-text ms-auto' }, 'Kolom "Tombol tautan": isi dengan tautan Google Drive/Docs atau website lain — dibuka di dalam website (popup). Tautan ke halaman website sendiri dibuka biasa.')),
             pastePanel);
 
         el = shell('table', body, {

@@ -27,7 +27,7 @@ class Purifier
             }
             $cfg->set('Cache.SerializerPath', $dir);
             $cfg->set('HTML.DefinitionID', 'satker-editor');
-            $cfg->set('HTML.DefinitionRev', 2);
+            $cfg->set('HTML.DefinitionRev', 3);
             $cfg->set('HTML.Doctype', 'XHTML 1.0 Transitional');
             $cfg->set('HTML.Allowed', implode(',', [
                 'h1[style|id]', 'h2[style|id]', 'h3[style|id]', 'h4[style|id]', 'h5[style|id]', 'h6[style|id]',
@@ -49,7 +49,8 @@ class Purifier
             $cfg->set('CSS.MaxImgLength', null);
             $cfg->set('HTML.MaxImgLength', null);
             $cfg->set('Attr.EnableID', true);
-            $cfg->set('Attr.AllowedFrameTargets', ['_blank']);
+            // "tampil" = buka tautan dalam penampil (popup) di dalam website, lihat site.js
+            $cfg->set('Attr.AllowedFrameTargets', ['_blank', 'tampil']);
             $cfg->set('HTML.TargetNoopener', true);
             $cfg->set('HTML.TargetNoreferrer', true);
             $cfg->set('URI.AllowedSchemes', ['http' => true, 'https' => true, 'mailto' => true, 'tel' => true]);
