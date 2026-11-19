@@ -1,0 +1,32 @@
+# ---------------------------------------------------------------------------
+# Menjalankan website TANPA "php spark serve" (XAMPP, hosting cPanel/DirectAdmin)
+# Semua alamat diarahkan ke folder public/. Folder app/, writable/, vendor/ dan
+# berkas .env tidak dapat dibuka dari browser.
+# Paling aman di server sendiri: arahkan Document Root langsung ke folder public/.
+# ---------------------------------------------------------------------------
+Options -Indexes
+DirectoryIndex index.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # hapus garis miring di akhir alamat (dilakukan di sini, sebelum diarahkan ke public/)
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # (opsional, hosting dengan SSL) paksa HTTPS — hapus tanda # pada dua baris berikut
+    # RewriteCond %{HTTPS} !=on
+    # RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+<IfModule !mod_rewrite.c>
+    # tanpa mod_rewrite folder ini tidak boleh terbuka langsung
+    Require all denied
+</IfModule>
+
+<FilesMatch "^\.|\.(env|ini|log|sh|sql|lock|md|json|dist|bak)$">
+    Require all denied
+</FilesMatch>

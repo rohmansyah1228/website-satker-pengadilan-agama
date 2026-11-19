@@ -22,14 +22,15 @@ Aplikasi website satuan kerja Peradilan Agama yang **open source**, dibangun den
 
 1. [Fitur](#fitur)
 2. [Persyaratan](#persyaratan)
-3. [Instalasi di Windows (XAMPP) — untuk uji coba](#instalasi-di-windows-xampp--untuk-uji-coba)
-4. [Instalasi di Server Linux — untuk produksi](#instalasi-di-server-linux--untuk-produksi)
-5. [Langkah pertama setelah instalasi](#langkah-pertama-setelah-instalasi)
-6. [Memperbarui aplikasi](#memperbarui-aplikasi)
-7. [Lupa password / ponsel MFA hilang](#lupa-password--ponsel-mfa-hilang)
-8. [Keamanan & checklist server](#keamanan--checklist-server)
-9. [Struktur & pengembangan](#struktur--pengembangan)
-10. [Kontribusi, lisensi & kredit](#kontribusi-lisensi--kredit)
+3. [Instalasi di Windows (XAMPP) — tanpa terminal](#instalasi-di-windows-xampp--tanpa-terminal)
+4. [Instalasi di Hosting (cPanel / DirectAdmin) — tanpa terminal](#instalasi-di-hosting-cpanel--directadmin--tanpa-terminal)
+5. [Instalasi di Server Linux — untuk produksi](#instalasi-di-server-linux--untuk-produksi)
+6. [Langkah pertama setelah instalasi](#langkah-pertama-setelah-instalasi)
+7. [Memperbarui aplikasi](#memperbarui-aplikasi)
+8. [Lupa password / ponsel MFA hilang](#lupa-password--ponsel-mfa-hilang)
+9. [Keamanan & checklist server](#keamanan--checklist-server)
+10. [Struktur & pengembangan](#struktur--pengembangan)
+11. [Kontribusi, lisensi & kredit](#kontribusi-lisensi--kredit)
 
 ---
 
@@ -67,70 +68,48 @@ Aplikasi website satuan kerja Peradilan Agama yang **open source**, dibangun den
 |---|---|
 | PHP | **8.2 atau lebih baru**, dengan ekstensi `intl`, `mbstring`, `gd` (mendukung WebP), `mysqli`, `json`, `fileinfo` |
 | Database | MariaDB 10.4+ atau MySQL 8+ |
-| Composer | 2.x — <https://getcomposer.org/download/> |
+| Composer | *Opsional*. Folder `vendor/` (CodeIgniter 4.7.6 & HTMLPurifier) sudah disertakan; Composer hanya untuk pengembang |
 | Web server | Apache 2.4 (mod_rewrite) atau Nginx |
 
 ---
 
-## Instalasi di Windows (XAMPP) — untuk uji coba
+## Instalasi di Windows (XAMPP) — tanpa terminal
 
-> Cocok untuk mencoba di komputer kantor sebelum dipasang di server.
+> Cocok untuk mencoba di komputer kantor. Tidak perlu Composer, Git, maupun `php spark serve`.
 
-**1. Pasang perangkat lunak**
-- [XAMPP](https://www.apachefriends.org/) dengan PHP 8.2 atau lebih baru.
-- [Composer](https://getcomposer.org/Composer-Setup.exe). Saat instalasi pilih `C:\xampp\php\php.exe`.
-- [Git](https://git-scm.com/download/win) (opsional, bisa juga unduh ZIP).
+1. Pasang [XAMPP](https://www.apachefriends.org/) dengan **PHP 8.2 atau lebih baru**. Buka `C:\xampp\php\php.ini`, cari `;extension=intl`, hapus titik koma di depannya, lalu simpan.
+2. Unduh kode: **Code → Download ZIP**, lalu ekstrak ke `C:\xampp\htdocs\website-satker` (folder `vendor/` sudah ikut di dalamnya).
+3. Buka **XAMPP Control Panel**, lalu jalankan **Apache** dan **MySQL**.
+4. Buka <http://localhost/phpmyadmin> dan buat database baru, mis. `website_satker` (collation `utf8mb4_unicode_ci`).
+5. Buka <http://localhost/website-satker/>. Anda otomatis diarahkan ke **halaman pemasangan**. Isi database (host `localhost`, pengguna `root`, password kosong), nama satker, dan akun Super Admin, lalu klik **Pasang Website**.
+6. Selesai. Situs ada di <http://localhost/website-satker/>, dan panel admin di alamat yang ditampilkan setelah pemasangan. Pada login pertama Anda diminta mengaktifkan **MFA** (Google/Microsoft Authenticator).
 
-**2. Aktifkan ekstensi `intl`**
-Buka `C:\xampp\php\php.ini`, cari `;extension=intl`, hapus titik koma di depannya, simpan, lalu restart Apache dari XAMPP Control Panel.
+<details><summary>Cara lama dengan terminal (opsional)</summary>
 
-**3. Ambil kode**
 ```bat
-cd C:\xampp\htdocs
-git clone https://github.com/rohmansyah1228/website-satker-pengadilan-agama.git website-satker
-cd website-satker
-composer install
-```
-(Tanpa Git: unduh ZIP dari tombol **Code → Download ZIP**, ekstrak ke `C:\xampp\htdocs\website-satker`, lalu jalankan `composer install` di folder tersebut.)
-
-**4. Buat database**
-Jalankan MySQL di XAMPP Control Panel, buka <http://localhost/phpmyadmin>, buat database baru bernama `website_satker` dengan collation `utf8mb4_unicode_ci`.
-
-**5. Atur konfigurasi**
-```bat
-copy .env.example .env
+cd C:\xampp\htdocs\website-satker
+copy .env.example .env          &:: isi database & kosongkan app.baseURL
 php spark key:generate
-```
-Buka `.env` dengan Notepad dan sesuaikan untuk komputer lokal:
-```ini
-CI_ENVIRONMENT = development
-app.baseURL = 'http://localhost:8080/'
-app.forceGlobalSecureRequests = false
-cookie.secure = false
-
-database.default.hostname = 127.0.0.1
-database.default.database = website_satker
-database.default.username = root
-database.default.password =
-```
-
-**6. Buat tabel & data awal**
-```bat
 php spark migrate
 php spark db:seed SatkerSeeder
+php spark serve                 &:: http://localhost:8080
 ```
-Terminal akan menampilkan **password Super Admin** (username `admin`). **Catat**, karena password ini hanya ditampilkan sekali.
+</details>
 
-**7. Jalankan**
-```bat
-php spark serve
-```
-- Situs: <http://localhost:8080>
-- Panel admin: <http://localhost:8080/panel-satker/login>
+---
 
-Pada login pertama, sistem meminta Anda mengaktifkan **MFA**. Siapkan aplikasi *Google Authenticator* / *Microsoft Authenticator* di ponsel.
+## Instalasi di Hosting (cPanel / DirectAdmin) — tanpa terminal
 
-> `php spark serve` harus tetap berjalan. Alternatifnya, buat VirtualHost Apache yang mengarah ke folder `public` (contoh di `deploy/apache-satker.conf`).
+1. **Persiapan.** Di cPanel buka **Select PHP Version**, pilih PHP **8.2+**, lalu aktifkan ekstensi `intl`, `mbstring`, `mysqli`, `gd`, dan `fileinfo`.
+2. **Database.** Di **MySQL Databases** atau **Database Wizard**, buat database dan pengguna, lalu beri pengguna itu *ALL PRIVILEGES*.
+3. **Unggah.** Unduh ZIP dari GitHub dan unggah ke `public_html` (atau subfolder) lewat **File Manager**, lalu **Extract**. Pastikan berkas `.htaccess` di folder utama ikut terunggah (aktifkan *Show Hidden Files*).
+4. **Izin folder.** Folder `writable/` dan `public/uploads/` harus dapat ditulis (755, atau 775 bila diperlukan).
+5. **Pasang.** Buka alamat situs Anda. Halaman pemasangan muncul otomatis dan memeriksa syarat server. Isi data database dan akun admin, lalu klik **Pasang Website**. Berkas `.env` dibuat otomatis, dan halaman pemasangan tertutup sendiri setelah selesai.
+6. **HTTPS.** Bila hosting memiliki SSL, ubah `app.forceGlobalSecureRequests` dan `cookie.secure` menjadi `true` di `.env`, dan sebaiknya isi `app.baseURL = 'https://www.domain-anda.go.id/'`. Untuk memaksa HTTPS, aktifkan juga dua baris yang sudah disiapkan (diawali `#`) di `.htaccess` folder utama.
+
+**Keamanan.** `.htaccess` di folder utama mengarahkan semua akses ke `public/` dan menolak akses ke `app/`, `writable/`, `vendor/`, serta `.env`. Bila hosting mengizinkan, lebih baik arahkan **Document Root** domain langsung ke folder `public/`.
+
+**Pembaruan versi di hosting.** Unggah berkas baru dengan menimpa yang lama, **kecuali** `.env`, `writable/`, dan `public/uploads/`. Bila pembaruan membawa perubahan tabel, Dashboard admin menampilkan tombol **Jalankan pembaruan** (khusus Super Admin). Cadangkan database lebih dulu.
 
 ---
 

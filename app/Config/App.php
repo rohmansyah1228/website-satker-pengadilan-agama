@@ -16,7 +16,7 @@ class App extends BaseConfig
      *
      * E.g., http://example.com/
      */
-    public string $baseURL = 'http://localhost:8080/';
+    public string $baseURL = '';
 
     /**
      * Allowed Hostnames in the Site URL other than the hostname in the baseURL.
@@ -205,4 +205,37 @@ class App extends BaseConfig
      * @see http://www.w3.org/TR/CSP/
      */
     public bool $CSPEnabled = false;
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        // app.baseURL kosong di .env → alamat situs dideteksi otomatis, sehingga website langsung
+        // berjalan di XAMPP (http://localhost/website-satker/), hosting, maupun "php spark serve".
+        // Di server produksi tetap disarankan mengisi app.baseURL secara tetap.
+        if ($this->baseURL === '') {
+            $this->baseURL = self::detectBaseURL();
+        }
+    }
+
+    public static function detectBaseURL(): string
+    {
+        $host = (string) ($_SERVER['HTTP_HOST'] ?? '');
+        if (PHP_SAPI === 'cli' || ! preg_match('/^[a-z0-9.\-]+(:\d{1,5})?$/i', $host)) {
+            return 'http://localhost:8080/';
+        }
+        $https = (! empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off')
+            || (string) ($_SERVER['SERVER_PORT'] ?? '') === '443'
+            || strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https';
+
+        // folder tempat index.php; bila diakses lewat .htaccess di folder induk, "/public" tidak ikut di alamat
+        $dir = rtrim(str_replace('\\', '/', dirname((string) ($_SERVER['SCRIPT_NAME'] ?? '/'))), '/');
+        $uri = (string) parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH);
+        if (str_ends_with($dir, '/public') && ! str_starts_with($uri, $dir . '/') && $uri !== $dir) {
+            $dir = substr($dir, 0, -7);
+        }
+        $dir = preg_replace('#[^A-Za-z0-9/._~-]#', '', $dir);
+
+        return ($https ? 'https' : 'http') . '://' . strtolower($host) . $dir . '/';
+    }
 }

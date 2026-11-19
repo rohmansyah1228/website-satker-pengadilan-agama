@@ -7,6 +7,9 @@ use CodeIgniter\Router\RouteCollection;
  */
 $admin = trim(config('App')->adminPath ?: 'panel-satker', '/');
 
+// Pemasangan lewat browser (tertutup otomatis setelah terpasang)
+$routes->match(['GET', 'POST'], 'pasang', 'Install::index');
+
 // ===================== PANEL ADMIN =====================
 $routes->group($admin, ['namespace' => 'App\Controllers\Admin'], static function ($routes) {
     $routes->get('login', 'Auth::login');
@@ -67,6 +70,7 @@ $routes->group($admin, ['namespace' => 'App\Controllers\Admin'], static function
         $routes->post('editor/pdf', 'Editor::pdf');
         $routes->get('editor/tautan', 'Editor::links');
         $routes->post('cache/bersihkan', 'Dashboard::clearCache');
+        $routes->post('pembaruan-database', 'Dashboard::migrate');
 
         // Modul data generik (slider, dokumen, pegawai, dst.) — lihat app/Config/AdminResources.php
         $routes->get('data/(:segment)', 'Crud::index/$1');

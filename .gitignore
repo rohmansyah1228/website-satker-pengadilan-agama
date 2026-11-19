@@ -1,5 +1,10 @@
 # Dependensi & konfigurasi lokal
-/vendor/
+# vendor/ disertakan (CodeIgniter & HTMLPurifier) agar bisa dipasang di hosting tanpa Composer
+/vendor/*
+!/vendor/codeigniter4/
+!/vendor/ezyang/
+/vendor/codeigniter4/framework/tests/
+/writable/installed.lock
 .env
 composer.phar
 

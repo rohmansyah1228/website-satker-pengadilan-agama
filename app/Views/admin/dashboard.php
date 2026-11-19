@@ -8,6 +8,14 @@
     <form action="<?= admin_url('cache/bersihkan') ?>" method="post"><?= csrf_field() ?><button class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> Bersihkan Cache</button></form>
 </div>
 
+<?php if (! empty($pendingMigrations)): ?>
+    <div class="alert alert-warning d-flex flex-wrap align-items-center gap-3" role="alert">
+        <i class="bi bi-database-up fs-4" aria-hidden="true"></i>
+        <div class="me-auto"><strong>Ada <?= count($pendingMigrations) ?> pembaruan database</strong> dari versi aplikasi terbaru (<?= esc(implode(', ', $pendingMigrations)) ?>).<br>
+            <span class="small">Cadangkan database lebih dulu (phpMyAdmin → Export), lalu jalankan pembaruan.</span></div>
+        <form action="<?= admin_url('pembaruan-database') ?>" method="post" data-confirm="Jalankan <?= count($pendingMigrations) ?> pembaruan database sekarang? Pastikan database sudah dicadangkan."><?= csrf_field() ?><button class="btn btn-warning fw-semibold"><i class="bi bi-play-fill" aria-hidden="true"></i> Jalankan pembaruan</button></form>
+    </div>
+<?php endif ?>
 <div class="row g-3 mb-4">
     <div class="col-md-4 col-xl-3">
         <div class="card h-100 p-3 d-flex flex-row align-items-center gap-3">

@@ -36,6 +36,7 @@ class Filters extends BaseFilters
         'performance'   => PerformanceMetrics::class,
         'adminauth'     => \App\Filters\AdminAuth::class,
         'visitor'       => \App\Filters\VisitorCounter::class,
+        'install'       => \App\Filters\InstallRedirect::class,
         'secheaders'    => \App\Filters\SecurityHeaders::class,
     ];
 
@@ -76,6 +77,7 @@ class Filters extends BaseFilters
     public array $globals = [
         'before' => [
             'invalidchars',
+            'install' => ['except' => ['pasang', 'pasang/*', 'assets/*']],
         ],
         'after' => [
             'secureheaders',
