@@ -92,7 +92,8 @@
             const ctl = document.querySelector('[name="' + name + '"]:checked, select[name="' + name + '"]');
             const show = ctl && values.split(',').includes(ctl.value);
             el.hidden = !show;
-            el.querySelectorAll('input, select, textarea').forEach((i) => { i.disabled = !show; });
+            // isian bertanda data-locked (mis. jenis dokumen bawaan SK) tetap terkunci
+            el.querySelectorAll('input, select, textarea').forEach((i) => { i.disabled = !show || i.hasAttribute('data-locked'); });
         });
     };
     document.querySelectorAll('select, input[type=radio]').forEach((el) => el.addEventListener('change', syncToggles));

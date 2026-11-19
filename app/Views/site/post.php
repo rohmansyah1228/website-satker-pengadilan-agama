@@ -6,6 +6,9 @@
         <div class="col-lg-8">
             <article class="bg-white p-4 p-md-5 rounded-3 shadow-sm">
                 <span class="badge bg-pa-primary mb-2"><?= esc($categories[$post['category']] ?? $post['category']) ?></span>
+                <?php if (! empty($preview)): ?>
+                    <div class="alert alert-warning small">Pratinjau: berita ini berstatus <strong><?= $post['status'] === 'published' ? 'terjadwal (terbit ' . esc(tanggal_id($post['published_at'])) . ')' : 'draft' ?></strong> dan belum tampil untuk publik.</div>
+                <?php endif ?>
                 <h1 class="font-display h2 fw-bold text-pa-primary"><?= esc($post['title']) ?></h1>
                 <p class="text-secondary small border-bottom pb-3 mb-4">
                     <i class="bi bi-calendar3 me-1" aria-hidden="true"></i><?= tanggal_id($post['published_at'], true) ?>

@@ -31,13 +31,13 @@ $field = static fn (string $n, bool $large = false) => view('admin/_field', [
     'name' => $n, 'f' => $res['fields'][$n] + ($large ? ['large' => true] : []), 'value' => $row[$n] ?? null, 'errors' => $errors,
     'lookups' => $lookups, 'lockedField' => $locked && ! empty($res['fields'][$n]['lockable']), 'inputName' => null,
 ]);
-$viewUrl = ($id && ! empty($res['view']) && ($row['status'] ?? 'published') === 'published' && ($row['is_active'] ?? 1))
-    ? site_url(str_replace(['{slug}', '{id}'], [$row['slug'] ?? '', $id], $res['view'])) : null;
+$viewUrl = ($id && ! empty($res['view'])) ? site_url(str_replace(['{slug}', '{id}'], [$row['slug'] ?? '', $id], $res['view'])) : null;
+$isLive  = ($row['status'] ?? 'published') === 'published' && ($row['is_active'] ?? 1) && (empty($row['published_at']) || $row['published_at'] <= date('Y-m-d H:i:s'));
 ?>
 <nav aria-label="breadcrumb"><ol class="breadcrumb small mb-1"><?php if ($kembali): ?><li class="breadcrumb-item"><a href="<?= esc($kembali, 'attr') ?>">Ubah Halaman</a></li><?php else: ?><li class="breadcrumb-item"><a href="<?= admin_url("data/{$key}") ?>"><?= esc($res['title']) ?></a></li><?php endif ?><li class="breadcrumb-item active" aria-current="page"><?= $id ? 'Ubah' : 'Tambah' ?></li></ol></nav>
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
     <h1 class="h3 font-display fw-bold text-pa-primary mb-0"><i class="bi <?= $res['icon'] ?> me-1" aria-hidden="true"></i><?= $id ? 'Ubah' : 'Tambah' ?> <?= esc($res['singular']) ?></h1>
-    <?php if ($viewUrl): ?><a href="<?= esc($viewUrl, 'attr') ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye" aria-hidden="true"></i> Lihat di situs</a><?php endif ?>
+    <?php if ($viewUrl): ?><a href="<?= esc($viewUrl, 'attr') ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye" aria-hidden="true"></i> <?= $isLive ? 'Lihat di situs' : 'Pratinjau' ?></a><?php endif ?>
 </div>
 <?php if ($errors): ?>
     <div class="alert alert-danger" role="alert" tabindex="-1" id="formErrors"><strong>Periksa kembali isian berikut:</strong>

@@ -182,9 +182,16 @@ sudo cp deploy/nginx-satker.conf /etc/nginx/sites-available/website-satker
 sudo nano /etc/nginx/sites-available/website-satker    # sesuaikan server_name, path sertifikat, versi PHP-FPM
 sudo ln -s /etc/nginx/sites-available/website-satker /etc/nginx/sites-enabled/
 sudo apt install -y certbot python3-certbot-nginx && sudo certbot --nginx -d www.pa-contoh.go.id
+# bawaan Ubuntu hanya 768 koneksi per proses — terlalu kecil saat ramai (tiap browser membuka s.d. 6 koneksi)
+sudo sed -i 's/worker_connections [0-9]*;/worker_connections 4096;/' /etc/nginx/nginx.conf
 sudo nginx -t && sudo systemctl reload nginx
 ```
 Document root **harus** folder `public/`. Contoh Apache ada di `deploy/apache-satker.conf`.
+
+> **Kapasitas (hasil uji beban).** Pada VPS 2 CPU / 8 GB (Ubuntu 24.04, Nginx, PHP-FPM 8.3, MariaDB) dengan data contoh
+> ±600 berita & 700 PDF: 500 pengunjung serentak berperilaku normal dilayani tanpa galat, 95% halaman < 20 ms,
+> CPU rata-rata ±30%, RAM ±0,7 GB. Saat 500 pengunjung menekan terus tanpa jeda, server melayani ±250 halaman/detik
+> (waktu tunggu ±2 detik, tanpa galat). Siapkan bandwidth ≥ 50 Mbps; kunjungan pertama Beranda ±450 KB.
 
 **6. Backup mingguan offsite** (SK Bab II huruf G)
 ```bash

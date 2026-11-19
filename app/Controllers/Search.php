@@ -13,13 +13,26 @@ class Search extends BaseController
 
         if (mb_strlen($q) >= 3) {
             $db = $this->db;
+            // LIKE di database = penyaring awal; kecocokan akhir diperiksa pada teks tanpa tag HTML,
+            // agar kode format editor (span, style, warna) tidak ikut cocok
+            $visible = static function (string ...$parts) use ($q): bool {
+                $text = html_entity_decode(strip_tags(preg_replace('/<(script|style)\b.*?<\/\1>/is', ' ', implode(' ', $parts))), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+                return mb_stripos(preg_replace('/\s+/u', ' ', $text), $q) !== false;
+            };
             foreach ($db->table('pages')->where('status', 'published')->groupStart()->like('title', $q)->orLike('content', $q)->groupEnd()
-                ->get(30)->getResultArray() as $p) {
+                ->get(200)->getResultArray() as $p) {
+                if (! $visible($p['title'], (string) $p['content']) || count(array_filter($results, static fn ($r) => $r['type'] === 'Halaman')) >= 30) {
+                    continue;
+                }
                 $results[] = ['type' => 'Halaman', 'title' => $p['title'], 'url' => site_url("{$p['section']}/{$p['slug']}"), 'snippet' => plain_excerpt($p['content'], 180)];
             }
             foreach ($db->table('posts')->where('status', 'published')->where('published_at <=', date('Y-m-d H:i:s'))
                 ->groupStart()->like('title', $q)->orLike('content', $q)->orLike('excerpt', $q)->groupEnd()
-                ->orderBy('published_at', 'DESC')->get(30)->getResultArray() as $p) {
+                ->orderBy('published_at', 'DESC')->get(300)->getResultArray() as $p) {
+                if (! $visible($p['title'], (string) $p['excerpt'], (string) $p['content']) || count(array_filter($results, static fn ($r) => $r['type'] === 'Berita')) >= 30) {
+                    continue;
+                }
                 $results[] = ['type' => 'Berita', 'title' => $p['title'], 'url' => site_url('berita/' . $p['slug']), 'snippet' => tanggal_id($p['published_at']) . ' — ' . ($p['excerpt'] ?: plain_excerpt($p['content'], 150))];
             }
             // Dokumen: cari judul/jenis → arahkan ke halaman yang menampilkan jenis dokumen tsb.

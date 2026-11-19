@@ -116,7 +116,7 @@
                     <div class="border rounded p-2" style="max-height: 220px; overflow:auto">
                         <?php foreach ($docTypes as $t): $checked = in_array($t['code'], $codes, true); $base = $req && $checked; ?>
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="doc_codes[]" value="<?= esc($t['code'], 'attr') ?>" id="dc<?= $t['id'] ?>"<?= $checked ? ' checked' : '' ?><?= $base ? ' disabled' : '' ?>>
+                                <input class="form-check-input" type="checkbox" name="doc_codes[]" value="<?= esc($t['code'], 'attr') ?>" id="dc<?= $t['id'] ?>"<?= $checked ? ' checked' : '' ?><?= $base ? ' disabled data-locked' : '' ?>>
                                 <label class="form-check-label small" for="dc<?= $t['id'] ?>"><?= esc($t['name']) ?><?= $base ? ' <i class="bi bi-lock-fill text-secondary" aria-label="bawaan"></i>' : '' ?></label>
                             </div>
                         <?php endforeach ?>
