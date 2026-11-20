@@ -61,11 +61,17 @@
                     <?php if (! empty($moduleData) && empty($moduleData['settings'])): ?>
                         <div class="alert alert-light border small py-2 mb-2"><i class="bi bi-info-circle text-pa-primary" aria-hidden="true"></i> Blok di bawah ini (teks, tabel, gambar) hanya tampil di halaman ini sebagai pelengkap, <strong>tidak masuk ke menu <?= esc($moduleData['res']['title']) ?></strong>. Untuk data <?= esc(strtolower($moduleData['res']['title'])) ?>, gunakan bagian <a href="#data-modul">Data <?= esc($moduleData['res']['title']) ?></a> di atas.</div>
                     <?php endif ?>
-                    <div id="pbList" class="pb-list" data-media="<?= esc(base_url(), 'attr') ?>"></div>
-                    <div class="pb-add" role="group" aria-label="Tambah blok">
-                        <span class="small fw-semibold text-secondary me-1">Tambah blok:</span>
+                    <div class="pb-add pb-add-top" role="group" aria-label="Tambah blok di atas">
+                        <span class="small fw-semibold text-secondary me-1"><i class="bi bi-arrow-up-short" aria-hidden="true"></i> Tambah blok di atas:</span>
                         <?php foreach ($blockTypes as $k => $t): ?>
-                            <button type="button" class="btn btn-sm btn-outline-success" data-pb-add="<?= $k ?>"><i class="bi <?= $t['icon'] ?>" aria-hidden="true"></i> <?= esc($k === 'embed' ? 'Sematkan' : $t['label']) ?></button>
+                            <button type="button" class="btn btn-sm btn-outline-success" data-pb-add="<?= $k ?>" data-pb-where="top"><i class="bi <?= $t['icon'] ?>" aria-hidden="true"></i> <?= esc($k === 'embed' ? 'Sematkan' : $t['label']) ?><span class="visually-hidden"> di atas</span></button>
+                        <?php endforeach ?>
+                    </div>
+                    <div id="pbList" class="pb-list" data-media="<?= esc(base_url(), 'attr') ?>"></div>
+                    <div class="pb-add pb-add-bottom" role="group" aria-label="Tambah blok di bawah">
+                        <span class="small fw-semibold text-secondary me-1"><i class="bi bi-arrow-down-short" aria-hidden="true"></i> Tambah blok di bawah:</span>
+                        <?php foreach ($blockTypes as $k => $t): ?>
+                            <button type="button" class="btn btn-sm btn-outline-success" data-pb-add="<?= $k ?>" data-pb-where="bottom"><i class="bi <?= $t['icon'] ?>" aria-hidden="true"></i> <?= esc($k === 'embed' ? 'Sematkan' : $t['label']) ?><span class="visually-hidden"> di bawah</span></button>
                         <?php endforeach ?>
                     </div>
                     <input type="hidden" name="blocks_json" id="pbJson" value="">

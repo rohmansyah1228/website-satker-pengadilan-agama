@@ -163,7 +163,7 @@
         dirty = true;
         renumber();
         say('Blok dihapus');
-        const f = next ? next.querySelector('.pb-handle') : list.parentElement.querySelector('[data-pb-add]');
+        const f = next ? next.querySelector('.pb-handle') : list.parentElement.querySelector('.pb-add-bottom [data-pb-add]');
         f && f.focus();
     }
     function renumber() {
@@ -480,9 +480,9 @@
 
     // ------------------------------------------------------------ umum
     const makers = { text: textBlock, table: tableBlock, image: imageBlock, embed: embedBlock };
-    function add(type, data, after) {
+    function add(type, data, after, top) {
         const el = makers[type](data || {});
-        if (after) after.after(el); else list.append(el);
+        if (after) after.after(el); else if (top) list.prepend(el); else list.append(el);
         renumber();
         return el;
     }
@@ -493,11 +493,12 @@
     dirty = false;
 
     document.querySelectorAll('[data-pb-add]').forEach((b) => b.addEventListener('click', () => {
-        const el = add(b.dataset.pbAdd, {});
+        const top = b.dataset.pbWhere === 'top';
+        const el = add(b.dataset.pbAdd, {}, null, top);
         dirty = true;
         el.scrollIntoView({ block: 'center', behavior: 'smooth' });
         setTimeout(() => el._focus && el._focus(), 250);
-        say('Blok ' + cfg.types[b.dataset.pbAdd].label + ' ditambahkan');
+        say('Blok ' + cfg.types[b.dataset.pbAdd].label + ' ditambahkan di ' + (top ? 'paling atas' : 'paling bawah'));
     }));
     list.addEventListener('input', () => { dirty = true; });
 

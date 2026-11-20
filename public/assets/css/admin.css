@@ -197,3 +197,4 @@ body.menu-dragging, body.menu-dragging * { cursor: grabbing !important; user-sel
     .menu-item .actions { justify-content: flex-start; padding-left: 1.6rem; }
     .menu-tree .menu-tree { padding-left: .9rem; border-left: 2px solid #e5e7eb; margin-left: .35rem; }
 }
+.pb-add.pb-add-top { margin-top: 0; margin-bottom: .75rem; }
