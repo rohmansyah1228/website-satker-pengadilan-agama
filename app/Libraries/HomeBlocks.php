@@ -125,7 +125,7 @@ class HomeBlocks
                 if (! empty($s['category'])) {
                     $q->where('category', $s['category']);
                 } else {
-                    $q->whereNotIn('category', ['serta-merta']);
+                    $q->whereNotIn('category', ['serta-merta', 'pengumuman']); // pengumuman tampil di blok Pengumuman
                 }
 
                 return ['posts' => $q->orderBy('published_at', 'DESC')->get($lim)->getResultArray()];
