@@ -51,6 +51,14 @@ class Search extends BaseController
             }
         }
 
-        return $this->render('site/search', ['title' => 'Pencarian', 'q' => $q, 'results' => $results]);
+        $perPage = 15;
+        $total   = count($results);
+        $page    = min(max(1, (int) $this->request->getGet('page')), max(1, (int) ceil($total / $perPage)));
+
+        return $this->render('site/search', [
+            'title' => 'Pencarian', 'q' => $q, 'total' => $total,
+            'results' => array_slice($results, ($page - 1) * $perPage, $perPage),
+            'pager'   => $total > $perPage ? service('pager')->makeLinks($page, $perPage, $total, 'default_full') : '',
+        ]);
     }
 }

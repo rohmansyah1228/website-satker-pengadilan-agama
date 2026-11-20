@@ -10,7 +10,7 @@
         </div>
     </form>
     <?php if ($q !== ''): ?>
-        <p class="text-secondary" role="status"><?= count($results) ?> hasil untuk "<strong><?= esc($q) ?></strong>"</p>
+        <p class="text-secondary" role="status"><?= number_format($total ?? count($results), 0, ',', '.') ?> hasil untuk "<strong><?= esc($q) ?></strong>"</p>
         <?php if (mb_strlen($q) < 3): ?><p class="text-secondary">Masukkan minimal 3 karakter.</p><?php endif ?>
         <div class="list-group">
             <?php foreach ($results as $r): ?>
@@ -21,6 +21,7 @@
                 </a>
             <?php endforeach ?>
         </div>
+        <?php if (! empty($pager)): ?><div class="mt-4"><?= $pager ?></div><?php endif ?>
     <?php endif ?>
 </div>
 <?= $this->endSection() ?>

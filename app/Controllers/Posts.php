@@ -17,6 +17,7 @@ class Posts extends BaseController
             $b->where('category', $category);
         }
         $total = (clone $b)->countAllResults();
+        $page  = min($page, max(1, (int) ceil($total / $perPage))); // nomor halaman melebihi jumlah → halaman terakhir
         $rows  = $b->orderBy('published_at', 'DESC')->get($perPage, ($page - 1) * $perPage)->getResultArray();
 
         return $this->render('site/posts', [
