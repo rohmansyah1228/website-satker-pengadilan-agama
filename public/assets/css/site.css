@@ -462,3 +462,6 @@ body.high-contrast .form-control { background: #000 !important; color: #ff0 !imp
 .border-primary { border-color: #056e4f !important; }
 .accordion { --bs-accordion-active-bg: #e6f3ef; --bs-accordion-active-color: #034d37; --bs-accordion-btn-focus-box-shadow: 0 0 0 .25rem rgba(5, 110, 79, .25); }
 .progress, .progress-stacked { --bs-progress-bar-bg: #056e4f; }
+
+/* Label kategori nilai survei (Sangat Baik / Baik / …) */
+.survey-badge { background: var(--pa-secondary, #ff9900); color: #1f2937; font-weight: 700; font-size: .72rem; padding: .3em .6em; border-radius: .25rem; }

@@ -199,3 +199,31 @@ if (! function_exists('favicon_tags')) {
             . '<link rel="apple-touch-icon" href="' . esc($url) . '">' . "\n";
     }
 }
+
+if (! function_exists('survey_category')) {
+    /**
+     * Kategori nilai survei (skala 1,00–4,00):
+     *   1,00–2,5996 Tidak Baik · 2,60–3,0640 Kurang Baik · 3,0644–3,532 Baik · 3,5324–4,00 Sangat Baik.
+     * Nilai skala 100 (mis. IKM 92,40) dikonversi dulu (÷ 25). IPAK memakai sebutan "Bersih".
+     */
+    function survey_category(string $value, string $kind = 'ikm'): string
+    {
+        $v = str_replace([' ', ','], ['', '.'], trim($value));
+        if (substr_count($v, '.') > 1) {
+            $v = preg_replace('/\.(?=.*\.)/', '', $v); // 1.234,56 → 1234.56
+        }
+        if ($v === '' || ! is_numeric($v)) {
+            return '';
+        }
+        $n = (float) $v;
+        if ($n > 4) {
+            $n /= 25; // skala 25–100 → 1–4
+        }
+        if ($n <= 0 || $n > 4.0001) {
+            return '';
+        }
+        $label = $n < 2.60 ? 'Tidak Baik' : ($n < 3.0644 ? 'Kurang Baik' : ($n < 3.5324 ? 'Baik' : 'Sangat Baik'));
+
+        return strtolower($kind) === 'ipak' ? str_replace('Baik', 'Bersih', $label) : $label;
+    }
+}
