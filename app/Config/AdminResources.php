@@ -68,15 +68,36 @@ class AdminResources extends BaseConfig
             'pintasan' => [
                 'table' => 'shortcuts', 'title' => 'Pintasan Layanan', 'singular' => 'Pintasan', 'icon' => 'bi-grid-3x3-gap',
                 'group' => 'Publikasi', 'roles' => [], 'order' => ['sort', 'ASC'],
-                'list'  => ['icon' => 'Ikon', 'title' => 'Judul', 'url' => 'Tautan', 'sort' => 'Urutan', 'is_active' => 'Aktif'],
-                'hint'  => 'Kartu pintasan di beranda (SIPP, e-Court, Direktori Putusan, pengaduan). Tautan dapat berupa token {sipp_url}, {ecourt_url}, {direktori_url}, {siwas_url}, {survey_url} yang diambil dari Pengaturan.',
+                'list'  => ['image' => 'Gambar', 'icon' => 'Ikon', 'title' => 'Judul', 'grp' => 'Kelompok', 'url' => 'Tautan', 'sort' => 'Urutan', 'is_active' => 'Aktif'],
+                'search' => ['title', 'grp'],
+                'hint'  => 'Kartu pintasan di beranda (SIPP, e-Court, Direktori Putusan, pengaduan, Zona Integritas, aplikasi pendukung). Bisa memakai gambar atau ikon. Tautan dapat berupa token {sipp_url}, {ecourt_url}, {direktori_url}, {siwas_url}, {survey_url} yang diambil dari Pengaturan.',
                 'fields' => [
                     'title'       => ['Judul', 'text', 'required|max_length[120]'],
                     'description' => ['Keterangan', 'text', 'permit_empty|max_length[255]'],
-                    'icon'        => ['Ikon (Bootstrap Icons)', 'icon', 'permit_empty|max_length[60]', 'help' => 'Contoh: bi-search, bi-laptop, bi-journal-bookmark-fill. Daftar: icons.getbootstrap.com'],
+                    'grp'         => ['Kelompok', 'text', 'permit_empty|max_length[60]', 'datalist' => 'shortcut_groups',
+                        'help' => 'Kosongkan untuk Pintasan Layanan Utama. Isi nama kelompok (mis. "Zona Integritas", "Aplikasi Pendukung") lalu tambahkan blok Pintasan dengan kelompok tersebut di Tampilan Beranda.'],
+                    'image'       => ['Gambar (opsional)', 'image', 'permit_empty', 'width' => 800, 'help' => 'Bila diisi, gambar dipakai menggantikan ikon (mis. logo aplikasi atau banner Zona Integritas). PNG/JPG/WebP.'],
+                    'icon'        => ['Ikon (Bootstrap Icons)', 'icon', 'permit_empty|max_length[60]', 'help' => 'Dipakai bila tidak ada gambar. Contoh: bi-search, bi-laptop, bi-journal-bookmark-fill. Daftar: icons.getbootstrap.com'],
                     'url'         => ['Tautan', 'url', 'required|max_length[255]'],
                     'sort'        => ['Urutan', 'number', 'permit_empty|integer'],
                     'is_active'   => ['Tampilkan', 'checkbox', 'permit_empty'],
+                ],
+            ],
+
+            'video' => [
+                'table' => 'videos', 'title' => 'Galeri Video', 'singular' => 'Video', 'icon' => 'bi-camera-video',
+                'group' => 'Publikasi', 'roles' => ['humas'], 'order' => ['published_at', 'DESC'],
+                'list'  => ['image' => 'Sampul', 'title' => 'Judul', 'published_at' => 'Tanggal', 'is_active' => 'Tampil'],
+                'search' => ['title', 'description'], 'view' => 'galeri-video',
+                'hint'  => 'Video kegiatan & layanan (maklumat pelayanan, penandatanganan komitmen, inovasi). Tampil di halaman Galeri Video dan blok Galeri Video di Beranda.',
+                'fields' => [
+                    'title'        => ['Judul Video', 'text', 'required|max_length[255]'],
+                    'url'          => ['Tautan Video', 'url', 'required|max_length[500]', 'help' => 'Tautan YouTube (youtube.com/watch?v=…, youtu.be/…, youtube.com/shorts/…) atau Google Drive.'],
+                    'description'  => ['Keterangan', 'textarea', 'permit_empty|max_length[1000]'],
+                    'image'        => ['Gambar Sampul (opsional)', 'image', 'permit_empty', 'width' => 800, 'help' => 'Kosongkan untuk YouTube: sampul diambil otomatis.'],
+                    'published_at' => ['Tanggal', 'date', 'permit_empty|valid_date[Y-m-d]'],
+                    'sort'         => ['Urutan', 'number', 'permit_empty|integer'],
+                    'is_active'    => ['Tampilkan', 'checkbox', 'permit_empty'],
                 ],
             ],
 
@@ -259,9 +280,14 @@ class AdminResources extends BaseConfig
                 'intro' => 'Slide tampil bergantian di bagian atas Beranda (maksimal 5 slide aktif).',
             ],
             'pintasan' => [
-                'main'  => ['' => ['title', 'description', 'url']],
-                'side'  => ['Tampilan' => ['icon', 'sort', 'is_active']],
-                'intro' => 'Pintasan layanan tampil sebagai kotak ikon di Beranda.',
+                'main'  => ['' => ['title', 'description', 'url'], 'Gambar atau Ikon' => ['image', 'icon']],
+                'side'  => ['Tampilan' => ['grp', 'sort', 'is_active']],
+                'intro' => 'Pintasan tampil sebagai kotak bergambar/ikon di Beranda. Kelompokkan (mis. Zona Integritas) untuk ditampilkan sebagai bagian tersendiri.',
+            ],
+            'video' => [
+                'main'  => ['' => ['title', 'url', 'description']],
+                'side'  => ['Tampilan' => ['published_at', 'sort', 'is_active'], 'Gambar Sampul' => ['image']],
+                'intro' => 'Tempel tautan YouTube (atau Google Drive). Gambar sampul YouTube diambil otomatis; video diputar di dalam website.',
             ],
             'dokumen' => [
                 'main'  => ['' => ['title'], 'Berkas' => ['file_id', 'external_url']],

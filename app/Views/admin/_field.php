@@ -77,8 +77,18 @@ $showWhen  = ! empty($f['show_when']) ? ' data-show-when="' . esc($f['show_when'
                 <input type="text" id="<?= $id ?>" name="<?= $inputName ?>" value="<?= esc((string) $value, 'attr') ?>" class="form-control<?= $invalid ?>" inputmode="url" spellcheck="false" placeholder="https://… atau /halaman/internal"<?= $required ? ' required' : '' ?><?= $aria ?>>
             <?php break; case 'email': ?>
                 <input type="email" id="<?= $id ?>" name="<?= $inputName ?>" value="<?= esc((string) $value, 'attr') ?>" class="form-control<?= $invalid ?>" autocomplete="off" spellcheck="false"<?= $aria ?>>
-            <?php break; default: ?>
-                <input type="text" id="<?= $id ?>" name="<?= $inputName ?>" value="<?= esc((string) $value, 'attr') ?>" class="form-control<?= ! empty($f['large']) ? ' form-control-lg' : '' ?><?= $invalid ?>"<?= $required ? ' required' : '' ?><?= $aria ?><?= $disabled ?><?= ! empty($f['slugSource']) ? ' data-slug-source' : '' ?>>
+            <?php break; default:
+                $dl = [];
+                if (($f['datalist'] ?? '') === 'shortcut_groups') { // saran nama kelompok pintasan yang sudah ada
+                    try {
+                        $dl = array_filter(array_column(db_connect()->table('shortcuts')->select('grp')->distinct()->where('grp IS NOT NULL')->orderBy('grp')->get()->getResultArray(), 'grp'));
+                    } catch (\Throwable $e) {
+                        $dl = [];
+                    }
+                    $dl = array_values(array_unique(array_merge($dl, ['Zona Integritas', 'Aplikasi Pendukung'])));
+                } ?>
+                <input type="text" id="<?= $id ?>" name="<?= $inputName ?>" value="<?= esc((string) $value, 'attr') ?>" class="form-control<?= ! empty($f['large']) ? ' form-control-lg' : '' ?><?= $invalid ?>"<?= $required ? ' required' : '' ?><?= $aria ?><?= $disabled ?><?= ! empty($f['slugSource']) ? ' data-slug-source' : '' ?><?= $dl ? ' list="' . $id . '_list" autocomplete="off"' : '' ?>>
+                <?php if ($dl): ?><datalist id="<?= $id ?>_list"><?php foreach ($dl as $o): ?><option value="<?= esc($o, 'attr') ?>"><?php endforeach ?></datalist><?php endif ?>
         <?php endswitch ?>
     <?php endif ?>
     <?php if (! empty($f['help'])): ?><div id="<?= $id ?>_help" class="form-text"><?= esc($f['help']) ?></div><?php endif ?>

@@ -23,7 +23,7 @@ class HomeBlocks extends BaseConfig
 
     /** Ukuran awal (lebar kolom dari 12, tinggi baris) saat tampilan baru ditambahkan. */
     public array $sizes = [
-        'slider' => [12, 1], 'shortcuts' => [12, 1], 'survey' => [12, 1], 'stats' => [12, 1],
+        'slider' => [12, 1], 'shortcuts' => [12, 1], 'videos' => [12, 1], 'survey' => [12, 1], 'stats' => [12, 1],
         'announcements' => [6, 1], 'news' => [6, 1], 'hearings' => [8, 1], 'documents' => [6, 1],
         'html' => [8, 1], 'image' => [4, 1], 'card' => [4, 1], 'search' => [4, 1], 'hours' => [4, 1],
     ];
@@ -68,9 +68,23 @@ class HomeBlocks extends BaseConfig
                 'top' => true, 'child' => false, 'regions' => ['top', 'bottom'], 'fields' => [],
             ],
             'shortcuts' => [
-                'Pintasan Layanan', 'bi-grid-3x3-gap', 'Kartu pintasan SIPP, e-Court, Direktori Putusan, SIWAS, dll. Isi dikelola di Publikasi → Pintasan Layanan.',
+                'Pintasan Layanan', 'bi-grid-3x3-gap', 'Kartu pintasan bergambar/ikon: SIPP, e-Court, SIWAS, Zona Integritas, aplikasi pendukung, dll. Isi dikelola di Publikasi → Pintasan Layanan.',
                 'top' => true, 'child' => true, 'fields' => [
-                    'columns' => ['Kartu per baris (layar lebar)', 'select', 'required|in_list[2,3,4,6]', 'options' => ['2' => '2', '3' => '3', '4' => '4', '6' => '6'], 'default' => '4'],
+                    'group'   => ['Kelompok pintasan', 'select', 'permit_empty', 'source' => 'shortcut_groups', 'default' => '',
+                        'help' => 'Pilih kelompok yang ditampilkan di blok ini (atur kelompok di Publikasi → Pintasan Layanan).'],
+                    'style'   => ['Gaya tampilan', 'select', 'required|in_list[card,tile,button]', 'default' => 'card', 'options' => [
+                        'card'   => 'Kartu (gambar/ikon + judul + keterangan)',
+                        'tile'   => 'Gambar saja (banner, mis. Zona Integritas)',
+                        'button' => 'Tombol kotak (ikon/gambar + judul, mis. aplikasi pendukung)',
+                    ]],
+                    'columns' => ['Kartu per baris (layar lebar)', 'select', 'required|in_list[2,3,4,5,6]', 'options' => ['2' => '2', '3' => '3', '4' => '4', '5' => '5', '6' => '6'], 'default' => '4'],
+                ],
+            ],
+            'videos' => [
+                'Galeri Video', 'bi-camera-video', 'Video terbaru (YouTube/Drive) yang diputar di dalam website. Isi dikelola di Publikasi → Galeri Video.',
+                'top' => true, 'child' => true, 'fields' => [
+                    'limit'   => $limit(8, 24),
+                    'columns' => ['Video per baris (layar lebar)', 'select', 'required|in_list[2,3,4]', 'options' => ['2' => '2', '3' => '3', '4' => '4'], 'default' => '4'],
                 ],
             ],
             'announcements' => [

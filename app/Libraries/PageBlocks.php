@@ -310,6 +310,35 @@ class PageBlocks
         return null;
     }
 
+    /** ID video YouTube dari berbagai bentuk tautan (watch, youtu.be, shorts, live, embed). */
+    public static function youtubeId(string $u): ?string
+    {
+        $p = parse_url(trim($u));
+        if (! $p) {
+            return null;
+        }
+        $host = strtolower($p['host'] ?? '');
+        $path = $p['path'] ?? '';
+        parse_str($p['query'] ?? '', $q);
+        if (! in_array($host, ['www.youtube.com', 'youtube.com', 'm.youtube.com', 'youtu.be', 'www.youtube-nocookie.com'], true)) {
+            return null;
+        }
+        $id = $host === 'youtu.be' ? ltrim($path, '/') : ($q['v'] ?? (preg_match('#^/(?:embed|shorts|live)/([\w-]+)#', $path, $m) ? $m[1] : ''));
+
+        return preg_match('/^[\w-]{6,20}$/', (string) $id) ? $id : null;
+    }
+
+    /** Gambar sampul video: unggahan sendiri, atau sampul otomatis YouTube. */
+    public static function videoThumb(array $v): string
+    {
+        if (! empty($v['image'])) {
+            return media_url($v['image']);
+        }
+        $id = self::youtubeId((string) ($v['url'] ?? ''));
+
+        return $id ? "https://i.ytimg.com/vi/{$id}/hqdefault.jpg" : '';
+    }
+
     /** Alamat untuk iframe blok sematan. */
     public static function embedUrl(string $u): string
     {

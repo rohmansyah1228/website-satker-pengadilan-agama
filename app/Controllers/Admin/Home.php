@@ -192,6 +192,15 @@ class Home extends AdminController
     {
         $out = [];
         foreach ($this->types[$type]['fields'] as $k => $f) {
+            if (($f['source'] ?? '') === 'shortcut_groups') {
+                $groups = [];
+                try {
+                    $groups = array_filter(array_column($this->db->table('shortcuts')->select('grp')->distinct()->where('grp IS NOT NULL')->orderBy('grp')->get()->getResultArray(), 'grp'));
+                } catch (\Throwable $e) {
+                    // kolom grp belum ada (pembaruan database belum dijalankan)
+                }
+                $out[$k] = ['' => 'Pintasan Layanan Utama (tanpa kelompok)'] + array_combine($groups, $groups);
+            }
             if (($f['source'] ?? '') === 'doc_types') {
                 $out[$k] = ['' => 'Semua jenis'] + array_column($this->db->table('doc_types')->select('id, name')->orderBy('sort')->get()->getResultArray(), 'name', 'id');
             }

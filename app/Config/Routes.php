@@ -93,6 +93,7 @@ $routes->group('', ['filter' => 'visitor'], static function ($routes) {
     $routes->get('berita', 'Posts::index');
     $routes->get('berita/kategori/(:segment)', 'Posts::index/$1');
     $routes->get('berita/(:segment)', 'Posts::show/$1');
+    $routes->get('galeri-video', 'Videos::index');
     $routes->get('(:segment)', 'Site::section/$1');
     $routes->get('(:segment)/(:segment)', 'Site::page/$1/$2');
     $routes->get('(:segment)/(:segment)/(:num)', 'Site::employee/$1/$2/$3');

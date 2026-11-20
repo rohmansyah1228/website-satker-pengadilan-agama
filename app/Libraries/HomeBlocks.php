@@ -107,7 +107,21 @@ class HomeBlocks
                     ->get(config('SiteStructure')->maxSliders)->getResultArray()];
 
             case 'shortcuts':
-                return ['shortcuts' => $db->table('shortcuts')->where('is_active', 1)->orderBy('sort')->get(12)->getResultArray()];
+                $q = $db->table('shortcuts')->where('is_active', 1);
+                if ($db->fieldExists('grp', 'shortcuts')) {
+                    $g = trim((string) ($s['group'] ?? ''));
+                    $g === '' ? $q->groupStart()->where('grp', null)->orWhere('grp', '')->groupEnd() : $q->where('grp', $g);
+                }
+
+                return ['shortcuts' => $q->orderBy('sort')->orderBy('id')->get(30)->getResultArray()];
+
+            case 'videos':
+                if (! $db->tableExists('videos')) {
+                    return ['videos' => []];
+                }
+
+                return ['videos' => $db->table('videos')->where('is_active', 1)->orderBy('published_at', 'DESC')->orderBy('sort')->orderBy('id', 'DESC')
+                    ->get($lim)->getResultArray()];
 
             case 'announcements':
                 $ghaib = ! empty($s['show_ghaib'])

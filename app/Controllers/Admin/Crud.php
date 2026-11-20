@@ -324,6 +324,7 @@ class Crud extends AdminController
                         break;
 
                     case 'year':
+                    case 'date':
                     case 'select':
                         $v           = $post[$name] ?? null;
                         $data[$name] = ($v === '' || $v === null) ? null : $v;

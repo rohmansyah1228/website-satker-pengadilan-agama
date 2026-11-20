@@ -52,7 +52,7 @@ $pageTitle = isset($title) && $title !== $siteName ? $title . ' — ' . $siteNam
         <div class="ms-auto d-flex gap-2 flex-shrink-0"><a id="previewOpen" href="#" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener noreferrer"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i><span class="d-none d-sm-inline"> Buka di tab baru</span></a>
         <button type="button" class="btn btn-sm btn-pa-primary" data-close-preview aria-label="Tutup pratinjau"><i class="bi bi-x-lg" aria-hidden="true"></i></button></div>
     </div>
-    <iframe id="previewFrame" title="Pratinjau dokumen" src="about:blank" allow="fullscreen" sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms allow-downloads allow-presentation"></iframe>
+    <iframe id="previewFrame" title="Pratinjau dokumen" src="about:blank" allow="fullscreen; autoplay; encrypted-media; picture-in-picture" sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms allow-downloads allow-presentation"></iframe>
 </dialog>
 
 
