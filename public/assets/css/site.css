@@ -524,3 +524,19 @@ body.high-contrast .form-control { background: #000 !important; color: #ff0 !imp
 .hours-group ul { padding: 0 .75rem; }
 .hours-group li + li { border-top: 1px dashed #e5e7eb; }
 .hours-group li .text-end { color: #1f2937 !important; font-weight: 600; }
+
+/* Popup pembuka — ukuran terbatas, tidak memenuhi layar */
+dialog.site-popup { padding: 0; border: 0; border-radius: .75rem; overflow: visible; background: #fff; box-shadow: 0 24px 60px rgba(0,0,0,.35); width: 92vw; max-height: 90vh; }
+dialog.site-popup-sm { max-width: 480px; }
+dialog.site-popup-md { max-width: 720px; }
+dialog.site-popup-lg { max-width: 960px; }
+dialog.site-popup::backdrop { background: rgba(15, 23, 42, .6); }
+dialog.site-popup[open] { animation: popupIn .25s ease-out; }
+@keyframes popupIn { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: none; } }
+.site-popup-img { display: block; width: 100%; height: auto; max-height: 75vh; object-fit: contain; background: #f1f5f9; border-radius: .75rem; }
+.site-popup-img.has-body { border-radius: .75rem .75rem 0 0; }
+.site-popup-body { padding: .9rem 1.1rem 1rem; max-height: 30vh; overflow-y: auto; }
+.site-popup-close { position: absolute; top: -.9rem; right: -.9rem; z-index: 2; width: 2.4rem; height: 2.4rem; border-radius: 50%; border: 2px solid #fff; background: #dc2626; color: #fff; font-size: 1.05rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,.35); cursor: pointer; }
+.site-popup-close:hover, .site-popup-close:focus-visible { background: #b91c1c; outline: 3px solid var(--pa-secondary, #ff9900); outline-offset: 2px; }
+@media (max-width: 576px) { .site-popup-close { top: .4rem; right: .4rem; } }
+@media (prefers-reduced-motion: reduce) { dialog.site-popup[open] { animation: none; } }

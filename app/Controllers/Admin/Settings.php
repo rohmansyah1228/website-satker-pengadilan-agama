@@ -54,6 +54,17 @@ class Settings extends AdminController
                 'ipak'          => ['Indeks Persepsi Anti Korupsi (IPAK)', 'text', ''],
                 'survey_period' => ['Periode Survei', 'text', 'Mis. Triwulan III 2026'],
             ]],
+            'popup' => ['Popup Pembuka', [
+                'popup_active'    => ['Tampilkan popup', 'select', 'Popup muncul saat pengunjung membuka website (mis. ucapan selamat datang, maklumat, pengumuman penting).', ['0' => 'Tidak', '1' => 'Ya']],
+                'popup_where'     => ['Tampil di', 'select', '', ['home' => 'Beranda saja', 'all' => 'Semua halaman']],
+                'popup_frequency' => ['Seberapa sering', 'select', 'Popup baru (gambar/judul diganti) otomatis tampil lagi untuk semua pengunjung.', ['session' => 'Sekali per kunjungan (disarankan)', 'day' => 'Sekali sehari', 'always' => 'Setiap kali halaman dibuka']],
+                'popup_size'      => ['Ukuran', 'select', '', ['md' => 'Sedang — lebar maks. 720 px (disarankan)', 'sm' => 'Kecil — lebar maks. 480 px', 'lg' => 'Besar — lebar maks. 960 px']],
+                'popup_image'     => ['Gambar / Banner', 'image', 'JPG/PNG/WebP. Gambar diperkecil agar pas di layar (tidak memenuhi layar).'],
+                'popup_title'     => ['Judul (opsional)', 'text', 'Juga dipakai sebagai teks alternatif gambar untuk pembaca layar.'],
+                'popup_text'      => ['Teks (opsional)', 'textarea', ''],
+                'popup_button'    => ['Teks tombol (opsional)', 'text', 'Mis. Selengkapnya'],
+                'popup_link'      => ['Tautan tombol / gambar (opsional)', 'url', ''],
+            ]],
             'keamanan' => ['Keamanan', [
                 'require_2fa' => ['Wajibkan MFA untuk semua pengguna', 'select', 'SK 2722/2026 Bab II B.3: login admin dilindungi Captcha dan/atau MFA. Dinilai pada kriteria Keamanan.', ['1' => 'Ya (disarankan)', '0' => 'Tidak']],
             ]],

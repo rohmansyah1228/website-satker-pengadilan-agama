@@ -106,7 +106,7 @@
     document.addEventListener('click', (e) => {
         if (!voiceOn) return;
         const el = e.target.closest(CLICKABLE);
-        if (!el || el.closest('[data-a11y]')) { playWelcome(); return; }
+        if (!el || el.closest('[data-a11y], [data-no-speak]')) { playWelcome(); return; }
         const label = labelOf(el);
         const greeted = playWelcome();
         if (!label) return;
@@ -239,6 +239,26 @@
         pv.querySelector('[data-close-preview]').addEventListener('click', () => pv.close());
         pv.addEventListener('click', (e) => { if (e.target === pv) pv.close(); });
         pv.addEventListener('close', () => { frame.src = 'about:blank'; opener && opener.focus(); });
+    }
+
+    // ---------- Popup pembuka (Pengaturan → Popup Pembuka) ----------
+    const pop = document.getElementById('sitePopup');
+    if (pop && typeof pop.showModal === 'function') {
+        const k = 'popup-' + pop.dataset.key;
+        const freq = pop.dataset.freq || 'session';
+        const today = new Date().toISOString().slice(0, 10);
+        const seen = freq === 'always' ? false : freq === 'day' ? store.get(k) === today : session.get(k) === '1';
+        if (!seen) {
+            setTimeout(() => {
+                if (document.querySelector('dialog[open]')) return; // jangan menumpuk dialog lain
+                pop.showModal();
+                const c = pop.querySelector('.site-popup-close'); c && c.focus();
+            }, 400);
+            const mark = () => { if (freq === 'day') store.set(k, today); else if (freq === 'session') session.set(k, '1'); };
+            pop.addEventListener('close', mark);
+            pop.querySelectorAll('[data-popup-close]').forEach((b) => b.addEventListener('click', () => pop.close()));
+            pop.addEventListener('click', (e) => { if (e.target === pop) pop.close(); }); // klik di luar gambar
+        }
     }
 
     // ---------- Tahun berjalan ----------

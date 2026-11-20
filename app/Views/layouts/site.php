@@ -44,6 +44,7 @@ $pageTitle = isset($title) && $title !== $siteName ? $title . ' — ' . $siteNam
 
     <?= $this->include('partials/footer') ?>
     <?= $this->include('partials/a11y') ?>
+    <?= $this->include('partials/popup') ?>
     <!-- Penampil tautan di dalam website (tombol "Lihat" & tautan bertarget "tampil") -->
 <dialog id="previewDialog" class="preview-dialog" aria-labelledby="previewTitle">
     <div class="preview-dialog__head">
