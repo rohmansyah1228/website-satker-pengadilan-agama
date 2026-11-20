@@ -86,7 +86,13 @@
         say(welcomeText, null, false);
         return true;
     };
-    if (voiceOn && !welcomed) {
+    // halaman tujuan setelah klik menu: umumkan nama halaman yang dibuka
+    const arrive = session.get('a11y-arrive');
+    if (arrive !== null) {
+        try { sessionStorage.removeItem('a11y-arrive'); } catch (e) { /* abaikan */ }
+        if (voiceOn) setTimeout(() => say(arrive), 150);
+    }
+    if (voiceOn && !welcomed && arrive === null) {
         // coba langsung; peramban yang mewajibkan interaksi akan menolak → diputar pada interaksi pertama
         const u = say(welcomeText);
         if (u) {
@@ -115,11 +121,9 @@
             && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey && e.button === 0
             && el.getAttribute('href') !== '#' && !el.getAttribute('href').startsWith('#') && /^https?:$/.test(el.protocol);
         if (nav) {
-            e.preventDefault();
-            let gone = false;
-            const go = () => { if (!gone) { gone = true; window.location.href = el.href; } };
-            say(label, go, greeted);
-            setTimeout(go, Math.min(2500, 700 + label.length * 60) + (greeted ? 4000 : 0));
+            // langsung pindah halaman tanpa menunggu; ucapan dimulai sekarang dan diulang di halaman tujuan
+            say(label, null, greeted);
+            session.set('a11y-arrive', (greeted ? welcomeText + '. ' : '') + label);
         } else {
             say(label, null, greeted);
         }
@@ -169,7 +173,7 @@
         'close': () => { setPanel(false); toggleBtn && toggleBtn.focus(); }
     };
     document.querySelectorAll('[data-a11y]').forEach((b) => b.addEventListener('click', () => (actions[b.dataset.a11y] || (() => {}))()));
-    window.addEventListener('pagehide', stopSpeech);
+    window.addEventListener('pagehide', () => { if (speaking) stopSpeech(); }); // ucapan nama menu dibiarkan selesai
 
     // ---------- Dialog pencarian (native <dialog>) ----------
     const dlg = document.getElementById('searchDialog');
