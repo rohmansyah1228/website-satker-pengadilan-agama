@@ -37,8 +37,101 @@
     const stopSpeech = () => {
         if ('speechSynthesis' in window) window.speechSynthesis.cancel();
         speaking = false;
-        if (srLabel) srLabel.textContent = 'Aktifkan Pembaca Layar';
+        if (srLabel) srLabel.textContent = 'Bacakan Isi Halaman';
     };
+
+    // ---------- Suara Panduan: sambutan otomatis + membacakan yang diklik (aktif secara bawaan) ----------
+    const canSpeak = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+    let voiceOn = canSpeak && store.get('a11y-voice') !== '0';
+    const voiceLabel = document.getElementById('voiceLabel');
+    const voiceBtn = document.querySelector('[data-a11y="voice"]');
+    const syncVoice = () => {
+        if (voiceLabel) voiceLabel.textContent = 'Suara Panduan: ' + (voiceOn ? 'Aktif' : 'Nonaktif');
+        if (voiceBtn) voiceBtn.setAttribute('aria-pressed', voiceOn ? 'true' : 'false');
+        if (!canSpeak && voiceBtn) voiceBtn.hidden = true;
+    };
+    syncVoice();
+    let idVoice = null;
+    const voiceId = () => {
+        if (idVoice || !canSpeak) return idVoice;
+        const vs = window.speechSynthesis.getVoices();
+        idVoice = vs.find((v) => /^id(-|_|$)/i.test(v.lang)) || vs.find((v) => /indonesia/i.test(v.name)) || null;
+        return idVoice;
+    };
+    if (canSpeak) { voiceId(); window.speechSynthesis.addEventListener && window.speechSynthesis.addEventListener('voiceschanged', () => { idVoice = null; voiceId(); }); }
+    // ucapkan teks (tanpa antre: yang baru menggantikan yang lama, kecuali queue=true)
+    const say = (text, onDone, queue) => {
+        if (!canSpeak || !text) { onDone && onDone(); return null; }
+        if (!queue) window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'id-ID';
+        if (voiceId()) u.voice = voiceId();
+        u.rate = 1;
+        let done = false;
+        const fin = () => { if (!done) { done = true; onDone && onDone(); } };
+        u.onend = fin;
+        u.onerror = fin;
+        window.speechSynthesis.speak(u);
+        return u;
+    };
+    const widget = document.querySelector('.a11y-widget');
+    const siteName = (widget && widget.dataset.siteName) || document.title.split('—').pop().trim();
+    const welcomeText = 'Selamat datang di website ' + siteName;
+    const session = { get(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { sessionStorage.setItem(k, v); } catch (e) { /* abaikan */ } } };
+    let welcomed = session.get('a11y-welcomed') === '1';
+    const playWelcome = (queueAfter) => {
+        if (welcomed || !voiceOn) return false;
+        welcomed = true;
+        session.set('a11y-welcomed', '1'); // sekali per kunjungan (tidak diulang di setiap halaman)
+        say(welcomeText, null, false);
+        return true;
+    };
+    if (voiceOn && !welcomed) {
+        // coba langsung; peramban yang mewajibkan interaksi akan menolak → diputar pada interaksi pertama
+        const u = say(welcomeText);
+        if (u) {
+            u.onstart = () => { welcomed = true; session.set('a11y-welcomed', '1'); };
+        }
+    }
+    // label yang dibacakan untuk elemen yang diklik
+    const labelOf = (el) => {
+        const head = el.querySelector('.font-display, h1, h2, h3, h4, h5, .shortcut-button-label, .video-title');
+        const t = el.getAttribute('aria-label') || el.dataset.previewTitle || el.getAttribute('title')
+            || (head && head.innerText.replace(/\s+/g, ' ').trim())
+            || (el.innerText || el.textContent || '').replace(/\s+/g, ' ').trim()
+            || (el.querySelector('img[alt]') || {}).alt || el.value || '';
+        return t.replace(/\(membuka tab baru\)/i, '').replace(/[→›»←‹«]/g, '').trim().slice(0, 160);
+    };
+    const CLICKABLE = 'a[href], button, [role="button"], [role="tab"], [role="menuitem"], summary, input[type="submit"], input[type="button"], label[for]';
+    document.addEventListener('click', (e) => {
+        if (!voiceOn) return;
+        const el = e.target.closest(CLICKABLE);
+        if (!el || el.closest('[data-a11y]')) { playWelcome(); return; }
+        const label = labelOf(el);
+        const greeted = playWelcome();
+        if (!label) return;
+        // tautan pindah halaman di tab yang sama: tunggu ucapan selesai agar tidak terpotong (maks. 2,5 detik)
+        const nav = !e.defaultPrevented && el.matches('a[href]') && !el.target && !el.hasAttribute('download') && !el.matches('[data-preview], [data-bs-toggle]')
+            && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey && e.button === 0
+            && el.getAttribute('href') !== '#' && !el.getAttribute('href').startsWith('#') && /^https?:$/.test(el.protocol);
+        if (nav) {
+            e.preventDefault();
+            let gone = false;
+            const go = () => { if (!gone) { gone = true; window.location.href = el.href; } };
+            say(label, go, greeted);
+            setTimeout(go, Math.min(2500, 700 + label.length * 60) + (greeted ? 4000 : 0));
+        } else {
+            say(label, null, greeted);
+        }
+    }, true);
+    // pengguna keyboard: bacakan elemen yang mendapat fokus dengan Tab
+    document.addEventListener('keydown', (e) => { if (voiceOn && !welcomed && e.key !== 'Tab') playWelcome(); });
+    document.addEventListener('focusin', (e) => {
+        if (!voiceOn) return;
+        const el = e.target.closest && e.target.closest(CLICKABLE + ', input, select, textarea');
+        if (!el || !el.matches(':focus-visible')) return;
+        playWelcome() || say(labelOf(el) || (el.labels && el.labels[0] ? el.labels[0].innerText : ''));
+    });
 
     const actions = {
         'font-up': () => { fontSize = Math.min(24, fontSize + 2); applyFont(); store.set('a11y-font', fontSize); announce('Ukuran teks ' + fontSize + ' piksel'); },
@@ -56,11 +149,18 @@
             const text = (sel && sel.trim().length > 2 ? sel : (main ? main.innerText : document.body.innerText)).slice(0, 4000);
             const u = new SpeechSynthesisUtterance(text);
             u.lang = 'id-ID';
+            if (voiceId()) u.voice = voiceId();
             u.onend = stopSpeech;
             window.speechSynthesis.cancel();
             window.speechSynthesis.speak(u);
             speaking = true;
-            if (srLabel) srLabel.textContent = 'Hentikan Pembaca Layar';
+            if (srLabel) srLabel.textContent = 'Hentikan Pembacaan';
+        },
+        'voice': () => {
+            voiceOn = !voiceOn;
+            store.set('a11y-voice', voiceOn ? '1' : '0');
+            syncVoice();
+            if (voiceOn) { say('Suara panduan diaktifkan'); } else { window.speechSynthesis && window.speechSynthesis.cancel(); announce('Suara panduan dinonaktifkan'); }
         },
         'reset': () => {
             fontSize = 16; applyFont(); store.del('a11y-font'); store.del('a11y-contrast');

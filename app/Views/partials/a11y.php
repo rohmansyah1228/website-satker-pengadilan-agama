@@ -1,5 +1,5 @@
 <!-- Widget Aksesibilitas Disabilitas / WCAG (Lampiran II huruf B) -->
-<div class="a11y-widget">
+<div class="a11y-widget" data-site-name="<?= esc(setting('site_name', 'Pengadilan Agama'), 'attr') ?>">
     <div id="a11yPanel" class="a11y-panel card shadow-lg border-2 border-pa-primary mb-2" role="region" aria-labelledby="a11yTitle">
         <div class="card-header bg-pa-primary text-white fw-bold d-flex justify-content-between align-items-center">
             <span id="a11yTitle"><i class="bi bi-universal-access me-1" aria-hidden="true"></i> Sarana Disabilitas</span>
@@ -9,7 +9,8 @@
             <button type="button" class="btn btn-outline-success btn-sm text-start fw-semibold" data-a11y="font-up"><i class="bi bi-zoom-in me-2" aria-hidden="true"></i>Perbesar Teks (Zoom In)</button>
             <button type="button" class="btn btn-outline-success btn-sm text-start fw-semibold" data-a11y="font-down"><i class="bi bi-zoom-out me-2" aria-hidden="true"></i>Perkecil Teks (Zoom Out)</button>
             <button type="button" class="btn btn-outline-dark btn-sm text-start fw-semibold" data-a11y="contrast"><i class="bi bi-circle-half me-2" aria-hidden="true"></i>Mode Kontras Tinggi</button>
-            <button type="button" class="btn btn-pa-secondary btn-sm text-start fw-bold" data-a11y="speak"><i class="bi bi-volume-up-fill me-2" aria-hidden="true"></i><span id="srLabel">Aktifkan Pembaca Layar</span></button>
+            <button type="button" class="btn btn-outline-success btn-sm text-start fw-semibold" data-a11y="voice" aria-pressed="true"><i class="bi bi-megaphone-fill me-2" aria-hidden="true"></i><span id="voiceLabel">Suara Panduan: Aktif</span></button>
+            <button type="button" class="btn btn-pa-secondary btn-sm text-start fw-bold" data-a11y="speak"><i class="bi bi-volume-up-fill me-2" aria-hidden="true"></i><span id="srLabel">Bacakan Isi Halaman</span></button>
             <button type="button" class="btn btn-link btn-sm text-secondary text-decoration-none" data-a11y="reset">Reset Tampilan Standar</button>
             <p class="visually-hidden" role="status" id="a11yStatus"></p>
         </div>
