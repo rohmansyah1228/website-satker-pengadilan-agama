@@ -19,6 +19,7 @@ $addr     = implode(', ', array_filter([setting('address_street'), setting('addr
                     <?php if (setting('phone')): ?>Telepon: <?= esc(setting('phone')) ?><?php endif ?>
                     <?php if (setting('email')): ?> | Email: <a class="text-white-50" href="mailto:<?= esc(setting('email'), 'attr') ?>"><?= esc(setting('email')) ?></a><?php endif ?></p>
                 <?php if (setting('office_hours')): ?><p class="text-white-50 small mb-0"><?= nl2br(esc(setting('office_hours'))) ?></p><?php endif ?>
+                <?php if (setting('hearing_hours')): ?><p class="text-white-50 small mb-0 mt-2"><strong class="text-white-75">Waktu sidang:</strong><br><?= nl2br(esc(setting('hearing_hours'))) ?></p><?php endif ?>
             </div>
             <div class="col-md-6 col-lg-4">
                 <h2 class="font-display fw-bold fs-6 text-pa-secondary mb-3">Tautan Ekosistem Peradilan</h2>

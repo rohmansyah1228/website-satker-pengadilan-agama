@@ -1,3 +1,7 @@
+<?php if (setting('hearing_hours')): ?>
+<div class="alert alert-light border d-flex gap-2 align-items-start small mb-3"><i class="bi bi-bank text-pa-primary fs-5" aria-hidden="true"></i>
+    <div><strong>Waktu sidang:</strong> <?= implode(' · ', array_map('esc', array_filter(array_map('trim', preg_split('/\R/', setting('hearing_hours')))))) ?></div></div>
+<?php endif ?>
 <form method="get" class="row g-2 align-items-end mb-3">
     <div class="col-auto">
         <label for="tanggal" class="form-label fw-semibold small mb-1">Tanggal sidang</label>

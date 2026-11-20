@@ -515,3 +515,12 @@ body.high-contrast .form-control { background: #000 !important; color: #ff0 !imp
 .video-title { color: #1f2937; line-height: 1.35; }
 .video-on-dark .video-title { color: #fff; }
 .video-on-dark small { color: rgba(255,255,255,.75) !important; }
+
+/* Blok Jam Pelayanan & Sidang */
+.hours-block { display: grid; gap: .75rem; }
+.hours-group { border: 1px solid #d7e6df; border-radius: .5rem; overflow: hidden; background: #fff; color: #1f2937; }
+.hours-head { margin: 0; padding: .45rem .75rem; background: var(--pa-primary, #056e4f); color: #fff; font-size: .82rem; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
+.hours-head .bi { color: var(--pa-secondary, #ff9900); }
+.hours-group ul { padding: 0 .75rem; }
+.hours-group li + li { border-top: 1px dashed #e5e7eb; }
+.hours-group li .text-end { color: #1f2937 !important; font-weight: 600; }

@@ -154,8 +154,11 @@ class HomeBlocks extends BaseConfig
                 'top' => true, 'child' => true, 'fields' => [],
             ],
             'hours' => [
-                'Jam Pelayanan', 'bi-clock', 'Jam pelayanan PTSP dari Pengaturan → Alamat & Kontak.',
-                'top' => true, 'child' => true, 'fields' => [],
+                'Jam Pelayanan & Sidang', 'bi-clock', 'Jam pelayanan PTSP, jam istirahat, dan waktu sidang dari Pengaturan → Alamat & Kontak.',
+                'top' => true, 'child' => true, 'fields' => [
+                    'show_break'   => ['Tampilkan jam istirahat', 'checkbox', 'permit_empty', 'default' => 1],
+                    'show_hearing' => ['Tampilkan waktu sidang', 'checkbox', 'permit_empty', 'default' => 1],
+                ],
             ],
         ];
     }

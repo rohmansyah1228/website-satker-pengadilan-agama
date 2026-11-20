@@ -39,6 +39,8 @@ class SatkerSeeder extends Seeder
             'building_photo'   => '',
             'map_url'          => '',
             'office_hours'     => "Senin – Kamis: 08.00 – 16.30 WIB\nJumat: 08.00 – 17.00 WIB",
+            'break_hours'      => "Senin – Kamis: 12.00 – 13.00 WIB\nJumat: 11.30 – 13.00 WIB",
+            'hearing_hours'    => 'Senin – Kamis: 09.00 WIB – selesai',
             'facebook'         => '',
             'instagram'        => '',
             'youtube'          => '',
