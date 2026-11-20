@@ -83,8 +83,33 @@ class Compliance
                 if (! $missing) {
                     return ['ok', ''];
                 }
+                // Belum diisi di Pengaturan → cari di isi halaman kriteria
+                $ev = $this->pageEvidence($page, $db);
+                $urlHints = ['sipp_url' => ['sipp'], 'ecourt_url' => ['ecourt'], 'direktori_url' => ['putusan', 'direktori']];
+                $found    = [];
+                foreach ($missing as $k) {
+                    if (isset($urlHints[$k])) {
+                        foreach ($ev['urls'] as $u) {
+                            foreach ($urlHints[$k] as $h) {
+                                if (stripos($u, $h) !== false) {
+                                    $found[$k] = true;
+                                }
+                            }
+                        }
+                    } elseif ($ev['data']) {
+                        $found[$k] = true;
+                    }
+                }
+                $missing = array_values(array_diff($missing, array_keys($found)));
+                if (! $missing) {
+                    return ['ok', $this->describe($ev)];
+                }
+                $labels = ['sipp_url' => 'tautan SIPP', 'ecourt_url' => 'tautan e-Court', 'direktori_url' => 'tautan Direktori Putusan', 'ikm' => 'nilai IKM/SKM', 'ipak' => 'nilai IPAK/SPAK', 'ipkp' => 'nilai IPKP/SPKP',
+                    'address_street' => 'alamat jalan', 'address_village' => 'kelurahan', 'address_district' => 'kecamatan', 'address_province' => 'provinsi', 'postal_code' => 'kode pos', 'phone' => 'telepon', 'email' => 'email', 'building_photo' => 'foto gedung'];
+                $names = array_map(static fn ($k) => $labels[$k] ?? $k, $missing);
+                $state = count($missing) === count(explode(',', $arg)) && ! $found ? 'kosong' : 'kurang';
 
-                return [count($missing) === count(explode(',', $arg)) ? 'kosong' : 'kurang', 'Pengaturan belum diisi: ' . implode(', ', $missing)];
+                return [$state, trim(($found ? $this->describe($ev) . ' ' : '') . 'Belum diisi (Pengaturan atau isi halaman): ' . implode(', ', $names) . '.')];
 
             case 'table':
                 [$table, $kind] = array_pad(explode(':', $arg, 2), 2, null);
@@ -93,16 +118,18 @@ class Compliance
                     $b->where('kind', $kind);
                 }
                 $n = $b->countAllResults();
-                if ($table === 'case_stats' && $n) {
+                $ev = $this->pageEvidence($page, $db);
+                if ($table === 'case_stats' && ($n || $ev['data'])) {
                     $lm  = strtotime('first day of last month');
-                    $has = $db->table('case_stats')->where(['year' => date('Y', $lm), 'month' => date('n', $lm)])->countAllResults();
+                    $has = $db->table('case_stats')->where(['year' => date('Y', $lm), 'month' => date('n', $lm)])->countAllResults()
+                        || in_array(date('Y-n', $lm), $ev['data'] ? $ev['months'] : [], true);
+                    $cnt = $this->countNote($n, $ev, 'data di menu admin');
 
-                    return $has ? ['ok', ''] : ['kurang', 'Statistik bulan ' . bulan_id((int) date('n', $lm)) . ' ' . date('Y', $lm) . ' belum diisi.'];
+                    return $has ? ['ok', $cnt] : ['kurang', trim($cnt . ' Statistik bulan ' . bulan_id((int) date('n', $lm)) . ' ' . date('Y', $lm) . ' belum ada (tulis bulannya, mis. "' . bulan_id((int) date('n', $lm)) . ' ' . date('Y', $lm) . '").')];
                 }
                 if ($table === 'hearings' && setting('sipp_sync') === '1') {
                     return ['ok', 'Diambil dari database SIPP.'];
                 }
-                $ev = $this->pageEvidence($page, $db);
                 if ($table === 'lhkpn' && ($n || $ev['data'])) {
                     $yrs = array_map('intval', array_column($db->table('lhkpn')->select('year')->distinct()->get()->getResultArray(), 'year'));
                     $yrs = array_unique(array_merge($yrs, $ev['data'] ? $ev['years'] : []));
@@ -113,6 +140,9 @@ class Compliance
                 }
                 if ($n || $ev['data']) {
                     return ['ok', $this->countNote($n, $ev, 'data di menu admin')];
+                }
+                if ($table === 'complaints' && preg_match('/\bnihil\b/i', $ev['text'])) {
+                    return ['ok', 'Terbaca: isi halaman menyatakan "Nihil".'];
                 }
                 if ($table === 'complaints') {
                     return ['kurang', 'Belum ada data. Jika memang nihil, tulis "Nihil" pada konten halaman.'];
@@ -208,7 +238,7 @@ class Compliance
      */
     public function evidence(?array $page): array
     {
-        $ev = ['tables' => 0, 'rows' => 0, 'links' => 0, 'images' => 0, 'embeds' => 0, 'years' => [], 'months' => [], 'text' => '', 'any' => false, 'data' => false];
+        $ev = ['tables' => 0, 'rows' => 0, 'links' => 0, 'images' => 0, 'embeds' => 0, 'years' => [], 'months' => [], 'text' => '', 'any' => false, 'data' => false, 'urls' => []];
         if (! $page) {
             return $ev;
         }
@@ -231,6 +261,7 @@ class Compliance
                             }
                             if (($c['kind'] ?? '') === 'link') {
                                 $ev['links']++;
+                                $ev['urls'][] = $v;
                                 $rowLink = true;
                             } else {
                                 $rowText[] = $v;
@@ -245,18 +276,21 @@ class Compliance
                     break;
                 case 'text':
                     $html    = (string) ($b['html'] ?? '');
-                    $ev['links'] += preg_match_all('/<a\s[^>]*href=["\'](?!#)[^"\']+/i', $html);
+                    $ev['links'] += preg_match_all('/<a\s[^>]*href=["\'](?!#)([^"\']+)/i', $html, $hm);
+                    array_push($ev['urls'], ...$hm[1]);
                     $texts[] = html_entity_decode(strip_tags($html));
                     break;
                 case 'image':
                     $ev['images']++;
                     if (! empty($b['link'])) {
                         $ev['links']++;
+                        $ev['urls'][] = $b['link'];
                     }
                     $texts[] = ($b['caption'] ?? '') . ' ' . ($b['alt'] ?? '');
                     break;
                 case 'embed':
                     $ev['embeds']++;
+                    $ev['urls'][] = (string) ($b['url'] ?? '');
                     $texts[] = (string) ($b['heading'] ?? '');
                     break;
             }
@@ -315,7 +349,7 @@ class Compliance
             $bits[] = $ev['tables'] . ' tabel';
         }
         if ($ev['links']) {
-            $bits[] = $ev['links'] . ' tautan dokumen';
+            $bits[] = $ev['links'] . ' tautan';
         } elseif ($ev['rows']) {
             $bits[] = $ev['rows'] . ' baris data';
         }
@@ -325,7 +359,7 @@ class Compliance
         if ($ev['embeds']) {
             $bits[] = $ev['embeds'] . ' sematan';
         }
-        $out = 'isi halaman: ' . ($bits ? implode(', ', $bits) : 'teks');
+        $out = $bits ? 'isi halaman: ' . implode(', ', $bits) : 'isi halaman berupa teks';
         if ($ev['years']) {
             $out .= ' (tahun ' . implode(', ', $ev['years']) . ')';
         }
