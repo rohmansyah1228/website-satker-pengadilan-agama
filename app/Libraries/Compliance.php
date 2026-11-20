@@ -62,15 +62,16 @@ class Compliance
                 if (! $p) {
                     return ['kosong', 'Halaman tidak ditemukan.'];
                 }
+                $ev   = $this->evidence($p);
                 $text = trim(strip_tags((string) $p['content']));
-                if ($text === '' && ! $p['image']) {
+                if ($text === '' && ! $p['image'] && ! $ev['any']) {
                     return ['kosong', 'Konten halaman masih kosong.'];
                 }
-                if (str_contains((string) $p['content'], '[LENGKAPI]')) {
+                if (str_contains((string) $p['content'] . $ev['text'], '[LENGKAPI]')) {
                     return ['kurang', 'Masih ada teks bertanda [LENGKAPI].'];
                 }
 
-                return ['ok', ''];
+                return ['ok', $ev['any'] ? $this->describe($ev) : ''];
 
             case 'setting':
                 $missing = [];
@@ -101,13 +102,17 @@ class Compliance
                 if ($table === 'hearings' && setting('sipp_sync') === '1') {
                     return ['ok', 'Diambil dari database SIPP.'];
                 }
-                if ($table === 'lhkpn' && $n) {
-                    $years = $db->table('lhkpn')->select('year')->distinct()->where('year >=', (int) date('Y') - 2)->countAllResults();
+                $ev = $this->pageEvidence($page, $db);
+                if ($table === 'lhkpn' && ($n || $ev['data'])) {
+                    $yrs = array_map('intval', array_column($db->table('lhkpn')->select('year')->distinct()->get()->getResultArray(), 'year'));
+                    $yrs = array_unique(array_merge($yrs, $ev['data'] ? $ev['years'] : []));
+                    $got = array_filter($yrs, static fn ($y) => $y >= (int) date('Y') - 2);
+                    $cnt = $this->countNote($n, $ev, 'data di menu admin');
 
-                    return $years >= 2 ? ['ok', ''] : ['kurang', 'Tampilkan LHKPN minimal 2 tahun terakhir.'];
+                    return count($got) >= 2 ? ['ok', $cnt] : ['kurang', trim($cnt . ' Tampilkan LHKPN minimal 2 tahun terakhir (tulis tahunnya, mis. "LHKPN Tahun ' . (date('Y') - 1) . '").')];
                 }
-                if ($n) {
-                    return ['ok', ''];
+                if ($n || $ev['data']) {
+                    return ['ok', $this->countNote($n, $ev, 'data di menu admin')];
                 }
                 if ($table === 'complaints') {
                     return ['kurang', 'Belum ada data. Jika memang nihil, tulis "Nihil" pada konten halaman.'];
@@ -116,35 +121,44 @@ class Compliance
                 return ['kosong', 'Belum ada data.'];
 
             case 'docs':
-                return $this->checkDocs(explode(',', $arg), $db);
+                return $this->checkDocs(explode(',', $arg), $db, $this->pageEvidence($page, $db));
         }
 
         return ['kosong', 'Pemeriksaan tidak dikenal.'];
     }
 
-    private function checkDocs(array $codes, $db): array
+    private function checkDocs(array $codes, $db, ?array $ev = null): array
     {
+        $ev ??= $this->evidence(null);
         $notes = [];
         $worst = 'ok';
         $rank  = ['ok' => 0, 'kurang' => 1, 'kosong' => 2];
+        $total = 0;
+        $hasEv = $ev['links'] > 0 || $ev['embeds'] > 0;
 
         foreach ($codes as $code) {
             $t = $db->table('doc_types')->where('code', trim($code))->get()->getRowArray();
             if (! $t) {
                 continue;
             }
-            $docs = $db->table('documents')->where('doc_type_id', $t['id']);
-            $st   = 'ok';
+            $docs  = $db->table('documents')->where('doc_type_id', $t['id']);
+            $count = (clone $docs)->countAllResults();
+            $total += $count;
+            $st    = 'ok';
             if ($t['period'] === 'bulanan') {
                 $lm  = strtotime('first day of last month');
-                $has = (clone $docs)->where(['year' => date('Y', $lm), 'month' => date('n', $lm)])->countAllResults();
-                if (! $docs->countAllResults()) {
+                $has = (clone $docs)->where(['year' => date('Y', $lm), 'month' => date('n', $lm)])->countAllResults()
+                    || ($hasEv && in_array(date('Y-n', $lm), $ev['months'], true));
+                if (! $count && ! $hasEv) {
                     [$st, $notes[]] = ['kosong', "{$t['name']}: belum ada dokumen."];
                 } elseif (! $has) {
                     [$st, $notes[]] = ['kurang', "{$t['name']}: laporan " . bulan_id((int) date('n', $lm)) . ' ' . date('Y', $lm) . ' belum diunggah.'];
                 }
             } elseif ($t['period'] === 'tahunan') {
                 $years = array_column($docs->select('year')->distinct()->get()->getResultArray(), 'year');
+                if ($hasEv) {
+                    $years = array_merge($years, $ev['years']);
+                }
                 $need  = max(1, (int) $t['min_years']);
                 $cur   = (int) date('Y');
                 // dokumen laporan (LKjIP, Laporan Tahunan, LRA, CALK) terbit setelah tahun berjalan
@@ -152,21 +166,170 @@ class Compliance
                 $end    = $lagged ? $cur - 1 : $cur;
                 $range  = range($end - $need + 1, $end);
                 $miss   = array_diff($range, array_map('intval', $years));
-                if (! $years) {
+                if (! $years && $hasEv) {
+                    $st = 'kurang';
+                    $notes['tahun'] ??= 'Tahun dokumen tidak terbaca — tulis tahunnya di judul tabel atau di baris, mis. "' . $t['name'] . ' Tahun ' . $end . '".';
+                } elseif (! $years) {
                     [$st, $notes[]] = ['kosong', "{$t['name']}: belum ada dokumen."];
                 } elseif ($miss) {
                     [$st, $notes[]] = ['kurang', "{$t['name']}: tahun " . implode(', ', $miss) . ' belum ada.'];
                 }
-            } else {
-                if (! $docs->countAllResults()) {
-                    [$st, $notes[]] = ['kosong', "{$t['name']}: belum ada dokumen."];
-                }
+            } elseif (! $count && ! $hasEv) {
+                [$st, $notes[]] = ['kosong', "{$t['name']}: belum ada dokumen."];
             }
             if ($rank[$st] > $rank[$worst]) {
                 $worst = $st;
             }
         }
 
-        return [$worst, implode(' ', $notes)];
+        $notes = array_values(array_unique($notes));
+        array_unshift($notes, $this->countNote($total, $ev));
+
+        return [$worst, trim(implode(' ', array_filter($notes)))];
+    }
+
+    // ------------------------------------------------------------------ isi halaman
+
+    /** Bukti dari isi halaman kriteria (blok teks/tabel/gambar/sematan). */
+    private function pageEvidence(string $page, $db): array
+    {
+        if (! str_contains($page, '/')) {
+            return $this->evidence(null);
+        }
+        [$sec, $slug] = explode('/', $page, 2);
+        $p            = $db->table('pages')->where(['section' => $sec, 'slug' => $slug])->get()->getRowArray();
+
+        return $this->evidence($p);
+    }
+
+    /**
+     * Hitung isi halaman: jumlah tabel, baris, tautan dokumen (sel tombol tautan, tautan di teks,
+     * gambar bertautan), sematan, serta tahun & bulan yang tertulis (judul tabel, sel, teks).
+     */
+    public function evidence(?array $page): array
+    {
+        $ev = ['tables' => 0, 'rows' => 0, 'links' => 0, 'images' => 0, 'embeds' => 0, 'years' => [], 'months' => [], 'text' => '', 'any' => false, 'data' => false];
+        if (! $page) {
+            return $ev;
+        }
+        $texts = [];
+        foreach ((new PageBlocks())->decode($page) as $b) {
+            switch ($b['type']) {
+                case 'table':
+                    $ev['tables']++;
+                    $texts[] = (string) ($b['heading'] ?? '');
+                    foreach ((array) ($b['cols'] ?? []) as $c) {
+                        $texts[] = (string) ($c['label'] ?? '');
+                    }
+                    foreach ((array) ($b['rows'] ?? []) as $r) {
+                        $rowText = [];
+                        $rowLink = false;
+                        foreach ((array) ($b['cols'] ?? []) as $ci => $c) {
+                            $v = trim((string) ($r[$ci] ?? ''));
+                            if ($v === '') {
+                                continue;
+                            }
+                            if (($c['kind'] ?? '') === 'link') {
+                                $ev['links']++;
+                                $rowLink = true;
+                            } else {
+                                $rowText[] = $v;
+                            }
+                        }
+                        if ($rowLink || $rowText) {
+                            $ev['rows']++;
+                        }
+                        // tahun di judul tabel berlaku untuk barisnya; tahun di sel juga dibaca
+                        $texts[] = implode(' ', $rowText);
+                    }
+                    break;
+                case 'text':
+                    $html    = (string) ($b['html'] ?? '');
+                    $ev['links'] += preg_match_all('/<a\s[^>]*href=["\'](?!#)[^"\']+/i', $html);
+                    $texts[] = html_entity_decode(strip_tags($html));
+                    break;
+                case 'image':
+                    $ev['images']++;
+                    if (! empty($b['link'])) {
+                        $ev['links']++;
+                    }
+                    $texts[] = ($b['caption'] ?? '') . ' ' . ($b['alt'] ?? '');
+                    break;
+                case 'embed':
+                    $ev['embeds']++;
+                    $texts[] = (string) ($b['heading'] ?? '');
+                    break;
+            }
+        }
+        $text       = trim(implode("\n", array_filter($texts)));
+        $ev['text'] = $text;
+        // 'data' = ada isi berupa tabel/tautan/gambar/sematan (teks pengantar saja tidak dihitung sebagai data)
+        $ev['data'] = $ev['links'] > 0 || $ev['embeds'] > 0 || $ev['images'] > 0 || $ev['rows'] > 0;
+        $ev['any']  = $ev['data'] || trim(preg_replace('/\s+/', ' ', $text)) !== '';
+
+        $max = (int) date('Y') + 1;
+        if (preg_match_all('/\b(19[89]\d|20\d\d)\b/', $text, $m)) {
+            $ev['years'] = array_values(array_unique(array_filter(array_map('intval', $m[1]), static fn ($y) => $y <= $max)));
+            sort($ev['years']);
+        }
+        // bulan + tahun, mis. "Oktober 2026", "Okt 2026", "10/2026", "2026-10"
+        $names = ['jan' => 1, 'feb' => 2, 'mar' => 3, 'apr' => 4, 'mei' => 5, 'may' => 5, 'jun' => 6, 'jul' => 7, 'agu' => 8, 'aug' => 8, 'sep' => 9, 'okt' => 10, 'oct' => 10, 'nov' => 11, 'des' => 12, 'dec' => 12];
+        if (preg_match_all('/\b(jan|feb|mar|apr|mei|may|jun|jul|agu|aug|sep|okt|oct|nov|des|dec)[a-z]*\.?\s+(20\d\d)\b/i', $text, $m, PREG_SET_ORDER)) {
+            foreach ($m as $x) {
+                $ev['months'][] = $x[2] . '-' . $names[strtolower($x[1])];
+            }
+        }
+        if (preg_match_all('/\b(0?[1-9]|1[0-2])[\/\-.](20\d\d)\b/', $text, $m, PREG_SET_ORDER)) {
+            foreach ($m as $x) {
+                $ev['months'][] = $x[2] . '-' . (int) $x[1];
+            }
+        }
+        if (preg_match_all('/\b(20\d\d)-(0[1-9]|1[0-2])\b/', $text, $m, PREG_SET_ORDER)) {
+            foreach ($m as $x) {
+                $ev['months'][] = $x[1] . '-' . (int) $x[2];
+            }
+        }
+        $ev['months'] = array_values(array_unique($ev['months']));
+
+        return $ev;
+    }
+
+    /** Ringkasan jumlah, mis. "Terbaca: 3 dokumen di Arsip · 2 tabel, 4 tautan dokumen (tahun 2025, 2026)." */
+    private function countNote(int $archive, array $ev, string $unit = 'dokumen di Arsip Dokumen'): string
+    {
+        $parts = [];
+        if ($archive) {
+            $parts[] = $archive . ' ' . $unit;
+        }
+        if ($ev['data']) {
+            $parts[] = $this->describe($ev, false);
+        }
+
+        return $parts ? 'Terbaca: ' . implode(' · ', $parts) . '.' : '';
+    }
+
+    private function describe(array $ev, bool $sentence = true): string
+    {
+        $bits = [];
+        if ($ev['tables']) {
+            $bits[] = $ev['tables'] . ' tabel';
+        }
+        if ($ev['links']) {
+            $bits[] = $ev['links'] . ' tautan dokumen';
+        } elseif ($ev['rows']) {
+            $bits[] = $ev['rows'] . ' baris data';
+        }
+        if ($ev['images']) {
+            $bits[] = $ev['images'] . ' gambar';
+        }
+        if ($ev['embeds']) {
+            $bits[] = $ev['embeds'] . ' sematan';
+        }
+        $out = 'isi halaman: ' . ($bits ? implode(', ', $bits) : 'teks');
+        if ($ev['years']) {
+            $out .= ' (tahun ' . implode(', ', $ev['years']) . ')';
+        }
+
+        return $sentence ? 'Terbaca: ' . $out . '.' : $out;
     }
 }
