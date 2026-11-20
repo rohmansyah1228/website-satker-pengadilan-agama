@@ -31,7 +31,7 @@ class AdminResources extends BaseConfig
                 'list'  => ['title' => 'Judul', 'category' => 'Kategori', 'status' => 'Status', 'published_at' => 'Tanggal Terbit', 'views' => 'Dibaca'],
                 'search' => ['title', 'content'], 'filter' => ['category' => $s->postCategories],
                 'slug'  => ['field' => 'slug', 'from' => 'title'], 'view' => 'berita/{slug}',
-                'hint'  => 'Berita berorientasi pada pelayanan masyarakat dan inovasi, bukan sekadar liputan seremonial (Bab III huruf D). Kategori "Informasi Serta Merta" tampil sebagai pengumuman di atas semua halaman selama 7 hari.',
+                'hint'  => 'Berita berorientasi pada pelayanan masyarakat dan inovasi, bukan sekadar liputan seremonial (Bab III huruf D). Kategori "Informasi Serta Merta" tampil sebagai pita pengumuman di atas semua halaman sampai waktu di "Tampilkan pita sampai" (bila kosong: 7 hari sejak terbit).',
                 'fields' => [
                     'title'        => ['Judul', 'text', 'required|max_length[255]'],
                     'category'     => ['Kategori', 'select', 'required', 'options' => $s->postCategories],
@@ -41,6 +41,8 @@ class AdminResources extends BaseConfig
                     'image_alt'    => ['Teks Alternatif Gambar (alt)', 'text', 'permit_empty|max_length[255]', 'help' => 'Deskripsikan gambar untuk pengguna pembaca layar.'],
                     'author'       => ['Penulis', 'text', 'permit_empty|max_length[120]'],
                     'published_at' => ['Tanggal Terbit', 'datetime', 'required'],
+                    'expires_at'   => ['Tampilkan pita sampai', 'datetime', 'permit_empty', 'show_when' => 'category=serta-merta',
+                        'help' => 'Pita kuning "Informasi Serta Merta" di atas semua halaman hilang otomatis setelah waktu ini (mis. Sabtu 24.00). Kosongkan = 7 hari sejak terbit. Beritanya tetap ada di daftar berita.'],
                     'status'       => ['Status', 'select', 'required|in_list[published,draft]', 'options' => ['published' => 'Terbit', 'draft' => 'Draft']],
                 ],
             ],
@@ -248,7 +250,7 @@ class AdminResources extends BaseConfig
         $layouts = [
             'berita' => [
                 'main'  => ['' => ['title', 'excerpt', 'content']],
-                'side'  => ['Publikasi' => ['status', 'category', 'published_at', 'author'], 'Gambar Utama' => ['image', 'image_alt']],
+                'side'  => ['Publikasi' => ['status', 'category', 'published_at', 'expires_at', 'author'], 'Gambar Utama' => ['image', 'image_alt']],
                 'intro' => 'Tulis berita, pengumuman, atau artikel. Gambar utama tampil di daftar berita dan di atas isi.',
             ],
             'slider' => [

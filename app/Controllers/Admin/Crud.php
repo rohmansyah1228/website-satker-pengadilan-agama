@@ -310,7 +310,12 @@ class Crud extends AdminController
                         break;
 
                     case 'datetime':
-                        $data[$name] = date('Y-m-d H:i:s', strtotime((string) $post[$name]) ?: time());
+                        $raw = trim((string) ($post[$name] ?? ''));
+                        if ($raw === '' && str_contains((string) ($f[2] ?? ''), 'permit_empty')) {
+                            $data[$name] = null; // opsional & dikosongkan
+                            break;
+                        }
+                        $data[$name] = date('Y-m-d H:i:s', strtotime($raw) ?: time());
                         break;
 
                     case 'number':

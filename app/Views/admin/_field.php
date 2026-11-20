@@ -16,8 +16,9 @@ $value    = $value ?? '';
 // nama input (mis. settings[limit]) bila berbeda dari id/kunci galat. Catatan: view() CI4 menyimpan variabel antar-panggilan,
 // jadi pemanggil yang memakai inputName WAJIB mengirim 'inputName' => null untuk field biasa.
 $inputName = $inputName ?? $name;
+$showWhen  = ! empty($f['show_when']) ? ' data-show-when="' . esc($f['show_when'], 'attr') . '"' : '';
 ?>
-<div class="mb-3">
+<div class="mb-3"<?= $showWhen ?>>
     <?php if ($type === 'checkbox'): ?>
         <div class="form-check form-switch">
             <input type="checkbox" class="form-check-input<?= $invalid ?>" role="switch" id="<?= $id ?>" name="<?= $inputName ?>" value="1"<?= $value ? ' checked' : '' ?><?= $aria ?>>
