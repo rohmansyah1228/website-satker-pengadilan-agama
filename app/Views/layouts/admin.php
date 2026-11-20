@@ -9,6 +9,22 @@ foreach ($resources as $k => $r) {
     }
 }
 $logo = setting('logo') ? media_url(setting('logo')) : base_url('assets/img/logo-default.svg');
+// tombol Panduan kontekstual: layar admin → bab panduan yang sesuai
+$rel   = trim(substr($path, strlen(rtrim($base, '/'))), '/');
+$guide = 'pendahuluan';
+foreach ([
+    'halaman' => 'halaman', 'menu' => 'menu', 'beranda' => 'beranda', 'data/berita' => 'berita', 'data/slider' => 'slider',
+    'data/pintasan' => 'pintasan', 'data/video' => 'video', 'data/' => 'data', 'pengaturan' => 'pengaturan', 'pengguna' => 'pengguna',
+    'log' => 'pengguna', 'akun' => 'login', 'panduan' => '',
+] as $prefix => $anchor) {
+    if (str_starts_with($rel . '/', rtrim($prefix, '/') . '/') || ($prefix === 'data/' && str_starts_with($rel, 'data/'))) {
+        $guide = $anchor;
+        break;
+    }
+}
+if ($rel === '') {
+    $guide = 'sinova';
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -50,6 +66,8 @@ $logo = setting('logo') ? media_url(setting('logo')) : base_url('assets/img/logo
             <a href="<?= admin_url('log') ?>" class="<?= $is('log') ? 'active' : '' ?>"><i class="bi bi-journal-text" aria-hidden="true"></i>Log Aktivitas</a>
         <?php endif ?>
         <a href="<?= admin_url('akun') ?>" class="<?= $is('akun') ? 'active' : '' ?>"><i class="bi bi-person-circle" aria-hidden="true"></i>Akun Saya</a>
+        <div class="grp">Bantuan</div>
+        <a href="<?= admin_url('panduan') ?>" class="<?= $is('panduan') ? 'active' : '' ?>"<?= $is('panduan') ? ' aria-current="page"' : '' ?>><i class="bi bi-book" aria-hidden="true"></i>Panduan Penggunaan</a>
         <div class="p-3"></div>
     </nav>
     <div>
@@ -58,6 +76,7 @@ $logo = setting('logo') ? media_url(setting('logo')) : base_url('assets/img/logo
             <?php if (! $is('', true)): ?>
                 <a href="<?= esc($back ?? admin_url(), 'attr') ?>" id="adminBack" class="btn btn-sm btn-pa-primary admin-back" title="Kembali (Alt+←)"><i class="bi bi-arrow-left" aria-hidden="true"></i> <span data-back-label>Kembali ke Dashboard</span></a>
             <?php endif ?>
+            <?php if ($guide !== ''): ?><a href="<?= admin_url('panduan') ?>#<?= $guide ?>" class="btn btn-sm btn-outline-secondary admin-help" title="Panduan untuk layar ini"><i class="bi bi-book" aria-hidden="true"></i><span class="d-none d-md-inline"> Panduan</span><span class="visually-hidden d-md-none">Panduan untuk layar ini</span></a><?php endif ?>
             <a href="<?= site_url('/') ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success"><i class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></i>Lihat Situs</a>
             <div class="ms-auto d-flex align-items-center gap-2 small">
                 <span class="d-none d-sm-inline text-secondary"><i class="bi bi-person" aria-hidden="true"></i> <?= esc($user['name']) ?> · <?= esc(config('SiteStructure')->roles[$user['role']] ?? $user['role']) ?></span>

@@ -67,6 +67,7 @@ $routes->group($admin, ['namespace' => 'App\Controllers\Admin'], static function
         $routes->post('akun/2fa/nonaktifkan', 'Account::disable2fa');
 
         $routes->get('log', 'Logs::index');
+        $routes->get('panduan', 'Guide::index');
         $routes->post('editor/gambar', 'Editor::image');
         $routes->post('editor/pdf', 'Editor::pdf');
         $routes->get('editor/tautan', 'Editor::links');
