@@ -104,7 +104,7 @@ class HomeBlocks extends BaseConfig
                 'top' => true, 'child' => true, 'fields' => [],
             ],
             'survey' => [
-                'Indeks Survei Pelayanan', 'bi-emoji-smile', 'Nilai IKM, IPKP, IPAK (diisi di Pengaturan → Nilai Survei).',
+                'Indeks Survei Pelayanan', 'bi-emoji-smile', 'Nilai IKM, IPKP, IPAK dan tombol ke website survei (diisi di halaman Survei atau Pengaturan → Nilai Survei).',
                 'top' => true, 'child' => true, 'fields' => [],
             ],
             'html' => [

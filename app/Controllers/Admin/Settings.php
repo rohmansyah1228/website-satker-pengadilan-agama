@@ -43,7 +43,7 @@ class Settings extends AdminController
                 'direktori_url' => ['URL Direktori Putusan Satker', 'url', 'Tautan langsung ke direktori putusan satker Anda di putusan3.mahkamahagung.go.id'],
                 'siwas_url'     => ['URL SIWAS', 'url', ''],
                 'ppid_form_url' => ['URL Formulir Permohonan Informasi', 'url', ''],
-                'survey_url'    => ['URL Kuesioner Survei', 'url', ''],
+                'survey_url'    => ['URL Website Survei (tombol “Isi Survei Pelayanan”)', 'url', 'Mis. https://survei.badilag.net/s/… — tampil sebagai tombol di Beranda & halaman Survei.'],
                 'sipp_sync'     => ['Ambil Jadwal Sidang dari Database SIPP', 'select', 'Butuh koneksi database grup "sipp" di .env dan query di app/Config/Sipp.php.', ['0' => 'Tidak (isi manual)', '1' => 'Ya']],
             ]],
             'survei' => ['Nilai Survei', [

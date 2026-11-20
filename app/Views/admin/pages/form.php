@@ -35,8 +35,10 @@
                                     <div class="col-sm-4"><label for="sv_<?= $sk ?>" class="form-label small fw-semibold mb-1"><?= esc($sl) ?></label>
                                         <input type="text" id="sv_<?= $sk ?>" name="survey[<?= $sk ?>]" value="<?= esc(setting($sk), 'attr') ?>" class="form-control" maxlength="40" placeholder="mis. 92,35" inputmode="decimal"></div>
                                 <?php endforeach ?>
-                                <div class="col-sm-6"><label for="sv_period" class="form-label small fw-semibold mb-1">Periode Survei</label>
+                                <div class="col-sm-4"><label for="sv_period" class="form-label small fw-semibold mb-1">Periode Survei</label>
                                     <input type="text" id="sv_period" name="survey[survey_period]" value="<?= esc(setting('survey_period'), 'attr') ?>" class="form-control" maxlength="80" placeholder="mis. Triwulan III 2026"></div>
+                                <div class="col-sm-8"><label for="sv_url" class="form-label small fw-semibold mb-1">Tautan Website Survei <span class="fw-normal text-secondary">(tombol “Isi Survei Pelayanan”)</span></label>
+                                    <input type="url" id="sv_url" name="survey[survey_url]" value="<?= esc(setting('survey_url'), 'attr') ?>" class="form-control font-monospace" maxlength="500" placeholder="https://survei.badilag.net/s/…" spellcheck="false"></div>
                             </div>
                         </div>
                     <?php endif ?>

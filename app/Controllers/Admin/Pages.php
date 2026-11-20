@@ -300,10 +300,14 @@ class Pages extends AdminController
         $survey = $post['survey'] ?? null;
         if (is_array($survey) && ($data['module'] ?? $old['module'] ?? '') === 'survei' && can([])) {
             $vals = [];
-            foreach (['ikm' => 40, 'ipkp' => 40, 'ipak' => 40, 'survey_period' => 80] as $k => $max) {
+            foreach (['ikm' => 40, 'ipkp' => 40, 'ipak' => 40, 'survey_period' => 80, 'survey_url' => 500] as $k => $max) {
                 if (array_key_exists($k, $survey)) {
                     $vals[$k] = mb_substr(trim((string) $survey[$k]), 0, $max);
                 }
+            }
+            if (($vals['survey_url'] ?? '') !== '' && ! preg_match('#^https?://[^\s<>"]+$#i', $vals['survey_url'])) {
+                unset($vals['survey_url']); // bukan alamat web → abaikan
+                session()->setFlashdata('error', 'Tautan Website Survei tidak valid (awali dengan https://). Nilai lain tetap tersimpan.');
             }
             if ($vals && array_diff_assoc($vals, array_map(static fn ($k) => setting($k), array_combine(array_keys($vals), array_keys($vals))))) {
                 service('siteSettings')->set($vals);
