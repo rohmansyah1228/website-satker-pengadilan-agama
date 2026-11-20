@@ -26,6 +26,20 @@
                 </div>
                 <?php if (! empty($moduleData)): $md = $moduleData; ?>
                 <section id="data-modul" class="module-data mb-4" aria-labelledby="mdTitle">
+                    <?php if (($page['module'] ?? '') === 'survei' && can([])): ?>
+                        <div class="survey-values mb-3 p-3 rounded-3 border bg-white" id="nilai-survei">
+                            <h2 class="h6 fw-bold mb-1"><i class="bi bi-bar-chart-line text-pa-primary" aria-hidden="true"></i> Nilai Survei</h2>
+                            <p class="small text-secondary mb-2">Tampil di kotak IKM / IPKP / IPAK pada halaman ini dan di Beranda. Sama dengan <a href="<?= admin_url('pengaturan?tab=survei') ?>">Pengaturan → Nilai Survei</a>; tersimpan saat Anda menekan <strong>Simpan</strong>.</p>
+                            <div class="row g-2">
+                                <?php foreach (['ikm' => 'Indeks Kepuasan Masyarakat (IKM)', 'ipkp' => 'Indeks Persepsi Kualitas Pelayanan (IPKP)', 'ipak' => 'Indeks Persepsi Anti Korupsi (IPAK)'] as $sk => $sl): ?>
+                                    <div class="col-sm-4"><label for="sv_<?= $sk ?>" class="form-label small fw-semibold mb-1"><?= esc($sl) ?></label>
+                                        <input type="text" id="sv_<?= $sk ?>" name="survey[<?= $sk ?>]" value="<?= esc(setting($sk), 'attr') ?>" class="form-control" maxlength="40" placeholder="mis. 92,35" inputmode="decimal"></div>
+                                <?php endforeach ?>
+                                <div class="col-sm-6"><label for="sv_period" class="form-label small fw-semibold mb-1">Periode Survei</label>
+                                    <input type="text" id="sv_period" name="survey[survey_period]" value="<?= esc(setting('survey_period'), 'attr') ?>" class="form-control" maxlength="80" placeholder="mis. Triwulan III 2026"></div>
+                            </div>
+                        </div>
+                    <?php endif ?>
                     <?php if (! empty($md['settings'])): ?>
                         <h2 id="mdTitle" class="h6 fw-bold mb-1"><i class="bi bi-database text-pa-primary" aria-hidden="true"></i> Data <?= esc($md['title']) ?></h2>
                         <p class="small text-secondary mb-2">Data modul ini diambil dari Pengaturan situs.</p>

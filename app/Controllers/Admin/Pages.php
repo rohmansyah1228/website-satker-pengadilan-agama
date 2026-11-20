@@ -296,6 +296,20 @@ class Pages extends AdminController
                 $this->db->table('menus')->insert(['parent_id' => $parent['id'] ?? null, 'label' => $data['title'], 'type' => 'page', 'page_id' => $id, 'sort' => $sort + 1, 'is_active' => 1]);
             }
         }
+        // Nilai survei (IKM/IPKP/IPAK) diisi langsung dari halaman Survei → disimpan ke Pengaturan
+        $survey = $post['survey'] ?? null;
+        if (is_array($survey) && ($data['module'] ?? $old['module'] ?? '') === 'survei' && can([])) {
+            $vals = [];
+            foreach (['ikm' => 40, 'ipkp' => 40, 'ipak' => 40, 'survey_period' => 80] as $k => $max) {
+                if (array_key_exists($k, $survey)) {
+                    $vals[$k] = mb_substr(trim((string) $survey[$k]), 0, $max);
+                }
+            }
+            if ($vals && array_diff_assoc($vals, array_map(static fn ($k) => setting($k), array_combine(array_keys($vals), array_keys($vals))))) {
+                service('siteSettings')->set($vals);
+                $this->log('ubah', 'Nilai survei (dari halaman ' . $data['title'] . ')');
+            }
+        }
         $this->flushPublic();
 
         if ($this->request->getPost('_after') === 'view') {
