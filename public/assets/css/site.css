@@ -154,7 +154,7 @@ html {
     border: 1px solid #e5e7eb;
     color: #1f2937;
 }
-.card-shortcut:hover {
+.card-shortcut:hover, .card-shortcut:focus-visible {
     background-color: var(--pa-primary) !important;
     border-color: var(--pa-primary);
     color: #ffffff;
@@ -165,14 +165,17 @@ html {
     color: var(--pa-primary);
     transition: color 0.25s ease;
 }
-.card-shortcut:hover .bi {
+.card-shortcut:hover .bi, .card-shortcut:focus-visible .bi {
     color: var(--pa-secondary);
 }
-.card-shortcut:hover h3 {
+/* judul & keterangan jadi putih saat kartu disorot (latar hijau) */
+.card-shortcut :is(h3, .text-pa-primary),
+.card-shortcut :is(p, .text-secondary) { transition: color 0.25s ease; }
+.card-shortcut:is(:hover, :focus-visible) :is(h3, .text-pa-primary) {
     color: #ffffff !important;
 }
-.card-shortcut:hover p {
-    color: #e5e7eb !important;
+.card-shortcut:is(:hover, :focus-visible) :is(p, .text-secondary) {
+    color: rgba(255, 255, 255, .9) !important;
 }
 
 /* ==========================================================================
