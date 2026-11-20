@@ -540,3 +540,37 @@ dialog.site-popup[open] { animation: popupIn .25s ease-out; }
 .site-popup-close:hover, .site-popup-close:focus-visible { background: #b91c1c; outline: 3px solid var(--pa-secondary, #ff9900); outline-offset: 2px; }
 @media (max-width: 576px) { .site-popup-close { top: .4rem; right: .4rem; } }
 @media (prefers-reduced-motion: reduce) { dialog.site-popup[open] { animation: none; } }
+
+/* Tombol melayang: CCTV (kiri atas) & WhatsApp (kiri bawah) */
+.float-cctv, .float-wa { position: fixed; left: 1rem; z-index: 1040; display: inline-flex; align-items: center; gap: .55rem; text-decoration: none; border-radius: 999px; box-shadow: 0 6px 18px rgba(0,0,0,.25); transition: transform .2s, box-shadow .2s; }
+.float-cctv { top: 8.5rem; padding: .35rem .9rem .35rem .35rem; background: #fff; color: #1f2937; border: 2px solid var(--pa-primary, #056e4f); }
+.float-cctv-icon { position: relative; width: 2.6rem; height: 2.6rem; border-radius: 50%; background: var(--pa-primary, #056e4f); color: #fff; display: grid; place-items: center; font-size: 1.25rem; }
+.float-cctv-rec { position: absolute; top: .25rem; right: .25rem; width: .6rem; height: .6rem; border-radius: 50%; background: #ef4444; box-shadow: 0 0 0 2px #fff; animation: recBlink 1.2s infinite; }
+.float-cctv-img { width: 2.8rem; height: 2.8rem; object-fit: contain; border-radius: 50%; }
+.float-cctv-text { font-size: .85rem; line-height: 1.05; display: flex; flex-direction: column; }
+.float-cctv-text strong { color: var(--pa-primary, #056e4f); font-family: Montserrat, sans-serif; letter-spacing: .03em; }
+.float-wa { bottom: 1.5rem; padding: .7rem 1.1rem .7rem .8rem; background: #25d366; color: #fff; font-weight: 700; border: 2px solid #fff; }
+.float-wa .bi { font-size: 1.6rem; line-height: 1; }
+.float-wa::after { content: ''; position: absolute; inset: -2px; border-radius: inherit; box-shadow: 0 0 0 0 rgba(37, 211, 102, .6); animation: waPulse 2s infinite; pointer-events: none; }
+.float-cctv:hover, .float-cctv:focus-visible, .float-wa:hover, .float-wa:focus-visible { transform: translateY(-3px) scale(1.03); box-shadow: 0 10px 24px rgba(0,0,0,.3); color: inherit; }
+.float-wa:hover, .float-wa:focus-visible { color: #fff; background: #1ebe5b; }
+.float-cctv:focus-visible, .float-wa:focus-visible { outline: 3px solid var(--pa-secondary, #ff9900); outline-offset: 3px; }
+@keyframes recBlink { 0%, 60% { opacity: 1; } 61%, 100% { opacity: .15; } }
+@keyframes waPulse { 0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, .55); } 70% { box-shadow: 0 0 0 14px rgba(37, 211, 102, 0); } 100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); } }
+@media (prefers-reduced-motion: reduce) { .float-cctv-rec, .float-wa::after { animation: none; } }
+/* layar kecil: jadi tombol bundar ringkas agar tidak menutupi isi */
+@media (max-width: 991.98px) {
+    .float-cctv { top: auto; bottom: 5.2rem; padding: .25rem; border-width: 2px; }
+    .float-cctv-text, .float-wa-text { display: none; }
+    .float-wa { bottom: 1rem; left: .85rem; width: 3.1rem; height: 3.1rem; padding: 0; justify-content: center; }
+    .float-cctv { left: .85rem; }
+    .float-cctv-icon, .float-cctv-img { width: 2.45rem; height: 2.45rem; }
+}
+@media print { .float-cctv, .float-wa { display: none !important; } }
+body.high-contrast .float-cctv, body.high-contrast .float-wa { background: #000 !important; color: #ffff00 !important; border-color: #ffff00 !important; }
+/* layar sedang (isi halaman sampai ke tepi): tampilkan ikon saja */
+@media (min-width: 992px) and (max-width: 1499.98px) {
+    .float-cctv { padding: .3rem; }
+    .float-cctv-text, .float-wa-text { display: none; }
+    .float-wa { width: 3.4rem; height: 3.4rem; padding: 0; justify-content: center; }
+}

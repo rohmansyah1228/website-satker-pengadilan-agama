@@ -72,9 +72,24 @@ class Uploader
             throw new RuntimeException('Ukuran gambar maksimal ' . self::MAX_IMAGE_MB . ' MB.');
         }
         $info = @getimagesize($file->getTempName());
+        // GIF disimpan apa adanya agar animasinya tetap jalan (mis. ikon CCTV); dibatasi 2 MB & 1600 px
+        if ($info && $info[2] === IMAGETYPE_GIF) {
+            if ($file->getSize() > 2 * 1048576 || $info[0] > 1600 || $info[1] > 1600) {
+                throw new RuntimeException('GIF maksimal 2 MB dan 1600 × 1600 piksel.');
+            }
+            $rel = 'uploads/images/' . date('Y') . '/' . bin2hex(random_bytes(12)) . '.gif';
+            if (! is_dir(FCPATH . dirname($rel))) {
+                mkdir(FCPATH . dirname($rel), 0755, true);
+            }
+            if (! @copy($file->getTempName(), FCPATH . $rel)) {
+                throw new RuntimeException('Gambar tidak dapat disimpan.');
+            }
+
+            return $rel;
+        }
         $map  = [IMAGETYPE_JPEG => 'imagecreatefromjpeg', IMAGETYPE_PNG => 'imagecreatefrompng', IMAGETYPE_WEBP => 'imagecreatefromwebp'];
         if (! $info || ! isset($map[$info[2]])) {
-            throw new RuntimeException('Gambar harus berformat JPG, PNG, atau WebP.');
+            throw new RuntimeException('Gambar harus berformat JPG, PNG, WebP, atau GIF.');
         }
         $src = @$map[$info[2]]($file->getTempName());
         if (! $src) {

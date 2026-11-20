@@ -52,8 +52,8 @@ $showWhen  = ! empty($f['show_when']) ? ' data-show-when="' . esc($f['show_when'
                         <div class="form-check"><input class="form-check-input" type="checkbox" name="<?= $inputName ?>__remove" value="1" id="<?= $id ?>_rm"><label class="form-check-label small" for="<?= $id ?>_rm">Hapus gambar</label></div>
                     </div>
                 <?php endif ?>
-                <input type="file" id="<?= $id ?>" name="<?= $inputName ?>" accept="image/jpeg,image/png,image/webp" class="form-control<?= $invalid ?>"<?= $aria ?>>
-                <div class="form-text">JPG/PNG/WebP, maks. 8 MB. Otomatis dikompres ke WebP.</div>
+                <input type="file" id="<?= $id ?>" name="<?= $inputName ?>" accept="image/jpeg,image/png,image/webp,image/gif" class="form-control<?= $invalid ?>"<?= $aria ?>>
+                <div class="form-text">JPG/PNG/WebP (maks. 8 MB, dikompres ke WebP) atau GIF bergerak (maks. 2 MB).</div>
             <?php break; case 'pdf': ?>
                 <?php if ($value && ($url = file_url((int) $value))): ?>
                     <div class="d-flex align-items-center gap-3 mb-2">
