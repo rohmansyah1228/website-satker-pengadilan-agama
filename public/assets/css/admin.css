@@ -224,3 +224,17 @@ body.menu-dragging, body.menu-dragging * { cursor: grabbing !important; user-sel
 .border-primary { border-color: #056e4f !important; }
 .accordion { --bs-accordion-active-bg: #e6f3ef; --bs-accordion-active-color: #034d37; --bs-accordion-btn-focus-box-shadow: 0 0 0 .25rem rgba(5, 110, 79, .25); }
 .progress, .progress-stacked { --bs-progress-bar-bg: #056e4f; }
+
+/* Pemilih ikon */
+.icon-field-preview { min-width: 3rem; justify-content: center; font-size: 1.35rem; color: var(--pa-primary, #056e4f); background: #fff; }
+dialog.icon-picker { width: min(56rem, 94vw); max-height: 86vh; border: 0; border-radius: .75rem; padding: 1rem 1.25rem; box-shadow: 0 20px 50px rgba(0,0,0,.25); display: none; }
+dialog.icon-picker[open] { display: flex; flex-direction: column; }
+dialog.icon-picker::backdrop { background: rgba(15, 23, 42, .5); }
+.icon-picker-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: .75rem; }
+.icon-picker-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr)); gap: .4rem; overflow-y: auto; min-height: 12rem; padding: .15rem; }
+.icon-picker-item { display: flex; flex-direction: column; align-items: center; gap: .3rem; padding: .6rem .3rem; border: 1px solid #e5e7eb; border-radius: .5rem; background: #fff; color: #1f2937; cursor: pointer; }
+.icon-picker-item .bi { font-size: 1.6rem; color: var(--pa-primary, #056e4f); }
+.icon-picker-item span { font-size: .68rem; line-height: 1.15; color: #6b7280; word-break: break-all; text-align: center; }
+.icon-picker-item:hover, .icon-picker-item:focus-visible { border-color: var(--pa-primary, #056e4f); background: #e6f3ef; outline: none; }
+.icon-picker-item.active { border-color: var(--pa-secondary, #ff9900); box-shadow: 0 0 0 2px var(--pa-secondary, #ff9900); }
+.icon-picker-foot { display: flex; justify-content: space-between; align-items: center; gap: .5rem; margin-top: .75rem; flex-wrap: wrap; }

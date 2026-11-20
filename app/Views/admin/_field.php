@@ -73,6 +73,12 @@ $showWhen  = ! empty($f['show_when']) ? ' data-show-when="' . esc($f['show_when'
                 <input type="datetime-local" id="<?= $id ?>" name="<?= $inputName ?>" value="<?= esc($value ? date('Y-m-d\TH:i', strtotime((string) $value)) : '', 'attr') ?>" class="form-control<?= $invalid ?>" style="max-width: 16rem"<?= $required ? ' required' : '' ?><?= $aria ?>>
             <?php break; case 'time': ?>
                 <input type="time" id="<?= $id ?>" name="<?= $inputName ?>" value="<?= esc((string) $value, 'attr') ?>" class="form-control<?= $invalid ?>" style="max-width: 10rem"<?= $aria ?>>
+            <?php break; case 'icon': $iv = preg_replace('/[^a-z0-9-]/', '', (string) $value); ?>
+                <div class="input-group icon-field" style="max-width: 30rem">
+                    <span class="input-group-text icon-field-preview" aria-hidden="true"><i class="bi <?= esc($iv ?: 'bi-question-square', 'attr') ?>"></i></span>
+                    <input type="text" id="<?= $id ?>" name="<?= $inputName ?>" value="<?= esc((string) $value, 'attr') ?>" class="form-control font-monospace<?= $invalid ?>" data-icon-input spellcheck="false" autocomplete="off" placeholder="mis. bi-search"<?= $required ? ' required' : '' ?><?= $aria ?>>
+                    <button type="button" class="btn btn-pa-primary" data-icon-pick="<?= $id ?>"><i class="bi bi-grid-3x3-gap me-1" aria-hidden="true"></i>Pilih ikon</button>
+                </div>
             <?php break; case 'url': ?>
                 <input type="text" id="<?= $id ?>" name="<?= $inputName ?>" value="<?= esc((string) $value, 'attr') ?>" class="form-control<?= $invalid ?>" inputmode="url" spellcheck="false" placeholder="https://… atau /halaman/internal"<?= $required ? ' required' : '' ?><?= $aria ?>>
             <?php break; case 'email': ?>

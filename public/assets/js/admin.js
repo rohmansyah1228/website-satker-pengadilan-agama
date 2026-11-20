@@ -155,3 +155,104 @@
         }
     }
 })();
+
+/* ---------- Pemilih ikon Bootstrap Icons (isian jenis "icon") ---------- */
+(function () {
+    'use strict';
+    const buttons = document.querySelectorAll('[data-icon-pick]');
+    if (!buttons.length) return;
+    const meta = document.querySelector('meta[name="satker-admin"]');
+    const cfg = meta ? JSON.parse(meta.content) : {};
+    const clean = (v) => (v || '').trim().toLowerCase().replace(/^bi\s+/, '').replace(/^(bi-)?/, 'bi-').replace(/[^a-z0-9-]/g, '');
+
+    // pratinjau langsung saat mengetik
+    document.querySelectorAll('[data-icon-input]').forEach((inp) => {
+        const prev = inp.closest('.icon-field').querySelector('.icon-field-preview i');
+        inp.addEventListener('input', () => { prev.className = 'bi ' + (inp.value.trim() ? clean(inp.value) : 'bi-question-square'); });
+    });
+
+    // ikon yang sering dipakai situs pengadilan
+    const POPULAR = ['search', 'bank', 'bank2', 'building', 'buildings', 'house-door', 'laptop', 'pc-display', 'phone', 'shield-check', 'shield-exclamation',
+        'shield-lock', 'megaphone', 'megaphone-fill', 'chat-dots', 'envelope', 'telephone', 'whatsapp', 'calendar-week', 'calendar-check', 'clock', 'hourglass-split',
+        'journal-bookmark-fill', 'journal-text', 'book', 'book-half', 'file-earmark-text', 'file-earmark-pdf', 'files', 'folder2-open', 'archive', 'clipboard-check',
+        'clipboard-data', 'bar-chart', 'graph-up', 'pie-chart', 'cash-stack', 'cash-coin', 'wallet2', 'receipt', 'people', 'people-fill', 'person-badge',
+        'person-vcard', 'person-wheelchair', 'universal-access', 'heart-pulse', 'award', 'patch-check', 'star', 'hand-thumbs-up', 'emoji-smile', 'qr-code',
+        'link-45deg', 'box-arrow-up-right', 'globe', 'geo-alt', 'map', 'info-circle', 'question-circle', 'exclamation-triangle', 'gear', 'tools',
+        'camera-video', 'youtube', 'facebook', 'instagram', 'newspaper', 'images', 'download', 'upload', 'printer', 'key', 'lock', 'fingerprint', 'briefcase',
+        'mortarboard', 'signpost-split', 'truck', 'car-front', 'scale' /* dibuang bila tak ada */];
+    // kata kunci bahasa Indonesia → nama ikon (Inggris)
+    const ID = {cari: 'search', pencarian: 'search', rumah: 'house', beranda: 'house', gedung: 'building', kantor: 'building', pengadilan: 'bank|building', bank: 'bank',
+        dokumen: 'file|journal|clipboard', berkas: 'file', file: 'file', folder: 'folder', arsip: 'archive', buku: 'book', jurnal: 'journal', uang: 'cash|coin|currency|wallet|piggy-bank', biaya: 'cash|coin|currency|receipt',
+        dompet: 'wallet', bayar: 'credit-card', orang: 'person|people', pegawai: 'person', pengguna: 'person', kelompok: 'people', masyarakat: 'people',
+        kalender: 'calendar', jadwal: 'calendar|clock', tanggal: 'calendar', jam: 'clock', waktu: 'clock', pengumuman: 'megaphone', pengaduan: 'megaphone|chat|exclamation',
+        berita: 'newspaper', video: 'camera-video', foto: 'image|camera', gambar: 'image', galeri: 'images', telepon: 'telephone|phone', hp: 'phone', email: 'envelope',
+        surat: 'envelope', pesan: 'chat', obrolan: 'chat', lokasi: 'geo', peta: 'map', perisai: 'shield', keamanan: 'shield', kunci: 'lock', gembok: 'lock',
+        grafik: 'graph', statistik: 'bar-chart', diagram: 'pie-chart', bintang: 'star', penghargaan: 'award', piala: 'trophy', unduh: 'download', unggah: 'upload',
+        cetak: 'printer', tautan: 'link', dunia: 'globe', internet: 'globe', info: 'info', informasi: 'info', tanya: 'question', peringatan: 'exclamation',
+        pengaturan: 'gear', alat: 'tools', disabilitas: 'wheelchair', aksesibilitas: 'universal-access', senyum: 'emoji-smile', suka: 'hand-thumbs-up',
+        centang: 'check', daftar: 'list', tabel: 'table', komputer: 'pc-display', laptop: 'laptop', mobil: 'car', truk: 'truck', sekolah: 'mortarboard',
+        kerja: 'briefcase', tas: 'briefcase', hati: 'heart', kesehatan: 'heart-pulse', hapus: 'trash', tambah: 'plus', panah: 'arrow', video_youtube: 'youtube'};
+
+    let all = null, dlg, grid, search, info, target = null;
+    async function load() {
+        if (all) return all;
+        try { all = await (await fetch((cfg.assets || '/assets/') + 'vendor/bootstrap-icons/icons.json')).json(); } catch (e) { all = POPULAR; }
+        return all;
+    }
+    function build() {
+        dlg = document.createElement('dialog');
+        dlg.className = 'icon-picker';
+        dlg.setAttribute('aria-labelledby', 'iconPickerTitle');
+        dlg.innerHTML = '<div class="icon-picker-head"><h2 id="iconPickerTitle" class="h5 fw-bold mb-0">Pilih Ikon</h2>'
+            + '<button type="button" class="btn-close" aria-label="Tutup"></button></div>'
+            + '<input type="search" class="form-control mb-2" placeholder="Cari ikon… (mis. dokumen, uang, calendar, people)" aria-label="Cari ikon">'
+            + '<p class="small text-secondary mb-2 icon-picker-info" aria-live="polite"></p>'
+            + '<div class="icon-picker-grid" role="listbox" aria-label="Daftar ikon"></div>'
+            + '<div class="icon-picker-foot"><button type="button" class="btn btn-outline-secondary btn-sm" data-icon-clear>Tanpa ikon</button>'
+            + '<a href="https://icons.getbootstrap.com/" target="_blank" rel="noopener" class="small">Lihat semua di icons.getbootstrap.com</a></div>';
+        document.body.appendChild(dlg);
+        grid = dlg.querySelector('.icon-picker-grid');
+        search = dlg.querySelector('input[type=search]');
+        info = dlg.querySelector('.icon-picker-info');
+        dlg.querySelector('.btn-close').addEventListener('click', () => dlg.close());
+        dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+        dlg.querySelector('[data-icon-clear]').addEventListener('click', () => choose(''));
+        let t;
+        search.addEventListener('input', () => { clearTimeout(t); t = setTimeout(render, 120); });
+        grid.addEventListener('click', (e) => { const b = e.target.closest('[data-icon]'); if (b) choose(b.dataset.icon); });
+        search.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); const f = grid.querySelector('[data-icon]'); if (f) choose(f.dataset.icon); } });
+    }
+    function render() {
+        const q = search.value.trim().toLowerCase().replace(/^bi-/, '');
+        let list;
+        if (!q) {
+            list = POPULAR.filter((n) => all.includes(n));
+            info.textContent = 'Ikon yang sering dipakai. Ketik untuk mencari dari ' + all.length.toLocaleString('id-ID') + ' ikon (bisa bahasa Indonesia).';
+        } else {
+            const terms = q.split(/\s+/).map((w) => [w, ...(ID[w] || '').split('|')].filter(Boolean));
+            list = all.filter((n) => terms.every((alts) => alts.some((a) => n.includes(a))));
+            info.textContent = list.length ? list.length + ' ikon ditemukan' + (list.length > 400 ? ' (400 pertama ditampilkan, perjelas pencarian)' : '') + '.' : 'Tidak ditemukan. Coba kata lain (mis. bahasa Inggris).';
+            list = list.slice(0, 400);
+        }
+        const cur = target ? clean(target.value) : '';
+        grid.innerHTML = list.map((n) => '<button type="button" class="icon-picker-item' + ('bi-' + n === cur ? ' active' : '') + '" data-icon="bi-' + n + '" role="option" title="bi-' + n + '">'
+            + '<i class="bi bi-' + n + '" aria-hidden="true"></i><span>' + n + '</span></button>').join('');
+    }
+    function choose(icon) {
+        if (target) {
+            target.value = icon;
+            target.dispatchEvent(new Event('input', { bubbles: true }));
+            target.focus();
+        }
+        dlg.close();
+    }
+    buttons.forEach((btn) => btn.addEventListener('click', async () => {
+        target = document.getElementById(btn.dataset.iconPick);
+        if (!dlg) build();
+        await load();
+        search.value = '';
+        render();
+        dlg.showModal();
+        search.focus();
+    }));
+})();

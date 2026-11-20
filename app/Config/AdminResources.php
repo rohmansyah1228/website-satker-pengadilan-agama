@@ -77,7 +77,7 @@ class AdminResources extends BaseConfig
                     'grp'         => ['Kelompok', 'text', 'permit_empty|max_length[60]', 'datalist' => 'shortcut_groups',
                         'help' => 'Kosongkan untuk Pintasan Layanan Utama. Isi nama kelompok (mis. "Zona Integritas", "Aplikasi Pendukung") lalu tambahkan blok Pintasan dengan kelompok tersebut di Tampilan Beranda.'],
                     'image'       => ['Gambar (opsional)', 'image', 'permit_empty', 'width' => 800, 'help' => 'Bila diisi, gambar dipakai menggantikan ikon (mis. logo aplikasi atau banner Zona Integritas). PNG/JPG/WebP.'],
-                    'icon'        => ['Ikon (Bootstrap Icons)', 'icon', 'permit_empty|max_length[60]', 'help' => 'Dipakai bila tidak ada gambar. Contoh: bi-search, bi-laptop, bi-journal-bookmark-fill. Daftar: icons.getbootstrap.com'],
+                    'icon'        => ['Ikon (Bootstrap Icons)', 'icon', 'permit_empty|max_length[60]', 'help' => 'Dipakai bila tidak ada gambar. Klik "Pilih ikon" untuk memilih dari daftar bergambar.'],
                     'url'         => ['Tautan', 'url', 'required|max_length[255]'],
                     'sort'        => ['Urutan', 'number', 'permit_empty|integer'],
                     'is_active'   => ['Tampilkan', 'checkbox', 'permit_empty'],
