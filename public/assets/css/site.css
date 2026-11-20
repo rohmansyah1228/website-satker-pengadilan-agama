@@ -143,6 +143,28 @@ html {
     inset: 0;
     background: linear-gradient(90deg, rgba(5, 110, 79, 0.92) 0%, rgba(5, 110, 79, 0.75) 60%, rgba(3, 77, 55, 0.6) 100%);
 }
+/* Slide bergambar: tanpa lapisan hijau transparan, gambar tampil apa adanya */
+#hero-carousel .carousel-item.has-img::before { content: none; }
+/* Tulisan putih bergaris tepi hitam → tetap terbaca di gambar terang maupun gelap */
+#hero-carousel .has-img .hero-title {
+    color: #fff;
+    -webkit-text-stroke: 3px #000;
+    paint-order: stroke fill;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, .55);
+}
+#hero-carousel .has-img .hero-sub {
+    color: #fff;
+    font-weight: 600;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 2px #000, 0 2px 6px rgba(0, 0, 0, .7);
+}
+#hero-carousel .has-img .btn-outline-light {
+    background: rgba(0, 0, 0, .45);
+    border-width: 2px;
+    text-shadow: 0 1px 2px #000;
+}
+#hero-carousel .has-img .btn-outline-light:hover, #hero-carousel .has-img .btn-outline-light:focus-visible { background: #fff; color: #000; text-shadow: none; }
+#hero-carousel .carousel-control-prev-icon, #hero-carousel .carousel-control-next-icon { filter: drop-shadow(0 0 2px #000) drop-shadow(0 0 4px rgba(0,0,0,.6)); }
+#hero-carousel .carousel-indicators [data-bs-target] { filter: drop-shadow(0 0 1px #000) drop-shadow(0 0 2px rgba(0,0,0,.6)); }
 #hero-carousel .hero-content {
     position: relative;
     z-index: 10;

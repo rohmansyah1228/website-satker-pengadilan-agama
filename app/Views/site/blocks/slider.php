@@ -10,7 +10,7 @@
     <?php endif ?>
     <div class="carousel-inner">
         <?php foreach ($sliders as $i => $s): ?>
-            <div class="carousel-item<?= $i === 0 ? ' active' : '' ?>">
+            <div class="carousel-item<?= $i === 0 ? ' active' : '' ?><?= $s['image'] ? ' has-img' : '' ?>">
                 <?php if ($s['image']): ?>
                     <img src="<?= media_url($s['image']) ?>" alt="<?= esc($s['image_alt'] ?: $s['title'], 'attr') ?>" class="hero-img"
                          <?= $i === 0 ? 'fetchpriority="high"' : 'loading="lazy"' ?> decoding="async" width="1600" height="700">
@@ -18,11 +18,11 @@
                 <div class="container-lg py-5 d-flex flex-column justify-content-center text-white hero-content" style="min-height: 55vh;">
                     <?php if ($s['badge']): ?><span class="badge bg-pa-secondary text-dark fw-bold align-self-start mb-3 px-3 py-2 text-wrap text-start"><?= esc($s['badge']) ?></span><?php endif ?>
                     <?php if ($i === 0): ?>
-                        <h1 class="font-display display-5 fw-bold"><?= esc($s['title']) ?></h1>
+                        <h1 class="font-display display-5 fw-bold hero-title"><?= esc($s['title']) ?></h1>
                     <?php else: ?>
-                        <h2 class="font-display display-5 fw-bold"><?= esc($s['title']) ?></h2>
+                        <h2 class="font-display display-5 fw-bold hero-title"><?= esc($s['title']) ?></h2>
                     <?php endif ?>
-                    <?php if ($s['subtitle']): ?><p class="mt-3 fs-5 text-white-75" style="max-width: 42rem;"><?= esc($s['subtitle']) ?></p><?php endif ?>
+                    <?php if ($s['subtitle']): ?><p class="mt-3 fs-5 text-white hero-sub" style="max-width: 42rem;"><?= esc($s['subtitle']) ?></p><?php endif ?>
                     <div class="mt-4 d-flex flex-wrap gap-3">
                         <?php foreach ([['button_text', 'button_url', 'btn-pa-secondary'], ['button2_text', 'button2_url', 'btn-outline-light']] as [$tk, $uk, $cls]): ?>
                             <?php $u = link_url($s[$uk]); if (! $s[$tk] || $u === '#') continue; ?>
