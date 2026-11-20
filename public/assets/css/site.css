@@ -574,3 +574,19 @@ body.high-contrast .float-cctv, body.high-contrast .float-wa { background: #000 
     .float-cctv-text, .float-wa-text { display: none; }
     .float-wa { width: 3.4rem; height: 3.4rem; padding: 0; justify-content: center; }
 }
+
+/* Layar 1200–1499 px: rapatkan menu utama agar tombol Cari tidak terdorong keluar layar */
+@media (min-width: 1200px) and (max-width: 1499.98px) {
+    .navbar-nav .nav-link { padding-left: .45rem !important; padding-right: .45rem !important; font-size: .9rem; }
+    .navbar-nav.gap-1 { gap: .1rem !important; }
+    .navbar-brand .brand-name { font-size: 1.02rem; }
+    .navbar-brand .small { font-size: .8rem; }
+    [data-open-search] .d-xxl-inline { display: none !important; }
+}
+@media (min-width: 1200px) and (max-width: 1349.98px) {
+    .navbar-brand { white-space: normal; max-width: 15.5rem; flex: 0 1 auto; min-width: 0; }
+    .navbar-brand .brand-name { font-size: .92rem; line-height: 1.15; }
+    .navbar-brand .small { font-size: .74rem; }
+    .navbar-brand .brand-logo { width: 44px; height: 44px; }
+    .navbar-nav .nav-link { padding-left: .35rem !important; padding-right: .35rem !important; font-size: .86rem; }
+}

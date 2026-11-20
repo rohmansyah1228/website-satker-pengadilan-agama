@@ -330,6 +330,15 @@ class Crud extends AdminController
                         $data[$name] = ($v === '' || $v === null) ? null : $v;
                         break;
 
+                    case 'url':
+                        // "youtu.be/…", "www.situs.go.id" → https://…  (jalur internal "/…" dan token "{…}" dibiarkan)
+                        $v = trim((string) ($post[$name] ?? ''));
+                        if ($v !== '' && ! preg_match('#^([a-z][a-z0-9+.-]*:|/|\{)#i', $v) && preg_match('#^[a-z0-9-]+(\.[a-z0-9-]+)+(/|$|\?)#i', $v)) {
+                            $v = 'https://' . $v;
+                        }
+                        $data[$name] = $v;
+                        break;
+
                     default:
                         $data[$name] = trim((string) ($post[$name] ?? ''));
                 }

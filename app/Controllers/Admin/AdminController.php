@@ -18,6 +18,13 @@ abstract class AdminController extends BaseController
     {
         parent::initController($request, $response, $logger);
         $this->user = service('adminAuth')->user();
+        // setiap perubahan di panel admin (POST) → kosongkan cache Beranda & pita pengumuman setelah tersimpan
+        if ($request->getMethod() === 'POST' || strtolower($request->getMethod()) === 'post') {
+            \CodeIgniter\Events\Events::on('post_system', static function () {
+                cache()->deleteMatching('home_blocks_*');
+                cache()->delete('site_alert');
+            });
+        }
     }
 
     protected function view(string $view, array $data = []): string
@@ -45,6 +52,8 @@ abstract class AdminController extends BaseController
     protected function flushPublic(): void
     {
         MenuTree::flush();
+        cache()->deleteMatching('home_blocks_*');
+        cache()->delete('site_alert');
         service('siteSettings')->flush();
         cache()->delete('visitor_summary');
     }

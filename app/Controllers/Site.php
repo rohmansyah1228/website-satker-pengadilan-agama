@@ -9,7 +9,13 @@ class Site extends BaseController
     public function home(): string
     {
         $blocks = new \App\Libraries\HomeBlocks();
-        $items  = $blocks->withData($blocks->tree());
+        // data Beranda di-cache 60 detik (dikosongkan otomatis setiap ada perubahan di panel admin)
+        $key   = 'home_blocks_' . substr(md5(base_url()), 0, 10);
+        $items = cache($key);
+        if (! is_array($items)) {
+            $items = $blocks->withData($blocks->tree());
+            cache()->save($key, $items, 60);
+        }
 
         return $this->render('site/home', [
             'title'    => setting('site_name'),
