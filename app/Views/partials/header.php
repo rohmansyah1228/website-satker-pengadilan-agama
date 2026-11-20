@@ -2,6 +2,28 @@
 $siteName = setting('site_name', 'Pengadilan Agama');
 $logo     = setting('logo') ? media_url(setting('logo')) : base_url('assets/img/logo-default.svg');
 $activeId = $activeTop['id'] ?? null;
+$curUrl   = rtrim(current_url(), '/');
+// Isi dropdown bertingkat: tingkat 2 tampil penuh, tingkat 3–4 menjorok di bawah induknya.
+$dropItems = static function (array $items, int $depth) use (&$dropItems, $curUrl): string {
+    $out = '';
+    foreach ($items as $c) {
+        $ext    = $c['type'] === 'url';
+        $tab    = $c['new_tab'] || $ext ? ' target="_blank" rel="noopener noreferrer"' : '';
+        $cls    = 'dropdown-item py-2 menu-lv' . $depth . ($c['children'] ? ' has-sub' : '') . (rtrim($c['href'], '/') === $curUrl ? ' active' : '');
+        $icon   = $ext ? ' <i class="bi bi-box-arrow-up-right small" aria-hidden="true"></i>' : '';
+        if ($c['type'] === 'none') {
+            $out .= '<li><span class="dropdown-header ' . trim(str_replace('dropdown-item py-2', '', $cls)) . '">' . esc($c['label']) . '</span></li>';
+        } else {
+            $cur  = str_contains($cls, ' active') ? ' aria-current="page"' : '';
+            $out .= '<li><a class="' . $cls . '" href="' . esc($c['href'], 'attr') . '"' . $tab . $cur . '>' . esc($c['label']) . $icon . '</a></li>';
+        }
+        if ($c['children']) {
+            $out .= $dropItems($c['children'], $depth + 1);
+        }
+    }
+
+    return $out;
+};
 ?>
 <header class="sticky-top shadow-sm bg-white">
     <!-- Top Bar Informasi Kontak -->
@@ -54,12 +76,7 @@ $activeId = $activeTop['id'] ?? null;
                                     <?= esc($item['label']) ?>
                                 </a>
                                 <ul class="dropdown-menu shadow border-0" aria-labelledby="menu<?= $item['id'] ?>">
-                                    <?php foreach ($item['children'] as $c): ?>
-                                        <li><a class="dropdown-item py-2<?= rtrim($c['href'], '/') === rtrim(current_url(), '/') ? ' active' : '' ?>" href="<?= esc($c['href'], 'attr') ?>"<?= $c['new_tab'] || $c['type'] === 'url' ? ' target="_blank" rel="noopener noreferrer"' : '' ?>><?= esc($c['label']) ?><?= $c['type'] === 'url' ? ' <i class="bi bi-box-arrow-up-right small" aria-hidden="true"></i>' : '' ?></a></li>
-                                        <?php foreach ($c['children'] as $g): ?>
-                                            <li><a class="dropdown-item py-2 ps-5 small" href="<?= esc($g['href'], 'attr') ?>"<?= $g['new_tab'] || $g['type'] === 'url' ? ' target="_blank" rel="noopener noreferrer"' : '' ?>><?= esc($g['label']) ?></a></li>
-                                        <?php endforeach ?>
-                                    <?php endforeach ?>
+                                    <?= $dropItems($item['children'], 2) ?>
                                 </ul>
                             </li>
                         <?php else: ?>

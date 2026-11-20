@@ -5,6 +5,9 @@ namespace App\Libraries;
 /** Menu navigasi dinamis (tabel menus) dengan cache. */
 class MenuTree
 {
+    /** Kedalaman menu maksimum (1 = menu utama, 2 = sub-menu, 3–4 = sub-sub-menu). */
+    public const MAX_DEPTH = 4;
+
     /** Semua menu sebagai pohon; $activeOnly untuk situs publik. */
     public function tree(bool $activeOnly = true): array
     {
@@ -31,13 +34,16 @@ class MenuTree
             $r['href']                         = $this->href($r);
             $byParent[(int) $r['parent_id']][] = $r;
         }
-        $build = function (int $pid, int $depth) use (&$build, $byParent): array {
+        $build = function (int $pid, int $depth) use (&$build, $byParent, $activeOnly): array {
             $out = [];
             foreach ($byParent[$pid] ?? [] as $r) {
                 $r['depth']    = $depth;
-                $r['children'] = $depth < 3 ? $build((int) $r['id'], $depth + 1) : [];
-                if ($r['type'] === 'section' && $r['children']) {
+                $r['children'] = $depth < self::MAX_DEPTH ? $build((int) $r['id'], $depth + 1) : [];
+                if ($r['children'] && in_array($r['type'], ['section', 'none'], true)) {
                     $r['href'] = $r['children'][0]['href'];
+                }
+                if ($activeOnly && $r['type'] === 'none' && ! $r['children']) {
+                    continue; // judul grup tanpa isi tidak perlu tampil
                 }
                 $out[] = $r;
             }
@@ -59,6 +65,7 @@ class MenuTree
             'route'   => site_url(ltrim((string) $r['url'], '/')),
             'url'     => \App\Libraries\PageBlocks::href((string) $r['url']),
             'section' => site_url((string) $r['section']),
+            'none'    => '#',
             default   => '#',
         };
     }
@@ -83,7 +90,7 @@ class MenuTree
         if ($base !== '/' && str_starts_with($h, $base)) {
             $h = '/' . ltrim(substr($h, strlen($base)), '/');
         }
-        if ($item['type'] !== 'url' && ($h === $path || ($h !== '/' && $item['type'] === 'route' && str_starts_with($path, $h . '/')))) {
+        if (! in_array($item['type'], ['url', 'none'], true) && ($h === $path || ($h !== '/' && $item['type'] === 'route' && str_starts_with($path, $h . '/')))) {
             return true;
         }
         if ($item['type'] === 'section' && str_starts_with($path, '/' . $item['section'] . '/')) {

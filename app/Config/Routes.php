@@ -33,6 +33,7 @@ $routes->group($admin, ['namespace' => 'App\Controllers\Admin'], static function
         $routes->post('menu/baru', 'Menus::store');
         $routes->get('menu/(:num)', 'Menus::edit/$1');
         $routes->post('menu/(:num)', 'Menus::update/$1');
+        $routes->post('menu/susun', 'Menus::arrange');
         $routes->post('menu/(:num)/pindah', 'Menus::move/$1');
         $routes->post('menu/(:num)/hapus', 'Menus::delete/$1');
 

@@ -18,10 +18,11 @@
                 <option value="">— Menu utama (tingkat 1) —</option>
                 <?php foreach ($parents as $pid => $pl): ?><option value="<?= $pid ?>"<?= (string) ($m['parent_id'] ?? '') === (string) $pid ? ' selected' : '' ?>><?= esc($pl) ?></option><?php endforeach ?>
             </select>
+            <div class="form-text">Sub-menu bisa sampai <?= \App\Libraries\MenuTree::MAX_DEPTH ?> tingkat. Posisi juga bisa diatur dengan menyeret menu di daftar Menu Navigasi.</div>
         </div>
         <fieldset class="mb-3">
             <legend class="form-label fw-semibold fs-6">Jenis tautan</legend>
-            <?php foreach (['page' => 'Halaman situs', 'route' => 'Alamat internal (mis. /berita/kategori/inovasi)', 'url' => 'Tautan luar (https://…)'] as $k => $l): ?>
+            <?php foreach (['page' => 'Halaman situs', 'route' => 'Alamat internal (mis. /berita/kategori/inovasi)', 'url' => 'Tautan luar (https://…)', 'none' => 'Judul grup tanpa tautan (mis. “Laporan Satker” yang hanya berisi sub-menu)'] as $k => $l): ?>
                 <div class="form-check"><input class="form-check-input" type="radio" name="type" id="t_<?= $k ?>" value="<?= $k ?>"<?= ($m['type'] ?? 'page') === $k ? ' checked' : '' ?>><label class="form-check-label" for="t_<?= $k ?>"><?= $l ?></label></div>
             <?php endforeach ?>
         </fieldset>

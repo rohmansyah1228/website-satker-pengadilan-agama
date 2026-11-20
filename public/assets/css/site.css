@@ -417,3 +417,17 @@ body.high-contrast .form-control { background: #000 !important; color: #ff0 !imp
     #a11yToggle .bi { margin: 0 !important; font-size: 1.45rem !important; }
     #a11yToggle .a11y-label { display: none; }
 }
+
+/* Sub-menu bertingkat di dropdown (tingkat 2–4) */
+.dropdown-menu .menu-lv2.has-sub { font-weight: 700; color: var(--pa-primary); }
+.dropdown-menu li:not(:first-child) > .menu-lv2.has-sub { border-top: 1px solid #e5e7eb; margin-top: .25rem; }
+.dropdown-menu .menu-lv3 { padding-left: 2.25rem; font-size: .85rem; }
+.dropdown-menu .menu-lv3.has-sub { font-weight: 600; }
+.dropdown-menu .menu-lv4 { padding-left: 3.25rem; font-size: .82rem; }
+.dropdown-menu .menu-lv3::before, .dropdown-menu .menu-lv4::before { content: "›"; margin-right: .4rem; color: var(--pa-secondary); }
+.dropdown-menu .dropdown-header { font-weight: 700; color: var(--pa-primary); font-size: .8rem; text-transform: uppercase; letter-spacing: .03em; padding-top: .6rem; }
+.dropdown-menu .dropdown-header.menu-lv3 { padding-left: 2.25rem; }
+/* Sidebar halaman: sub-menu bertingkat */
+.sidebar-sub { padding-left: .9rem; border-left: 2px solid #e5e7eb; margin-left: .9rem; }
+.sidebar-sub .sidebar-nav-link { font-weight: 500 !important; font-size: .9rem; padding-top: .35rem !important; padding-bottom: .35rem !important; }
+.sidebar-group { font-size: .8rem; font-weight: 700; color: var(--pa-primary); text-transform: uppercase; letter-spacing: .03em; padding: .5rem .75rem .2rem; }
