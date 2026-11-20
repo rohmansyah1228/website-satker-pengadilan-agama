@@ -35,13 +35,28 @@ class Uploader
         if ($file->getSize() > self::MAX_PDF_MB * 1048576) {
             throw new RuntimeException('Ukuran PDF maksimal ' . self::MAX_PDF_MB . ' MB.');
         }
-        $ext = strtolower($file->getClientExtension());
-        $fh  = fopen($file->getTempName(), 'rb');
+        if (strtolower($file->getClientExtension()) !== 'pdf' || $file->getMimeType() !== 'application/pdf') {
+            throw new RuntimeException('Berkas harus berformat PDF.');
+        }
+
+        return $this->storePdfPath($file->getTempName(), $file->getClientName(), true);
+    }
+
+    /**
+     * Simpan PDF dari berkas sementara di server (unggahan atau unduhan impor).
+     * @return int id baris pada tabel files
+     */
+    public function storePdfPath(string $tmp, string $originalName, bool $move = false): int
+    {
+        if (! is_file($tmp) || filesize($tmp) > self::MAX_PDF_MB * 1048576) {
+            throw new RuntimeException('Ukuran PDF maksimal ' . self::MAX_PDF_MB . ' MB.');
+        }
+        $fh  = fopen($tmp, 'rb');
         $sig = $fh ? fread($fh, 5) : '';
         if ($fh) {
             fclose($fh);
         }
-        if ($ext !== 'pdf' || $file->getMimeType() !== 'application/pdf' || $sig !== '%PDF-') {
+        if ($sig !== '%PDF-') {
             throw new RuntimeException('Berkas harus berformat PDF.');
         }
 
@@ -51,9 +66,11 @@ class Uploader
         if (! is_dir($dir)) {
             mkdir($dir, 0750, true);
         }
-        $file->move($dir, basename($rel));
+        if (! ($move ? @rename($tmp, WRITEPATH . $rel) || @copy($tmp, WRITEPATH . $rel) : @copy($tmp, WRITEPATH . $rel))) {
+            throw new RuntimeException('PDF tidak dapat disimpan.');
+        }
 
-        $name = preg_replace('/[^\w\s.\-()]/u', '', $file->getClientName()) ?: 'dokumen.pdf';
+        $name = preg_replace('/[^\w\s.\-()]/u', '', $originalName) ?: 'dokumen.pdf';
         db_connect()->table('files')->insert([
             'uuid' => $uuid, 'path' => $rel, 'original_name' => mb_substr($name, 0, 250),
             'mime' => 'application/pdf', 'size' => (int) filesize(WRITEPATH . $rel), 'created_at' => date('Y-m-d H:i:s'),
@@ -71,17 +88,27 @@ class Uploader
         if ($file->getSize() > self::MAX_IMAGE_MB * 1048576) {
             throw new RuntimeException('Ukuran gambar maksimal ' . self::MAX_IMAGE_MB . ' MB.');
         }
-        $info = @getimagesize($file->getTempName());
+
+        return $this->storeImagePath($file->getTempName(), $maxWidth);
+    }
+
+    /** Simpan gambar dari berkas sementara di server (unggahan atau unduhan impor). */
+    public function storeImagePath(string $tmp, int $maxWidth = 1600): string
+    {
+        if (! is_file($tmp) || filesize($tmp) > self::MAX_IMAGE_MB * 1048576) {
+            throw new RuntimeException('Ukuran gambar maksimal ' . self::MAX_IMAGE_MB . ' MB.');
+        }
+        $info = @getimagesize($tmp);
         // GIF disimpan apa adanya agar animasinya tetap jalan (mis. ikon CCTV); dibatasi 2 MB & 1600 px
         if ($info && $info[2] === IMAGETYPE_GIF) {
-            if ($file->getSize() > 2 * 1048576 || $info[0] > 1600 || $info[1] > 1600) {
+            if (filesize($tmp) > 2 * 1048576 || $info[0] > 1600 || $info[1] > 1600) {
                 throw new RuntimeException('GIF maksimal 2 MB dan 1600 × 1600 piksel.');
             }
             $rel = 'uploads/images/' . date('Y') . '/' . bin2hex(random_bytes(12)) . '.gif';
             if (! is_dir(FCPATH . dirname($rel))) {
                 mkdir(FCPATH . dirname($rel), 0755, true);
             }
-            if (! @copy($file->getTempName(), FCPATH . $rel)) {
+            if (! @copy($tmp, FCPATH . $rel)) {
                 throw new RuntimeException('Gambar tidak dapat disimpan.');
             }
 
@@ -91,7 +118,7 @@ class Uploader
         if (! $info || ! isset($map[$info[2]])) {
             throw new RuntimeException('Gambar harus berformat JPG, PNG, WebP, atau GIF.');
         }
-        $src = @$map[$info[2]]($file->getTempName());
+        $src = @$map[$info[2]]($tmp);
         if (! $src) {
             throw new RuntimeException('Gambar tidak dapat dibaca.');
         }

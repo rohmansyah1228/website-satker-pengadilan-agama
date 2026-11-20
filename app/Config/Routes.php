@@ -68,6 +68,9 @@ $routes->group($admin, ['namespace' => 'App\Controllers\Admin'], static function
 
         $routes->get('log', 'Logs::index');
         $routes->get('panduan', 'Guide::index');
+        $routes->get('impor', 'Import::index');
+        $routes->post('impor/daftar', 'Import::list');
+        $routes->post('impor/jalankan', 'Import::run');
         $routes->post('editor/gambar', 'Editor::image');
         $routes->post('editor/pdf', 'Editor::pdf');
         $routes->get('editor/tautan', 'Editor::links');

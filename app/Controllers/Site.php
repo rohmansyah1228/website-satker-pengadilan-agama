@@ -105,6 +105,13 @@ class Site extends BaseController
             if ($r) {
                 return redirect()->to(site_url(ltrim($r['new_path'], '/')), 301);
             }
+            // alamat berita website lama (Joomla, mis. /berita/berita-terkini/3064-judul.html) → berita hasil impor
+            if (preg_match('#/(\d+)-[^/]+\.html?$#i', $path, $m)) {
+                $post = db_connect()->table('posts')->select('slug')->where('source_ref', 'joomla:' . (int) $m[1])->get()->getRowArray();
+                if ($post) {
+                    return redirect()->to(site_url('berita/' . $post['slug']), 301);
+                }
+            }
         } catch (\Throwable) {
         }
 

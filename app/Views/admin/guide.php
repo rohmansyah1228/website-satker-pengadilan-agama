@@ -259,6 +259,8 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
         <li>Kosong = tampil 7 hari sejak terbit. Ubah status ke <strong>Draft</strong> untuk menghentikan seketika.</li>
     </ol>
     <?= $img('08-berita-serta-merta.jpg', 'Berita kategori Informasi Serta Merta dengan isian Tampilkan pita sampai.') ?>
+    <h3>Memindahkan berita dari website lama</h3>
+    <p>Super Admin: <em>Sistem → Impor Berita Lama</em>. Isi alamat website lama, pilih kategori (mis. <em>Berita Terkini</em> → Berita Kegiatan, <em>Arsip Berita</em> → Pengumuman), klik <strong>Periksa jumlah berita</strong> lalu <strong>Mulai Impor</strong>. Tanggal, penulis, jumlah dibaca, gambar, dan PDF ikut dipindah; impor dapat dihentikan dan dilanjutkan tanpa dobel. Alamat berita lama otomatis dialihkan ke alamat baru setelah domain dipindah.</p>
     <?= $tip('Berita sebaiknya berorientasi pada pelayanan & inovasi, bukan sekadar liputan seremonial (SK Bab III huruf D).') ?>
     <?= $go('data/berita', 'Buka Berita & Publikasi') ?>
 </section>

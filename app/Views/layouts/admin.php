@@ -15,7 +15,7 @@ $guide = 'pendahuluan';
 foreach ([
     'halaman' => 'halaman', 'menu' => 'menu', 'beranda' => 'beranda', 'data/berita' => 'berita', 'data/slider' => 'slider',
     'data/pintasan' => 'pintasan', 'data/video' => 'video', 'data/' => 'data', 'pengaturan' => 'pengaturan', 'pengguna' => 'pengguna',
-    'log' => 'pengguna', 'akun' => 'login', 'panduan' => '',
+    'log' => 'pengguna', 'akun' => 'login', 'impor' => 'berita', 'panduan' => '',
 ] as $prefix => $anchor) {
     if (str_starts_with($rel . '/', rtrim($prefix, '/') . '/') || ($prefix === 'data/' && str_starts_with($rel, 'data/'))) {
         $guide = $anchor;
@@ -64,6 +64,7 @@ if ($rel === '') {
         <?php if (can([], true)): ?>
             <a href="<?= admin_url('pengguna') ?>" class="<?= $is('pengguna') ? 'active' : '' ?>"><i class="bi bi-people" aria-hidden="true"></i>Pengguna</a>
             <a href="<?= admin_url('log') ?>" class="<?= $is('log') ? 'active' : '' ?>"><i class="bi bi-journal-text" aria-hidden="true"></i>Log Aktivitas</a>
+            <a href="<?= admin_url('impor') ?>" class="<?= $is('impor') ? 'active' : '' ?>"><i class="bi bi-cloud-download" aria-hidden="true"></i>Impor Berita Lama</a>
         <?php endif ?>
         <a href="<?= admin_url('akun') ?>" class="<?= $is('akun') ? 'active' : '' ?>"><i class="bi bi-person-circle" aria-hidden="true"></i>Akun Saya</a>
         <div class="grp">Bantuan</div>
