@@ -11,6 +11,7 @@ $v = static fn (string $k, string $d = '') => esc((string) ($old[$k] ?? $d), 'at
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
     <title>Pemasangan Website Satker</title>
+    <?= favicon_tags() ?>
     <link rel="stylesheet" href="<?= base_url('assets/vendor/bootstrap/bootstrap.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/bootstrap-icons/bootstrap-icons.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/fonts/fonts.css') ?>">

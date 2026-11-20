@@ -85,6 +85,7 @@ $routes->group($admin, ['namespace' => 'App\Controllers\Admin'], static function
 
 // ===================== SITUS PUBLIK =====================
 $routes->get('berkas/(:segment)', 'Files::show/$1');
+$routes->get('favicon.ico', 'Files::favicon');
 
 $routes->group('', ['filter' => 'visitor'], static function ($routes) {
     $routes->get('/', 'Site::home');

@@ -16,7 +16,7 @@ $pageTitle = isset($title) && $title !== $siteName ? $title . ' — ' . $siteNam
     <meta property="og:site_name" content="<?= esc($siteName) ?>">
     <?php if (! empty($ogImage)): ?><meta property="og:image" content="<?= esc($ogImage) ?>"><?php endif ?>
     <link rel="canonical" href="<?= esc(current_url()) ?>">
-    <link rel="icon" href="<?= esc($logo) ?>">
+    <?= favicon_tags() ?>
     <link rel="stylesheet" href="<?= asset('assets/vendor/fonts/fonts.css') ?>">
     <link rel="stylesheet" href="<?= asset('assets/vendor/bootstrap/bootstrap.min.css') ?>">
     <link rel="stylesheet" href="<?= asset('assets/vendor/bootstrap-icons/bootstrap-icons.min.css') ?>">

@@ -173,3 +173,29 @@ if (! function_exists('content_expand_urls')) {
         return str_contains($html, '{{SITE_URL}}/') ? str_replace('{{SITE_URL}}/', rtrim(base_url(), '/') . '/', $html) : $html;
     }
 }
+
+if (! function_exists('favicon_tags')) {
+    /** Ikon tab browser = logo satker yang diunggah (Pengaturan), sama di situs publik & panel admin. */
+    function favicon_tags(): string
+    {
+        $path = '';
+        try {
+            $path = (string) setting('logo');
+        } catch (\Throwable $e) {
+            // basis data belum siap (mis. saat pemasangan)
+        }
+        if ($path !== '' && is_file(FCPATH . ltrim($path, '/'))) {
+            $url = media_url($path) . '?v=' . filemtime(FCPATH . ltrim($path, '/'));
+        } else {
+            $path = 'assets/img/logo-default.svg';
+            $url  = base_url($path);
+        }
+        $type = match (strtolower(pathinfo($path, PATHINFO_EXTENSION))) {
+            'svg' => 'image/svg+xml', 'png' => 'image/png', 'jpg', 'jpeg' => 'image/jpeg', 'webp' => 'image/webp', 'ico' => 'image/x-icon', default => '',
+        };
+        $t = $type ? ' type="' . $type . '"' : '';
+
+        return '<link rel="icon" href="' . esc($url) . '"' . $t . '>' . "\n    "
+            . '<link rel="apple-touch-icon" href="' . esc($url) . '">' . "\n";
+    }
+}

@@ -17,6 +17,7 @@ $logo = setting('logo') ? media_url(setting('logo')) : base_url('assets/img/logo
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
     <title><?= esc($title ?? 'Panel Admin') ?> — Panel Admin <?= esc(setting('site_name')) ?></title>
+    <?= favicon_tags() ?>
     <link rel="stylesheet" href="<?= asset('assets/vendor/fonts/fonts.css') ?>">
     <link rel="stylesheet" href="<?= asset('assets/vendor/bootstrap/bootstrap.min.css') ?>">
     <link rel="stylesheet" href="<?= asset('assets/vendor/bootstrap-icons/bootstrap-icons.min.css') ?>">

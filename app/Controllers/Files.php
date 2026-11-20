@@ -5,6 +5,15 @@ namespace App\Controllers;
 /** Menyajikan dokumen PDF dari writable/uploads (tidak dapat diakses langsung). */
 class Files extends BaseController
 {
+    /** /favicon.ico → logo satker yang diunggah (untuk peramban yang meminta favicon.ico langsung). */
+    public function favicon()
+    {
+        $path = setting('logo');
+        $url  = $path !== '' && is_file(FCPATH . ltrim($path, '/')) ? media_url($path) : base_url('assets/img/logo-default.svg');
+
+        return redirect()->to($url)->setHeader('Cache-Control', 'public, max-age=86400');
+    }
+
     public function show(string $uuid)
     {
         if (! preg_match('/^[a-f0-9]{32}$/', $uuid)) {

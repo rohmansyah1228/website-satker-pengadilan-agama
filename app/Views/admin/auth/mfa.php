@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex, nofollow">
     <title>Verifikasi MFA — Panel Admin</title>
+    <?= favicon_tags() ?>
     <link rel="stylesheet" href="<?= asset('assets/vendor/fonts/fonts.css') ?>">
     <link rel="stylesheet" href="<?= asset('assets/vendor/bootstrap/bootstrap.min.css') ?>">
     <link rel="stylesheet" href="<?= asset('assets/vendor/bootstrap-icons/bootstrap-icons.min.css') ?>">
