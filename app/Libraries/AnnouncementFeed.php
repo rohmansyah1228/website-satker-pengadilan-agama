@@ -404,6 +404,7 @@ class AnnouncementFeed
         if (! function_exists('curl_init')) {
             throw new \RuntimeException('ekstensi PHP cURL belum aktif');
         }
+        \App\Libraries\UrlGuard::assertPublic($url);
         $ch  = curl_init($url);
         $buf = '';
         curl_setopt_array($ch, [
@@ -425,7 +426,11 @@ class AnnouncementFeed
         $code = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
         $type = strtolower((string) curl_getinfo($ch, CURLINFO_CONTENT_TYPE));
         $err  = curl_errno($ch) ? curl_error($ch) : '';
-        curl_close($ch);
+        try {
+            \App\Libraries\UrlGuard::assertConnectedIpPublic($ch); // tangkal redirect ke alamat internal
+        } finally {
+            curl_close($ch);
+        }
         if ($code === 0 || $code >= 400) {
             throw new \RuntimeException($err ?: 'HTTP ' . $code);
         }

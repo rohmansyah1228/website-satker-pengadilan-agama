@@ -104,6 +104,11 @@ class Uploader
             if (filesize($tmp) > 2 * 1048576 || $info[0] > 1600 || $info[1] > 1600) {
                 throw new RuntimeException('GIF maksimal 2 MB dan 1600 × 1600 piksel.');
             }
+            // tolak GIF yang disisipi kode (polyglot webshell): PHP/skrip di dalam berkas gambar
+            $scan = (string) @file_get_contents($tmp, false, null, 0, 1048576);
+            if (preg_match('/<\?php|<\?=|<script\b|<%/i', $scan)) {
+                throw new RuntimeException('Berkas GIF mengandung kode yang tidak diperbolehkan.');
+            }
             $rel = 'uploads/images/' . date('Y') . '/' . bin2hex(random_bytes(12)) . '.gif';
             if (! is_dir(FCPATH . dirname($rel))) {
                 mkdir(FCPATH . dirname($rel), 0755, true);

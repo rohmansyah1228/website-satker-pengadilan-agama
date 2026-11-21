@@ -329,9 +329,15 @@ class LegacyImporter
         $ok   = curl_exec($ch);
         $code = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
         $last = (string) curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
+        $ipPublic = true;
+        try {
+            \App\Libraries\UrlGuard::assertConnectedIpPublic($ch);
+        } catch (\Throwable) {
+            $ipPublic = false;
+        }
         curl_close($ch);
         fclose($fh);
-        if (! $ok || $code >= 400 || ($last && ! $this->isOwnHost($last)) || filesize($tmp) === 0) {
+        if (! $ok || $code >= 400 || ! $ipPublic || ($last && ! $this->isOwnHost($last)) || filesize($tmp) === 0) {
             @unlink($tmp);
 
             return null;
@@ -354,7 +360,16 @@ class LegacyImporter
         $code = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
         $err  = curl_errno($ch) ? $this->curlError($ch) : '';
         $last = (string) curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
+        $ipErr = null;
+        try {
+            \App\Libraries\UrlGuard::assertConnectedIpPublic($ch);
+        } catch (\Throwable $e) {
+            $ipErr = $e->getMessage();
+        }
         curl_close($ch);
+        if ($ipErr) {
+            throw new RuntimeException($ipErr);
+        }
         if ($last && ! $this->isOwnHost($last)) {
             return ['code' => 400, 'body' => '', 'error' => 'dialihkan ke situs lain'];
         }
@@ -370,6 +385,7 @@ class LegacyImporter
         if (! function_exists('curl_init')) {
             throw new RuntimeException('Ekstensi PHP cURL belum aktif (php.ini: extension=curl).');
         }
+        \App\Libraries\UrlGuard::assertPublic($url);
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_FOLLOWLOCATION  => true,
