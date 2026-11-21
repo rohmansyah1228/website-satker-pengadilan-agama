@@ -23,5 +23,24 @@
     </div>
     <div><button class="btn btn-pa-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> Simpan Pengaturan</button></div>
 </form>
+<?php if ($tab === 'tautan' && ! empty($feed)): ?>
+<div class="card p-4 mt-3">
+    <h2 class="h6 fw-bold mb-2"><i class="bi bi-broadcast text-pa-primary" aria-hidden="true"></i> Status Pengumuman Badilag &amp; MA</h2>
+    <p class="small text-secondary mb-2">Diambil otomatis setiap jam. Terakhir: <?= $feed['status']['at'] ? esc(date('d-m-Y H:i', $feed['status']['at'])) : 'belum pernah' ?>.</p>
+    <ul class="small mb-3">
+        <?php foreach ($feed['sources'] as $k => [$label, $url]): ?>
+            <li><strong><?= esc($label) ?></strong> — <?= (int) ($feed['counts'][$k] ?? 0) ?> pengumuman
+                <?php if (! empty($feed['status']['errors'][$k])): ?><span class="text-danger">· gagal diambil terakhir kali: <?= esc($feed['status']['errors'][$k]) ?></span><?php endif ?>
+                <br><a href="<?= esc($url, 'attr') ?>" target="_blank" rel="noopener" class="text-secondary"><?= esc($url) ?></a></li>
+        <?php endforeach ?>
+        <?php if (! $feed['sources']): ?><li class="text-secondary">Semua sumber dimatikan.</li><?php endif ?>
+    </ul>
+    <form action="<?= admin_url('pengaturan/pengumuman-segarkan') ?>" method="post" class="d-flex flex-wrap gap-2 align-items-center">
+        <?= csrf_field() ?>
+        <button class="btn btn-sm btn-outline-success"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> Ambil sekarang</button>
+        <a href="<?= site_url('pengumuman-badilag-ma') ?>" target="_blank" rel="noopener" class="btn btn-sm btn-link">Lihat halaman publik</a>
+    </form>
+</div>
+<?php endif ?>
 <?php endif ?>
 <?= $this->endSection() ?>

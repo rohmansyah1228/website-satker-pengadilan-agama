@@ -80,7 +80,31 @@ class Settings extends AdminController
     {
         $this->authorize([]);
 
-        return $this->view('settings', ['title' => 'Pengaturan', 'groups' => self::groups(), 'values' => service('siteSettings')->all(), 'tab' => $this->request->getGet('tab') ?: 'identitas']);
+        $tab  = $this->request->getGet('tab') ?: 'identitas';
+        $feed = null;
+        if ($tab === 'tautan') {
+            $f    = new \App\Libraries\AnnouncementFeed();
+            $feed = ['sources' => $f->sources(), 'status' => $f->status(), 'counts' => array_count_values(array_column($f->items(200), 'source'))];
+        }
+
+        return $this->view('settings', ['title' => 'Pengaturan', 'groups' => self::groups(), 'values' => service('siteSettings')->all(), 'tab' => $tab, 'feed' => $feed]);
+    }
+
+    /** Ambil ulang pengumuman Badilag & MA sekarang (tanpa menunggu 1 jam). */
+    public function refreshFeed()
+    {
+        $this->authorize([]);
+        $f   = new \App\Libraries\AnnouncementFeed();
+        $d   = $f->refresh();
+        $cnt = array_count_values(array_column($d['items'], 'source'));
+        $msg = [];
+        foreach ($f->sources() as $k => [$label]) {
+            $msg[] = $label . ': ' . (isset($d['errors'][$k]) ? 'gagal (' . $d['errors'][$k] . ')' : ($cnt[$k] ?? 0) . ' pengumuman');
+        }
+        $this->flushPublic();
+        $r = redirect()->to(admin_url('pengaturan?tab=tautan'));
+
+        return $d['errors'] ? $r->with('error', esc(implode(' · ', $msg))) : $r->with('success', esc(implode(' · ', $msg)));
     }
 
     public function save()
@@ -127,6 +151,9 @@ class Settings extends AdminController
             $values[$key] = mb_substr($v, 0, 2000);
         }
         service('siteSettings')->set($values);
+        if ($tab === 'tautan') {
+            cache()->delete('ann_feed'); // sumber pengumuman mungkin berubah
+        }
         $this->flushPublic();
         $this->log('ubah', 'Pengaturan: ' . $groups[$tab][0]);
 

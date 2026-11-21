@@ -203,13 +203,20 @@ class AnnouncementFeed
                 $date = $this->findDate($n->textContent);
             }
             $seen[$href] = true;
-            $out[]       = $this->item($title, $href, $date);
-            if (count($out) >= 30) {
-                break;
+            if ($it = $this->item($title, $href, $date)) {
+                $out[] = $it + ['_under' => str_starts_with($path, $listPath . '/')];
             }
         }
+        // bila ada tautan di bawah alamat daftar (mis. /id/pengumuman/7657/judul), abaikan tautan lain (brosur, dokumen di kaki halaman)
+        if (array_filter($out, static fn ($i) => $i['_under'])) {
+            $out = array_filter($out, static fn ($i) => $i['_under']);
+        }
 
-        return array_values(array_filter($out));
+        return array_map(static function ($i) {
+            unset($i['_under']);
+
+            return $i;
+        }, array_slice(array_values($out), 0, 30));
     }
 
     private function item(string $title, string $url, ?string $date): ?array
