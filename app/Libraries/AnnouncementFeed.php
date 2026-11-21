@@ -346,7 +346,8 @@ class AnnouncementFeed
             // tanggal: di elemen pembungkus terdekat (baris daftar / kartu)
             $date = null;
             for ($n = $a->parentNode, $i = 0; $n instanceof DOMElement && $i < 4 && ! $date; $n = $n->parentNode, $i++) {
-                $date = $this->findDate($n->textContent);
+                $t    = $xp->query('.//time[@datetime]', $n);
+                $date = $t->length ? $t->item(0)->getAttribute('datetime') : $this->findDate($n->textContent);
             }
             $seen[$href] = true;
             if ($it = $this->item($title, $href, $date)) {
