@@ -2,12 +2,27 @@
 (function () {
     'use strict';
 
-    // ---------- Sidebar mobile ----------
+    // ---------- Sidebar mobile (laci: buka/tutup, latar gelap, Esc, tutup saat pilih menu) ----------
     const sb = document.getElementById('adminSidebar');
-    document.querySelectorAll('[data-toggle-sidebar]').forEach((b) => b.addEventListener('click', () => {
-        const open = sb.classList.toggle('open');
-        b.setAttribute('aria-expanded', open ? 'true' : 'false');
-    }));
+    const bd = document.querySelector('.admin-backdrop');
+    const toggles = document.querySelectorAll('[data-toggle-sidebar]');
+    const setOpen = (open) => {
+        if (!sb) return;
+        sb.classList.toggle('open', open);
+        toggles.forEach((b) => b.setAttribute('aria-expanded', open ? 'true' : 'false'));
+        if (bd) {
+            if (open) { bd.hidden = false; requestAnimationFrame(() => { bd.style.opacity = '1'; }); }
+            else { bd.style.opacity = '0'; setTimeout(() => { bd.hidden = true; }, 200); }
+        }
+        document.body.style.overflow = open ? 'hidden' : '';
+    };
+    toggles.forEach((b) => b.addEventListener('click', () => setOpen(!sb.classList.contains('open'))));
+    document.querySelectorAll('[data-close-sidebar]').forEach((b) => b.addEventListener('click', () => setOpen(false)));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && sb && sb.classList.contains('open')) setOpen(false); });
+    // memilih menu navigasi langsung menutup laci (tampilan HP)
+    sb && sb.querySelectorAll('a[href]').forEach((a) => a.addEventListener('click', () => { if (window.matchMedia('(max-width: 991.98px)').matches) setOpen(false); }));
+    // kembali ke layar lebar: pastikan laci & latar bersih
+    window.matchMedia('(min-width: 992px)').addEventListener('change', (e) => { if (e.matches) setOpen(false); });
 
     // ---------- Tombol Kembali: ke halaman induk menurut breadcrumb (bila ada) ----------
     const back = document.getElementById('adminBack');

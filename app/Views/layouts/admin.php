@@ -43,10 +43,12 @@ if ($rel === '') {
 <body data-moved-dir="<?= esc(session('movedDir') ?? '', 'attr') ?>">
 <a class="visually-hidden-focusable btn btn-pa-secondary position-absolute m-2" style="z-index:2000" href="#adminMain">Lewati ke konten</a>
 <div class="admin-shell">
+    <div class="admin-backdrop" data-close-sidebar hidden></div>
     <nav id="adminSidebar" class="admin-sidebar" aria-label="Navigasi panel admin">
         <div class="brand d-flex align-items-center gap-2">
             <img src="<?= esc($logo, 'attr') ?>" alt="" width="36" height="36" style="object-fit:contain">
             <div class="lh-sm"><strong class="d-block text-white small"><?= esc(setting('site_name')) ?></strong><span class="small" style="color:#9fd1bf">Panel Admin</span></div>
+            <button type="button" class="btn-close btn-close-white ms-auto d-lg-none" data-close-sidebar aria-label="Tutup menu"></button>
         </div>
         <a href="<?= admin_url() ?>" class="<?= $is('', true) ? 'active' : '' ?>"<?= $is('', true) ? ' aria-current="page"' : '' ?>><i class="bi bi-speedometer2" aria-hidden="true"></i>Dashboard SINOVA</a>
         <div class="grp">Konten</div>
@@ -73,7 +75,7 @@ if ($rel === '') {
     </nav>
     <div>
         <header class="admin-topbar px-3 py-2 d-flex align-items-center gap-2">
-            <button type="button" class="btn btn-outline-secondary btn-sm d-lg-none" data-toggle-sidebar aria-controls="adminSidebar" aria-expanded="false"><i class="bi bi-list" aria-hidden="true"></i><span class="visually-hidden">Menu</span></button>
+            <button type="button" class="btn btn-outline-secondary btn-sm d-lg-none" data-toggle-sidebar aria-controls="adminSidebar" aria-expanded="false"><i class="bi bi-list" aria-hidden="true"></i><span class="visually-hidden">Buka menu</span></button>
             <?php if (! $is('', true)): ?>
                 <a href="<?= esc($back ?? admin_url(), 'attr') ?>" id="adminBack" class="btn btn-sm btn-pa-primary admin-back" title="Kembali (Alt+←)"><i class="bi bi-arrow-left" aria-hidden="true"></i> <span data-back-label>Kembali ke Dashboard</span></a>
             <?php endif ?>
