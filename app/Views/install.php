@@ -91,7 +91,7 @@ $v = static fn (string $k, string $d = '') => esc((string) ($old[$k] ?? $d), 'at
         <section class="card p-4 mb-3" aria-labelledby="h-site">
             <h2 id="h-site"><?= $state['needDbForm'] ? '3' : '2' ?>. Website &amp; Akun Super Admin</h2>
             <div class="row g-3">
-                <div class="col-12"><label class="form-label fw-semibold" for="site_name">Nama satker</label><input class="form-control" id="site_name" name="site_name" value="<?= $v('site_name') ?>" placeholder="mis. Pengadilan Agama Tulang Bawang"></div>
+                <div class="col-12"><label class="form-label fw-semibold" for="site_name">Nama satker</label><input class="form-control" id="site_name" name="site_name" value="<?= $v('site_name') ?>" placeholder="mis. Pengadilan Agama Nama Kota"></div>
                 <div class="col-12">
                     <label class="form-label fw-semibold" for="admin_path">Alamat panel admin</label>
                     <div class="input-group"><span class="input-group-text small"><?= esc(rtrim($state['baseURL'], '/')) ?>/</span><input class="form-control font-monospace" id="admin_path" name="admin_path" value="<?= $v('admin_path', config('App')->adminPath) ?>"<?= $state['needDbForm'] ? '' : ' readonly' ?>></div>

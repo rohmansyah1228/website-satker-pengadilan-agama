@@ -21,8 +21,19 @@ composer.phar
 !/writable/uploads/index.html
 /writable/debugbar/*
 !/writable/debugbar/index.html
+/public/uploads/*
+!/public/uploads/.htaccess
+!/public/uploads/images/
 /public/uploads/images/*
 !/public/uploads/images/.gitkeep
+
+# Data satker (berita, dokumen, database) tidak pernah masuk repositori
+*.sql
+*.sql.gz
+*.sqlite
+*.bak
+/backup*/
+/cadangan*/
 
 # Editor / OS
 .idea/
