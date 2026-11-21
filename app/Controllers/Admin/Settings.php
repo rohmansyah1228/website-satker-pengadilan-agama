@@ -88,7 +88,15 @@ class Settings extends AdminController
             $feed = ['sources' => $f->sources(), 'status' => $f->status()];
         }
 
-        return $this->view('settings', ['title' => 'Pengaturan', 'groups' => self::groups(), 'values' => service('siteSettings')->all(), 'tab' => $tab, 'feed' => $feed]);
+        $values = service('siteSettings')->all();
+        if ($feed) {
+            $values['feed_since'] = (string) $f->sinceYear(); // tampilkan nilai yang berlaku walau belum pernah disimpan
+            foreach (\App\Libraries\AnnouncementFeed::DEFAULT as $k => [, $url]) {
+                $values['feed_' . $k . '_url'] ??= $url;
+            }
+        }
+
+        return $this->view('settings', ['title' => 'Pengaturan', 'groups' => self::groups(), 'values' => $values, 'tab' => $tab, 'feed' => $feed]);
     }
 
     /** Ambil pengumuman Badilag & MA yang belum ada sekarang (tanpa menunggu 1 jam), termasuk isi awal arsip lama. */
