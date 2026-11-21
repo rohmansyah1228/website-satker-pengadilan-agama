@@ -23,14 +23,15 @@
     </div>
     <div><button class="btn btn-pa-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> Simpan Pengaturan</button></div>
 </form>
-<?php if ($tab === 'tautan' && ! empty($feed)): ?>
+<?php if ($tab === 'tautan' && ! empty($feed)): $st = $feed['status']; ?>
 <div class="card p-4 mt-3">
-    <h2 class="h6 fw-bold mb-2"><i class="bi bi-broadcast text-pa-primary" aria-hidden="true"></i> Status Pengumuman Badilag &amp; MA</h2>
-    <p class="small text-secondary mb-2">Diambil otomatis setiap jam. Terakhir: <?= $feed['status']['at'] ? esc(date('d-m-Y H:i', $feed['status']['at'])) : 'belum pernah' ?>.</p>
+    <h2 class="h6 fw-bold mb-2"><i class="bi bi-broadcast text-pa-primary" aria-hidden="true"></i> Arsip Pengumuman Badilag &amp; MA</h2>
+    <p class="small text-secondary mb-2">Setiap jam hanya pengumuman yang belum ada yang diambil; yang sudah tersimpan dilewati. Pengumuman lama diambil bertahap mundur sampai tahun <?= (int) $st['since'] ?>. Terakhir diperiksa: <?= $st['at'] ? esc(date('d-m-Y H:i', $st['at'])) : 'belum pernah' ?>.</p>
     <ul class="small mb-3">
-        <?php foreach ($feed['sources'] as $k => [$label, $url]): ?>
-            <li><strong><?= esc($label) ?></strong> — <?= (int) ($feed['counts'][$k] ?? 0) ?> pengumuman
-                <?php if (! empty($feed['status']['errors'][$k])): ?><span class="text-danger">· gagal diambil terakhir kali: <?= esc($feed['status']['errors'][$k]) ?></span><?php endif ?>
+        <?php foreach ($feed['sources'] as $k => [$label, $url]): $s = $st['state'][$k] ?? []; ?>
+            <li><strong><?= esc($label) ?></strong> — <?= number_format((int) ($st['counts'][$k] ?? 0), 0, ',', '.') ?> pengumuman tersimpan
+                <?php if (! empty($s['feed'])): ?>· <?= ! empty($s['done']) ? 'arsip lama lengkap' : 'arsip lama sedang diambil bertahap' ?><?php endif ?>
+                <?php if (! empty($st['errors'][$k])): ?><span class="text-danger">· gagal diambil terakhir kali: <?= esc($st['errors'][$k]) ?><?= str_contains($st['errors'][$k], '403') ? ' (situs sumber menolak pengambilan otomatis)' : '' ?></span><?php endif ?>
                 <br><a href="<?= esc($url, 'attr') ?>" target="_blank" rel="noopener" class="text-secondary"><?= esc($url) ?></a></li>
         <?php endforeach ?>
         <?php if (! $feed['sources']): ?><li class="text-secondary">Semua sumber dimatikan.</li><?php endif ?>

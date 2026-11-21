@@ -20,7 +20,8 @@
                 <?php foreach ($items as $n): ?><?= view('partials/external_notice', ['n' => $n]) ?><?php endforeach ?>
                 <?php if (! $items): ?><p class="text-secondary py-4 mb-0">Pengumuman belum dapat dimuat saat ini. Silakan buka langsung situs sumbernya.</p><?php endif ?>
             </div>
-            <?php if (! empty($status['at'])): ?><p class="small text-secondary mt-2 mb-0">Diperbarui <?= tanggal_id(date('Y-m-d H:i:s', $status['at'])) ?>, pukul <?= date('H.i', $status['at']) ?>.</p><?php endif ?>
+            <div class="mt-3"><?= $pager ?></div>
+            <?php if (! empty($status['at'])): ?><p class="small text-secondary mt-2 mb-0"><?= number_format($total, 0, ',', '.') ?> pengumuman · diperbarui <?= tanggal_id(date('Y-m-d H:i:s', $status['at'])) ?>, pukul <?= date('H.i', $status['at']) ?>.</p><?php endif ?>
         </div>
         <div class="col-lg-4">
             <div class="bg-white rounded-3 shadow-sm p-4">

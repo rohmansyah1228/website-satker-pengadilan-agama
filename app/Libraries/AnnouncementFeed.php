@@ -7,21 +7,23 @@ use DOMElement;
 use DOMXPath;
 
 /**
- * Pengumuman otomatis dari Badilag & Mahkamah Agung (tautan ke sumber, bukan salinan isi).
+ * Arsip pengumuman otomatis dari Badilag & Mahkamah Agung (judul, tanggal, tautan ke sumber — isi tidak disalin).
  *
  * - Sumber diatur di Pengaturan → Tautan Layanan (default: pengumuman elektronik Badilag & pengumuman MA).
- * - Membaca RSS/Atom bila tersedia (langsung atau lewat <link rel="alternate">), selain itu membaca
- *   tautan pengumuman di halaman daftarnya.
- * - Hasil disimpan 1 jam; bila sumber sedang tidak dapat dibuka, daftar terakhir yang berhasil tetap tampil.
+ * - Setiap pengumuman disimpan sekali di tabel external_notices; pengambilan berikutnya hanya menambah yang
+ *   belum ada (dicocokkan lewat alamatnya) dan berhenti begitu bertemu pengumuman yang sudah tersimpan.
+ * - Isi awal: pengumuman lama diambil mundur bertahap (RSS ?start=10, 20, …) sampai tahun di "feed_since".
+ * - Membaca RSS/Atom bila tersedia (langsung atau lewat <link rel="alternate">), selain itu tautan di halaman daftarnya.
  */
 class AnnouncementFeed
 {
     public const TTL     = 3600;
-    public const KEEP    = 30 * 86400;
     public const DEFAULT = [
         'badilag' => ['Badilag', 'https://badilag.mahkamahagung.go.id/pengumuman-elektronik'],
         'ma'      => ['Mahkamah Agung', 'https://www.mahkamahagung.go.id/id/pengumuman'],
     ];
+
+    private const FORWARD_PAGES = 5;
 
     /** @return array<string, array{0:string,1:string}> sumber aktif: kunci => [label, url] */
     public function sources(): array
@@ -38,86 +40,230 @@ class AnnouncementFeed
         return $out;
     }
 
+    /** Tahun paling awal yang diarsipkan (Pengaturan → Tautan Layanan). */
+    public function sinceYear(): int
+    {
+        $y = (int) setting('feed_since', (string) ((int) date('Y') - 1));
+
+        return max(2000, min((int) date('Y'), $y));
+    }
+
     /**
      * @return list<array{source:string,label:string,title:string,url:string,date:?string}>
      */
-    public function items(int $limit = 10, string $source = ''): array
+    public function items(int $limit = 10, string $source = '', int $offset = 0): array
     {
-        $data  = $this->load();
-        $items = $data['items'] ?? [];
-        if ($source !== '') {
-            $items = array_values(array_filter($items, static fn ($i) => $i['source'] === $source));
+        $this->load();
+        if (! $this->ready()) {
+            return [];
         }
+        $labels = array_map(static fn ($s) => $s[0], self::DEFAULT);
+        $b      = $this->query($source);
+        $rows   = $b->orderBy('published_at', 'DESC')->orderBy('id', 'DESC')->get($limit, $offset)->getResultArray();
 
-        return array_slice($items, 0, $limit);
+        return array_map(static fn ($r) => [
+            'source' => $r['source'], 'label' => $labels[$r['source']] ?? $r['source'],
+            'title'  => $r['title'], 'url' => $r['url'], 'date' => $r['published_at'],
+        ], $rows);
     }
 
-    /** Waktu pengambilan terakhir & galat per sumber (untuk panel admin). */
+    public function count(string $source = ''): int
+    {
+        return $this->ready() ? $this->query($source)->countAllResults() : 0;
+    }
+
+    /** Waktu pengambilan terakhir, galat & jumlah per sumber (untuk panel admin). */
     public function status(): array
     {
-        $d = cache('ann_feed') ?: [];
+        $d      = cache('ann_feed') ?: [];
+        $state  = $this->state();
+        $counts = [];
+        foreach (array_keys(self::DEFAULT) as $k) {
+            $counts[$k] = $this->count($k);
+        }
 
-        return ['at' => $d['at'] ?? null, 'errors' => $d['errors'] ?? [], 'count' => count($d['items'] ?? [])];
+        return ['at' => $d['at'] ?? null, 'errors' => $d['errors'] ?? [], 'counts' => $counts, 'state' => $state, 'since' => $this->sinceYear()];
     }
 
-    private function load(): array
+    private function query(string $source)
     {
-        if (! $this->sources()) {
-            return ['items' => []];
+        $sources = array_keys($this->sources());
+        $b       = db_connect()->table('external_notices');
+        if ($source !== '') {
+            return $b->where('source', $source);
         }
-        $data = cache('ann_feed');
-        if (is_array($data) && ($data['at'] ?? 0) > time() - self::TTL) {
-            return $data;
-        }
-        // cegah banyak pengunjung mengambil bersamaan; yang lain memakai data lama
-        if (is_array($data) && cache('ann_feed_lock')) {
-            return $data;
-        }
-        cache()->save('ann_feed_lock', 1, 120);
 
-        return $this->refresh(is_array($data) ? $data : []);
+        return $sources ? $b->whereIn('source', $sources) : $b->where('1 = 0');
     }
 
-    /** Ambil ulang semua sumber. Data lama dipertahankan untuk sumber yang gagal. */
-    public function refresh(array $old = []): array
+    private function ready(): bool
     {
-        $old   = $old ?: (cache('ann_feed') ?: []);
-        $items = [];
-        $errs  = [];
-        foreach ($this->sources() as $key => [$label, $url]) {
+        static $ok = null;
+
+        return $ok ??= db_connect()->tableExists('external_notices');
+    }
+
+    /** Ambil yang baru bila sudah lewat 1 jam (dipanggil saat halaman dibuka). */
+    private function load(): void
+    {
+        if (! $this->ready() || ! $this->sources()) {
+            return;
+        }
+        $d = cache('ann_feed');
+        if ((is_array($d) && ($d['at'] ?? 0) > time() - self::TTL) || cache('ann_feed_lock')) {
+            return;
+        }
+        cache()->save('ann_feed_lock', 1, 300);
+        try {
+            $this->sync(3);
+        } finally {
+            cache()->delete('ann_feed_lock');
+        }
+    }
+
+    /**
+     * Ambil pengumuman yang belum ada. $backfillPages = berapa halaman arsip lama yang boleh dibaca kali ini.
+     * @return array{at:int,errors:array,added:array<string,int>,done:array<string,bool>}
+     */
+    public function sync(int $backfillPages = 3): array
+    {
+        if (! $this->ready()) {
+            throw new \RuntimeException('Jalankan pembaruan database di Dashboard terlebih dahulu.');
+        }
+        @set_time_limit(300);
+        $state  = $this->state();
+        $errors = [];
+        $added  = [];
+        $cutoff = $this->sinceYear() . '-01-01 00:00:00';
+        foreach ($this->sources() as $key => [, $url]) {
+            $st = $state[$key] ?? [];
+            if (($st['url'] ?? '') !== $url) {
+                $st = ['url' => $url]; // sumber diganti → mulai ulang
+            }
+            if (($st['since'] ?? 0) !== $this->sinceYear()) {
+                // batas tahun diubah → baca ulang arsip dari awal (yang sudah tersimpan tetap dilewati)
+                $st = ['url' => $url, 'feed' => $st['feed'] ?? null, 'since' => $this->sinceYear(), 'done' => false];
+            }
+            $added[$key] = 0;
             try {
-                $got = $this->fetchSource($url);
-                if (! $got) {
-                    throw new \RuntimeException('tidak ada pengumuman yang terbaca');
+                // 1) pengumuman terbaru: berhenti di halaman yang memuat pengumuman yang sudah tersimpan
+                [$items, $feed] = $this->fetchPage($url, $st['feed'] ?? null, 0);
+                $st['feed']     = $feed;
+                for ($page = 0, $first = null; $page < self::FORWARD_PAGES && $items; $page++) {
+                    [$n, $old] = $this->store($key, $items, $cutoff);
+                    $added[$key] += $n;
+                    if ($old || ! $feed || ($items[0]['url'] ?? null) === $first) {
+                        break;
+                    }
+                    $first = $items[0]['url'];
+                    [$items] = $this->fetchPage($url, $feed, ($page + 1) * count($items));
                 }
-                foreach ($got as $g) {
-                    $items[] = ['source' => $key, 'label' => $label] + $g;
+                // 2) isi awal: baca mundur arsip lama sampai tahun batas
+                if (! $feed) {
+                    $st['done'] = true;
                 }
-            } catch (\Throwable $e) {
-                $errs[$key] = $e->getMessage();
-                foreach ($old['items'] ?? [] as $i) {
-                    if ($i['source'] === $key) {
-                        $items[] = $i;
+                for ($i = 0; $i < $backfillPages && empty($st['done']); $i++) {
+                    $offset = (int) ($st['offset'] ?? 0);
+                    [$items] = $this->fetchPage($url, $feed, $offset);
+                    if (! $items || ($items[0]['url'] ?? '') === ($st['last_first'] ?? null)) {
+                        $st['done'] = true;
+                        break;
+                    }
+                    [$n] = $this->store($key, $items, $cutoff);
+                    $added[$key]     += $n;
+                    $st['offset']     = $offset + count($items);
+                    $st['last_first'] = $items[0]['url'];
+                    $dated            = array_filter(array_column($items, 'date'));
+                    if ($dated && max($dated) < $cutoff) {
+                        $st['done'] = true; // seluruh halaman sudah lebih tua dari batas
                     }
                 }
+            } catch (\Throwable $e) {
+                $errors[$key] = $e->getMessage();
+            }
+            $state[$key] = $st;
+        }
+        service('siteSettings')->set(['feed_state' => json_encode($state)]);
+        $data = ['at' => time(), 'errors' => $errors];
+        cache()->save('ann_feed', $data, 30 * 86400);
+        foreach (['home_blocks'] as $prefix) {
+            try {
+                cache()->deleteMatching($prefix . '*');
+            } catch (\Throwable) {
             }
         }
-        usort($items, static fn ($a, $b) => strcmp($b['date'] ?? '', $a['date'] ?? ''));
-        $data = ['at' => time(), 'items' => $items, 'errors' => $errs];
-        cache()->save('ann_feed', $data, self::KEEP);
-        cache()->delete('ann_feed_lock');
 
-        return $data;
+        $done = [];
+        foreach ($state as $k => $v) {
+            $done[$k] = ! empty($v['done']);
+        }
+
+        return $data + ['added' => $added, 'done' => $done];
     }
 
-    /** @return list<array{title:string,url:string,date:?string}> */
-    private function fetchSource(string $url): array
+    private function state(): array
+    {
+        $s = json_decode((string) setting('feed_state', '{}'), true);
+
+        return is_array($s) ? $s : [];
+    }
+
+    /**
+     * Simpan pengumuman yang belum ada.
+     * @return array{0:int,1:bool} [jumlah baru, ada yang sudah tersimpan]
+     */
+    private function store(string $source, array $items, string $cutoff): array
+    {
+        $db     = db_connect();
+        $hashes = array_map(static fn ($i) => sha1($i['url']), $items);
+        $have   = array_flip(array_column($db->table('external_notices')->select('url_hash')->whereIn('url_hash', $hashes)->get()->getResultArray(), 'url_hash'));
+        $seen   = $have !== []; // halaman ini memuat pengumuman yang sudah tersimpan → sudah tersusul
+        $new    = 0;
+        foreach ($items as $i => $it) {
+            $h = $hashes[$i];
+            if (isset($have[$h]) || ($it['date'] && $it['date'] < $cutoff)) {
+                continue;
+            }
+            $have[$h] = true;
+            $db->table('external_notices')->ignore(true)->insert([
+                'source' => $source, 'title' => $it['title'], 'url' => mb_substr($it['url'], 0, 700), 'url_hash' => $h,
+                'published_at' => $it['date'] ?? date('Y-m-d H:i:s'), 'created_at' => date('Y-m-d H:i:s'),
+            ]);
+            $new++;
+        }
+
+        return [$new, $seen];
+    }
+
+    /**
+     * Satu halaman daftar. $feed = alamat RSS yang sudah dikenali (null = cari dulu, false = tidak ada RSS).
+     * @return array{0:list<array{title:string,url:string,date:?string}>,1:string|false}
+     */
+    private function fetchPage(string $url, $feed, int $start): array
+    {
+        if ($feed === null) {
+            $feed = $this->discoverFeed($url);
+        }
+        if ($feed) {
+            [$body] = $this->get($start ? $feed . (str_contains($feed, '?') ? '&' : '?') . 'start=' . $start : $feed);
+
+            return [$this->parseFeed($body), $feed];
+        }
+        if ($start > 0) {
+            return [[], false];
+        }
+        [$body] = $this->get($url);
+
+        return [$this->parseHtml($body, $url), false];
+    }
+
+    /** Alamat RSS/Atom sumber: sumber itu sendiri, atau <link rel="alternate"> di halamannya. */
+    private function discoverFeed(string $url)
     {
         [$body, $type] = $this->get($url);
         if ($this->looksLikeFeed($body, $type)) {
-            return $this->parseFeed($body);
+            return $url;
         }
-        // halaman HTML: cari tautan RSS/Atom
         if (preg_match_all('/<link\b[^>]*>/i', $body, $m)) {
             foreach ($m[0] as $tag) {
                 if (preg_match('/type=["\']application\/(rss|atom)\+xml/i', $tag) && preg_match('/href=["\']([^"\']+)/i', $tag, $h)) {
@@ -125,8 +271,8 @@ class AnnouncementFeed
                     if ($feedUrl && $this->sameSite($feedUrl, $url)) {
                         try {
                             [$fb, $ft] = $this->get($feedUrl);
-                            if ($this->looksLikeFeed($fb, $ft) && ($items = $this->parseFeed($fb))) {
-                                return $items;
+                            if ($this->looksLikeFeed($fb, $ft) && $this->parseFeed($fb)) {
+                                return $feedUrl;
                             }
                         } catch (\Throwable) {
                         }
@@ -135,7 +281,7 @@ class AnnouncementFeed
             }
         }
 
-        return $this->parseHtml($body, $url);
+        return false;
     }
 
     private function looksLikeFeed(string $body, string $type): bool

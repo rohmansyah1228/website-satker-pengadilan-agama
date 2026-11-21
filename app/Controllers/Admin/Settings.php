@@ -51,6 +51,7 @@ class Settings extends AdminController
                 'survey_url'    => ['URL Website Survei (tombol “Isi Survei Pelayanan”)', 'url', 'Mis. https://survei.badilag.net/s/… — tampil sebagai tombol di Beranda & halaman Survei.'],
                 'feed_badilag_url' => ['Sumber Pengumuman Badilag (otomatis)', 'url', 'Pengumuman Badilag tampil otomatis di halaman Pengumuman Badilag & MA dan blok Beranda. Kosongkan untuk mematikan. Bawaan: https://badilag.mahkamahagung.go.id/pengumuman-elektronik'],
                 'feed_ma_url'      => ['Sumber Pengumuman Mahkamah Agung (otomatis)', 'url', 'Bawaan: https://www.mahkamahagung.go.id/id/pengumuman. Kosongkan untuk mematikan.'],
+                'feed_since'       => ['Arsip pengumuman Badilag & MA mulai tahun', 'select', 'Pengumuman lama diambil bertahap mundur sampai tahun ini. Pengumuman yang sudah ada tidak diambil ulang.', array_combine($y = array_map('strval', range((int) date('Y'), 2012)), $y)],
                 'sipp_sync'     => ['Ambil Jadwal Sidang dari Database SIPP', 'select', 'Butuh koneksi database grup "sipp" di .env dan query di app/Config/Sipp.php.', ['0' => 'Tidak (isi manual)', '1' => 'Ya']],
             ]],
             'survei' => ['Nilai Survei', [
@@ -84,25 +85,30 @@ class Settings extends AdminController
         $feed = null;
         if ($tab === 'tautan') {
             $f    = new \App\Libraries\AnnouncementFeed();
-            $feed = ['sources' => $f->sources(), 'status' => $f->status(), 'counts' => array_count_values(array_column($f->items(200), 'source'))];
+            $feed = ['sources' => $f->sources(), 'status' => $f->status()];
         }
 
         return $this->view('settings', ['title' => 'Pengaturan', 'groups' => self::groups(), 'values' => service('siteSettings')->all(), 'tab' => $tab, 'feed' => $feed]);
     }
 
-    /** Ambil ulang pengumuman Badilag & MA sekarang (tanpa menunggu 1 jam). */
+    /** Ambil pengumuman Badilag & MA yang belum ada sekarang (tanpa menunggu 1 jam), termasuk isi awal arsip lama. */
     public function refreshFeed()
     {
         $this->authorize([]);
-        $f   = new \App\Libraries\AnnouncementFeed();
-        $d   = $f->refresh();
-        $cnt = array_count_values(array_column($d['items'], 'source'));
+        $f = new \App\Libraries\AnnouncementFeed();
+        $r = redirect()->to(admin_url('pengaturan?tab=tautan'));
+        try {
+            $d = $f->sync(15);
+        } catch (\Throwable $e) {
+            return $r->with('error', esc($e->getMessage()));
+        }
         $msg = [];
         foreach ($f->sources() as $k => [$label]) {
-            $msg[] = $label . ': ' . (isset($d['errors'][$k]) ? 'gagal (' . $d['errors'][$k] . ')' : ($cnt[$k] ?? 0) . ' pengumuman');
+            $msg[] = $label . ': ' . (isset($d['errors'][$k]) ? 'gagal (' . $d['errors'][$k] . ')'
+                : ($d['added'][$k] ?? 0) . ' pengumuman baru' . (empty($d['done'][$k]) ? ', arsip lama masih dilanjutkan (klik lagi untuk mempercepat)' : ''));
         }
         $this->flushPublic();
-        $r = redirect()->to(admin_url('pengaturan?tab=tautan'));
+        $this->log('ubah', 'Ambil pengumuman Badilag & MA');
 
         return $d['errors'] ? $r->with('error', esc(implode(' · ', $msg))) : $r->with('success', esc(implode(' · ', $msg)));
     }
@@ -152,7 +158,7 @@ class Settings extends AdminController
         }
         service('siteSettings')->set($values);
         if ($tab === 'tautan') {
-            cache()->delete('ann_feed'); // sumber pengumuman mungkin berubah
+            cache()->delete('ann_feed'); // sumber / batas tahun mungkin berubah → ambil lagi saat halaman dibuka
         }
         $this->flushPublic();
         $this->log('ubah', 'Pengaturan: ' . $groups[$tab][0]);
