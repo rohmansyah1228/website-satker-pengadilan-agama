@@ -123,6 +123,13 @@ class HomeBlocks
                 return ['videos' => $db->table('videos')->where('is_active', 1)->orderBy('published_at', 'DESC')->orderBy('sort')->orderBy('id', 'DESC')
                     ->get($lim)->getResultArray()];
 
+            case 'feed':
+                try {
+                    return ['items' => (new AnnouncementFeed())->items($lim, (string) ($s['source'] ?? ''))];
+                } catch (\Throwable) {
+                    return ['items' => []];
+                }
+
             case 'announcements':
                 $ghaib = ! empty($s['show_ghaib'])
                     ? $db->table('ghaib')->where('is_active', 1)->where('hearing_date >=', date('Y-m-d'))->orderBy('hearing_date')->get($lim)->getResultArray()

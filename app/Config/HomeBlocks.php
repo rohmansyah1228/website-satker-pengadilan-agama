@@ -24,7 +24,7 @@ class HomeBlocks extends BaseConfig
     /** Ukuran awal (lebar kolom dari 12, tinggi baris) saat tampilan baru ditambahkan. */
     public array $sizes = [
         'slider' => [12, 1], 'shortcuts' => [12, 1], 'videos' => [12, 1], 'survey' => [12, 1], 'stats' => [12, 1],
-        'announcements' => [6, 1], 'news' => [6, 1], 'hearings' => [8, 1], 'documents' => [6, 1],
+        'announcements' => [6, 1], 'feed' => [6, 1], 'news' => [6, 1], 'hearings' => [8, 1], 'documents' => [6, 1],
         'html' => [8, 1], 'image' => [4, 1], 'card' => [4, 1], 'search' => [4, 1], 'hours' => [4, 1],
     ];
 
@@ -92,6 +92,13 @@ class HomeBlocks extends BaseConfig
                 'top' => true, 'child' => true, 'fields' => [
                     'limit'      => $limit(4, 12),
                     'show_ghaib' => ['Tampilkan panggilan ghaib', 'checkbox', 'permit_empty', 'default' => 1],
+                ],
+            ],
+            'feed' => [
+                'Pengumuman Badilag & MA', 'bi-broadcast', 'Pengumuman terbaru dari Badilag dan Mahkamah Agung, diambil otomatis setiap jam dan menaut ke situs sumbernya. Sumber diatur di Pengaturan → Tautan Layanan.',
+                'top' => true, 'child' => true, 'fields' => [
+                    'limit'  => $limit(6, 15),
+                    'source' => ['Sumber', 'select', 'permit_empty|in_list[,badilag,ma]', 'default' => '', 'options' => ['' => 'Badilag & Mahkamah Agung', 'badilag' => 'Badilag saja', 'ma' => 'Mahkamah Agung saja']],
                 ],
             ],
             'news' => [

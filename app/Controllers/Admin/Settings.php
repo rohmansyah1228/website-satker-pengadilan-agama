@@ -49,6 +49,8 @@ class Settings extends AdminController
                 'cctv_url'      => ['URL Akses CCTV Online', 'url', 'Tautan display CCTV satker di cctv.badilag.net. Tombol CCTV tampil di kiri atas semua halaman.'],
                 'cctv_image'    => ['Ikon/GIF tombol CCTV (opsional)', 'image', 'Kosongkan untuk memakai ikon kamera beranimasi bawaan. PNG/GIF/WebP, sebaiknya persegi.'],
                 'survey_url'    => ['URL Website Survei (tombol “Isi Survei Pelayanan”)', 'url', 'Mis. https://survei.badilag.net/s/… — tampil sebagai tombol di Beranda & halaman Survei.'],
+                'feed_badilag_url' => ['Sumber Pengumuman Badilag (otomatis)', 'url', 'Pengumuman Badilag tampil otomatis di halaman Pengumuman Badilag & MA dan blok Beranda. Kosongkan untuk mematikan. Bawaan: https://badilag.mahkamahagung.go.id/pengumuman-elektronik'],
+                'feed_ma_url'      => ['Sumber Pengumuman Mahkamah Agung (otomatis)', 'url', 'Bawaan: https://www.mahkamahagung.go.id/id/pengumuman. Kosongkan untuk mematikan.'],
                 'sipp_sync'     => ['Ambil Jadwal Sidang dari Database SIPP', 'select', 'Butuh koneksi database grup "sipp" di .env dan query di app/Config/Sipp.php.', ['0' => 'Tidak (isi manual)', '1' => 'Ya']],
             ]],
             'survei' => ['Nilai Survei', [

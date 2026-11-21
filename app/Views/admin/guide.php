@@ -259,6 +259,8 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
         <li>Kosong = tampil 7 hari sejak terbit. Ubah status ke <strong>Draft</strong> untuk menghentikan seketika.</li>
     </ol>
     <?= $img('08-berita-serta-merta.jpg', 'Berita kategori Informasi Serta Merta dengan isian Tampilkan pita sampai.') ?>
+    <h3>Pengumuman Badilag &amp; Mahkamah Agung (otomatis)</h3>
+    <p>Pengumuman dari <em>badilag.mahkamahagung.go.id/pengumuman-elektronik</em> dan <em>mahkamahagung.go.id/id/pengumuman</em> tampil otomatis (diperbarui tiap jam) di halaman <strong>Berita &amp; Publikasi → Pengumuman Badilag &amp; MA</strong> dan di blok Beranda <strong>Pengumuman Badilag &amp; MA</strong>. Judul menaut ke situs sumber, jadi tidak perlu diketik ulang. Alamat sumber dapat diubah atau dikosongkan (mematikan) di <em>Pengaturan → Tautan Layanan</em>.</p>
     <h3>Memindahkan berita dari website lama</h3>
     <p>Super Admin: <em>Sistem → Impor Berita Lama</em>. Isi alamat website lama, pilih kategori (mis. <em>Berita Terkini</em> → Berita Kegiatan, <em>Arsip Berita</em> → Pengumuman), klik <strong>Periksa jumlah berita</strong> lalu <strong>Mulai Impor</strong>. Tanggal, penulis, jumlah dibaca, gambar, dan PDF ikut dipindah; impor dapat dihentikan dan dilanjutkan tanpa dobel. Alamat berita lama otomatis dialihkan ke alamat baru setelah domain dipindah.</p>
     <?= $tip('Berita sebaiknya berorientasi pada pelayanan & inovasi, bukan sekadar liputan seremonial (SK Bab III huruf D).') ?>
