@@ -1,0 +1,40 @@
+# =====================================================================
+# .htaccess KHUSUS: hosting yang domain UTAMA & SUBDOMAIN-nya berbagi
+# satu folder "public_html" (beberapa cPanel lama berperilaku begini,
+# sehingga .htaccess bawaan ikut membelokkan subdomain lain ke public/).
+#
+# CARA PAKAI:
+#  1. Ganti  domain-anda.go.id  di bawah dengan domain satker Anda.
+#  2. Timpakan isi berkas ini ke  public_html/.htaccess
+#
+# Catatan: cara paling bersih & disarankan tetap "arahkan Document Root
+# domain langsung ke folder public/" (lihat README). Berkas ini hanya
+# untuk hosting yang tidak mengizinkan perubahan Document Root.
+# =====================================================================
+Options -Indexes
+DirectoryIndex index.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # (opsional, hosting ber-SSL) paksa HTTPS — hapus tanda # pada dua baris berikut
+    # RewriteCond %{HTTPS} !=on
+    # RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # HANYA domain utama yang diarahkan ke public/ — GANTI domainnya:
+    RewriteCond %{HTTP_HOST} ^(www\.)?domain-anda\.go\.id$ [NC]
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+<IfModule !mod_rewrite.c>
+    Require all denied
+</IfModule>
+
+<FilesMatch "(?i)(^\.|^composer\.(json|lock)$|^package(-lock)?\.json$|^phpunit\.xml(\.dist)?$|^error_log$|\.(env|ini|log|sql|sqlite|bak|backup|old|orig|save|swp|tmp|dist|pem|key|lock|sh|conf|md)$)">
+    Require all denied
+</FilesMatch>

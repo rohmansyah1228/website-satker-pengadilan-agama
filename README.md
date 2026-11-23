@@ -107,7 +107,17 @@ php spark serve                 &:: http://localhost:8080
 5. **Pasang.** Buka alamat situs Anda. Halaman pemasangan muncul otomatis dan memeriksa syarat server. Isi data database dan akun admin, lalu klik **Pasang Website**. Berkas `.env` dibuat otomatis, dan halaman pemasangan tertutup sendiri setelah selesai.
 6. **HTTPS.** Bila hosting memiliki SSL, ubah `app.forceGlobalSecureRequests` dan `cookie.secure` menjadi `true` di `.env`, dan sebaiknya isi `app.baseURL = 'https://www.domain-anda.go.id/'`. Untuk memaksa HTTPS, aktifkan juga dua baris yang sudah disiapkan (diawali `#`) di `.htaccess` folder utama.
 
-**Keamanan.** `.htaccess` di folder utama mengarahkan semua akses ke `public/` dan menolak akses ke `app/`, `writable/`, `vendor/`, serta `.env`. Bila hosting mengizinkan, lebih baik arahkan **Document Root** domain langsung ke folder `public/`.
+**Keamanan.** `.htaccess` di folder utama mengarahkan semua akses ke `public/` dan menolak akses ke `app/`, `writable/`, `vendor/`, `.env`, serta berkas cadangan/konfigurasi (`.sql`, `.bak`, `.log`, `.key`, dan lain-lain).
+
+### Apakah mengganggu website/subdomain lain di hosting yang sama?
+
+- **Hosting hanya berisi website ini (kasus umum).** Tidak ada yang perlu dikhawatirkan — ekstrak lalu buka alamatnya. Tidak ada subdomain lain yang terpengaruh.
+- **Hosting juga menjalankan subdomain lain.** Pada hampir semua cPanel, tiap subdomain punya foldernya sendiri, dan `.htaccess` ini tidak menyentuhnya. Hanya pada sebagian hosting lama yang domain utama & subdomainnya **berbagi satu folder `public_html`**, pembelokan ke `public/` bisa ikut mengenai subdomain. Dua cara mengatasinya (pilih salah satu):
+  1. **Cara terbaik & paling mudah (tanpa perlu paham teknis):** minta penyedia hosting mengarahkan **Document Root** domain langsung ke folder `public/`. Cukup kirim pesan ini ke mereka:
+     > "Mohon arahkan Document Root domain **www.pa-namakota.go.id** ke folder **public_html/public** (atau subfolder tempat website dipasang). Terima kasih."
+
+     Setelah itu `.htaccess` folder utama tidak diperlukan lagi dan subdomain lain pasti aman.
+  2. **Tanpa mengubah Document Root:** gunakan berkas `deploy/htaccess-subdomain-bersama.txt` — ganti nama domain di dalamnya, lalu timpakan ke `public_html/.htaccess`. Pembelokan hanya berlaku untuk domain utama. (Alternatif: cukup hapus tanda `#` pada baris `RewriteCond %{HTTP_HOST} ...` di `.htaccess` bawaan dan isi domainnya.)
 
 **Ganti domain / pindah hosting / dipakai satker lain.** Tidak ada yang perlu diubah. Alamat situs mengikuti domain yang sedang dibuka (subfolder, IP, maupun domain baru), dan gambar serta tautan di dalam isi berita/halaman disimpan tanpa nama domain. Saat memindahkan website, cukup bawa folder website dan database (Export/Import di phpMyAdmin).
 

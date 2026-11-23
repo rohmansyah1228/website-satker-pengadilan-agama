@@ -91,6 +91,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
         <li>Buka domain di browser → ikuti halaman Pemasangan.</li>
         <li>Aktifkan HTTPS. Untuk Nginx, pakai contoh <code>deploy/nginx-satker.conf</code>.</li>
     </ol>
+    <?= $tip('<strong>Apakah mengganggu subdomain lain?</strong> Bila hosting hanya berisi website ini — tidak. Bila hosting juga menjalankan subdomain lain dan subdomainnya ikut terbelokkan, cara termudah (tanpa perlu paham teknis): minta penyedia hosting <strong>mengarahkan Document Root domain langsung ke folder <code>public/</code></strong>. Alternatif: gunakan berkas <code>deploy/htaccess-subdomain-bersama.txt</code> (ganti nama domainnya, lalu timpakan ke <code>public_html/.htaccess</code>). Rincian ada di README bagian Instalasi di Hosting.') ?>
     <h3>Pindah domain / dipakai PA lain</h3>
     <p>Alamat website terdeteksi otomatis (domain, IP, atau folder berganti tidak perlu diatur). Untuk PA lain cukup ganti <em>Pengaturan → Identitas Satker</em> dan <em>Alamat & Kontak</em>.</p>
     <h3>Pembaruan database</h3>

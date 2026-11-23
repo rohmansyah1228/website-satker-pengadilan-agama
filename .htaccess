@@ -1,8 +1,9 @@
 # ---------------------------------------------------------------------------
-# Menjalankan website TANPA "php spark serve" (XAMPP, hosting cPanel/DirectAdmin)
+# Menjalankan website TANPA "php spark serve" (XAMPP, hosting cPanel/DirectAdmin).
 # Semua alamat diarahkan ke folder public/. Folder app/, writable/, vendor/ dan
 # berkas .env tidak dapat dibuka dari browser.
-# Paling aman di server sendiri: arahkan Document Root langsung ke folder public/.
+# Paling aman di hosting bersama subdomain lain: arahkan Document Root domain
+# langsung ke folder public/ (lihat README, bagian "Instalasi di Hosting").
 # ---------------------------------------------------------------------------
 Options -Indexes
 DirectoryIndex index.php
@@ -10,23 +11,28 @@ DirectoryIndex index.php
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # hapus garis miring di akhir alamat (dilakukan di sini, sebelum diarahkan ke public/)
+    # buang garis miring di akhir alamat
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
-    # (opsional, hosting dengan SSL) paksa HTTPS — hapus tanda # pada dua baris berikut
+    # (opsional, hosting ber-SSL) paksa HTTPS — hapus tanda # pada dua baris berikut
     # RewriteCond %{HTTPS} !=on
     # RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
+    # (hosting berbagi docroot dgn subdomain lain) agar HANYA domain utama yang
+    # diarahkan ke public/, hapus tanda # baris berikut & ganti domainnya:
+    # RewriteCond %{HTTP_HOST} ^(www\.)?domain-anda\.go\.id$ [NC]
+
+    RewriteCond %{REQUEST_URI} !^/public/
     RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>
 
 <IfModule !mod_rewrite.c>
-    # tanpa mod_rewrite folder ini tidak boleh terbuka langsung
     Require all denied
 </IfModule>
 
-<FilesMatch "^\.|\.(env|ini|log|sh|sql|lock|md|json|dist|bak)$">
+# Tolak akses ke berkas konfigurasi & berkas sensitif (berlaku di semua hosting)
+<FilesMatch "(?i)(^\.|^composer\.(json|lock)$|^package(-lock)?\.json$|^phpunit\.xml(\.dist)?$|^error_log$|\.(env|ini|log|sql|sqlite|bak|backup|old|orig|save|swp|tmp|dist|pem|key|lock|sh|conf|md)$)">
     Require all denied
 </FilesMatch>
