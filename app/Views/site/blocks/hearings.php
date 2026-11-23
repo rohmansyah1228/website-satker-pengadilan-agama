@@ -1,4 +1,11 @@
-<?php $rows = $data['rows'] ?? []; ?>
+<?php $rows = $data['rows'] ?? []; $embed = $data['embed'] ?? null; ?>
+<?php if (! $rows && $embed): ?>
+    <?php // jadwal kosong → sematan dari halaman Jadwal Sidang (judul sematan tidak diulang, blok sudah berjudul) ?>
+    <div<?= $nested ? '' : ' class="bg-white rounded-3 shadow-sm p-3"' ?>>
+        <?= view('site/page_blocks/embed', ['b' => ['heading' => ''] + $embed]) ?>
+        <?php if (! $nested): ?><a href="<?= site_url('layanan-hukum/jadwal-sidang') ?>" class="btn btn-sm btn-pa-primary">Jadwal lengkap</a><?php endif ?>
+    </div>
+<?php else: ?>
 <div class="table-responsive<?= $nested ? '' : ' bg-white rounded-3 shadow-sm p-3' ?>">
     <table class="table table-sm table-hover align-middle mb-2 small">
         <caption class="small">Agenda persidangan <?= tanggal_id(date('Y-m-d'), true) ?></caption>
@@ -10,3 +17,4 @@
     </table>
     <?php if (! $nested): ?><a href="<?= site_url('layanan-hukum/jadwal-sidang') ?>" class="btn btn-sm btn-pa-primary">Jadwal lengkap</a><?php endif ?>
 </div>
+<?php endif ?>

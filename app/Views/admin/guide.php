@@ -259,6 +259,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
             <tr><td>Baris Kolom</td><td>Wadah beberapa tampilan berdampingan</td></tr>
         </tbody>
     </table></div>
+    <?= $tip('<strong>Jadwal Sidang Hari Ini</strong>: bila tabel jadwal kosong (mis. jadwal belum diinput atau sinkron SIPP tidak aktif), tampilan ini otomatis menampilkan blok <strong>Sematkan</strong> pertama dari halaman <em>Layanan Hukum → Jadwal Sidang</em> — mis. slide jadwal SIPP <code>https://sipp.…/slide_sidang</code>. Matikan lewat pengaturan tampilan <em>Bila jadwal kosong, tampilkan sematan</em>.') ?>
     <?= $tip('Perubahan di panel admin langsung tampil di Beranda. Data Beranda disimpan sementara 60 detik dan dikosongkan otomatis setiap admin menyimpan.') ?>
     <?= $go('beranda', 'Buka Tampilan Beranda') ?>
 </section>

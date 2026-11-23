@@ -110,8 +110,12 @@ class HomeBlocks extends BaseConfig
                 ],
             ],
             'hearings' => [
-                'Jadwal Sidang Hari Ini', 'bi-calendar-week', 'Agenda persidangan hari ini (dari data manual atau SIPP).',
-                'top' => true, 'child' => true, 'fields' => ['limit' => $limit(8, 30)],
+                'Jadwal Sidang Hari Ini', 'bi-calendar-week', 'Agenda persidangan hari ini (dari data manual atau SIPP). Bila tabel kosong, dapat menampilkan sematan (mis. slide jadwal SIPP) dari halaman Jadwal Sidang.',
+                'top' => true, 'child' => true, 'fields' => [
+                    'limit'          => $limit(8, 30),
+                    'embed_fallback' => ['Bila jadwal kosong, tampilkan sematan dari halaman Jadwal Sidang', 'checkbox', 'permit_empty', 'default' => 1,
+                        'help' => 'Memakai blok "Sematkan" pertama di halaman Layanan Hukum → Jadwal Sidang (mis. https://sipp.…/slide_sidang).'],
+                ],
             ],
             'documents' => [
                 'Dokumen Terbaru', 'bi-file-earmark-pdf', 'Dokumen yang terakhir diunggah, semua jenis atau satu jenis tertentu.',

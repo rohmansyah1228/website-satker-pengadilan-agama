@@ -152,7 +152,14 @@ class HomeBlocks
                 return ['posts' => $q->orderBy('published_at', 'DESC')->get($lim)->getResultArray()];
 
             case 'hearings':
-                return ['rows' => array_slice(service('sippSource')->hearings(date('Y-m-d')), 0, $lim)];
+                $rows  = array_slice(service('sippSource')->hearings(date('Y-m-d')), 0, $lim);
+                $embed = null;
+                // jadwal kosong → tampilkan sematan (mis. slide jadwal SIPP) dari halaman Jadwal Sidang
+                if (! $rows && (string) ($s['embed_fallback'] ?? '1') !== '0') {
+                    $embed = $this->hearingEmbed();
+                }
+
+                return ['rows' => $rows, 'embed' => $embed];
 
             case 'documents':
                 $q = $db->table('documents d')->select('d.*, t.name AS type_name, f.uuid, f.size')
@@ -178,6 +185,27 @@ class HomeBlocks
         }
 
         return [];
+    }
+
+    /** Blok "Sematkan" pertama di halaman Jadwal Sidang (modul jadwal) yang terbit, bila ada. */
+    private function hearingEmbed(): ?array
+    {
+        try {
+            $page = db_connect()->table('pages')->select('blocks, content')->where('module', 'jadwal')->where('status', 'published')
+                ->orderBy('is_required', 'DESC')->orderBy('id')->get(1)->getRowArray();
+        } catch (\Throwable) {
+            return null;
+        }
+        if (! $page) {
+            return null;
+        }
+        foreach ((new PageBlocks())->decode($page) as $b) {
+            if (($b['type'] ?? '') === 'embed' && ! empty($b['url'])) {
+                return $b;
+            }
+        }
+
+        return null;
     }
 
     /** Lengkapi setiap blok (dan sub-bloknya) dengan data. */
