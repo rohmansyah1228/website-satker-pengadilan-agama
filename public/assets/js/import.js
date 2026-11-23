@@ -5,7 +5,7 @@
     if (!form) return;
     const $ = (id) => document.getElementById(id);
     const rows = $('impRows').querySelector('tbody');
-    const base = location.pathname.replace(/\/impor\/?$/, '/impor');
+    const base = location.pathname.replace(/\/impor(\/wordpress)?\/?$/, '/impor');
     let stop = false, busy = false;
 
     const csrfInput = () => form.querySelector('input[name^="csrf"]');
@@ -13,7 +13,7 @@
         const fd = new FormData();
         const c = csrfInput();
         if (c) fd.append(c.name, c.value);
-        ['site', 'since', 'status'].forEach((k) => fd.append(k, form.elements[k].value));
+        ['site', 'since', 'status', 'platform'].forEach((k) => { if (form.elements[k]) fd.append(k, form.elements[k].value); });
         if ($('impImages').checked) fd.append('images', '1');
         if ($('impInsecure').checked) fd.append('insecure', '1');
         Object.entries(data).forEach(([k, v]) => Array.isArray(v) ? v.forEach((x) => fd.append(k + '[]', x)) : fd.append(k, v));
@@ -88,7 +88,7 @@
 
     function lock(on) {
         busy = on;
-        ['impCheck', 'impStart'].forEach((id) => { $(id).disabled = on; });
+        ['impCheck', 'impStart', 'impWpCats'].forEach((id) => { if ($(id)) $(id).disabled = on; });
         $('impStop').classList.toggle('d-none', !on);
         form.querySelectorAll('input, select, #impAddRow, [data-imp-del]').forEach((el) => { if (el.type !== 'hidden') el.disabled = on; });
         window.onbeforeunload = on ? () => 'Impor sedang berjalan.' : null;
@@ -143,6 +143,9 @@
 
     $('impAddRow').addEventListener('click', () => {
         const tr = rows.querySelector('tr').cloneNode(true);
+        const u = tr.querySelector('[data-imp=url]');
+        if (u.previousElementSibling) u.previousElementSibling.remove();
+        u.readOnly = false; u.classList.remove('d-none');
         tr.querySelector('[data-imp=url]').value = '';
         tr.querySelector('[data-imp=on]').checked = true;
         tr.querySelector('[data-imp=count]').textContent = '–';
@@ -152,6 +155,46 @@
     rows.addEventListener('click', (e) => {
         const b = e.target.closest('[data-imp-del]');
         if (b && rows.rows.length > 1) b.closest('tr').remove();
+    });
+
+    // alamat kategori bawaan mengikuti alamat website lama yang diketik
+    let lastSite = form.elements.site.value.trim().replace(/\/+$/, '') || 'https://pa-namasatker.go.id';
+    form.elements.site.addEventListener('change', () => {
+        const now = form.elements.site.value.trim().replace(/\/+$/, '');
+        if (!/^https?:\/\//i.test(now)) return;
+        rows.querySelectorAll('[data-imp=url]').forEach((u) => { if (u.value.startsWith(lastSite + '/')) u.value = now + u.value.slice(lastSite.length); });
+        lastSite = now;
+    });
+
+    // ---- WordPress: ambil daftar kategori lalu isi tabel ----
+    const wpBtn = $('impWpCats');
+    if (wpBtn) wpBtn.addEventListener('click', async () => {
+        if (busy || !form.elements.site.reportValidity()) return;
+        const msg = $('impWpCatsMsg');
+        wpBtn.disabled = true; msg.innerHTML = '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Mengambil kategori…';
+        try {
+            const j = await post('kategori-wp', {});
+            const tpl = rows.querySelector('tr').cloneNode(true);
+            rows.innerHTML = '';
+            const pick = (name) => /pengumuman|surat|undangan/i.test(name) ? 'pengumuman' : /inovasi/i.test(name) ? 'inovasi' : /artikel|opini/i.test(name) ? 'opini' : /infografis/i.test(name) ? 'infografis' : 'berita';
+            j.categories.forEach((c) => {
+                const tr = tpl.cloneNode(true);
+                const url = tr.querySelector('[data-imp=url]');
+                url.value = c.url; url.readOnly = true; url.classList.add('d-none');
+                const label = document.createElement('div');
+                label.innerHTML = '<strong></strong> <span class="small text-secondary"></span>';
+                label.firstChild.textContent = c.name; label.lastChild.textContent = '/' + c.slug + '/';
+                url.parentNode.prepend(label);
+                tr.querySelector('[data-imp=on]').checked = !/^(uncategorized|tak-berkategori|tanpa-kategori)$/i.test(c.slug) && /berita|kegiatan|news|pengumuman|artikel|inovasi/i.test(c.name + ' ' + c.slug);
+                tr.querySelector('[data-imp=cat]').value = pick(c.name + ' ' + c.slug);
+                tr.querySelector('[data-imp=count]').textContent = c.count.toLocaleString('id-ID');
+                rows.append(tr);
+            });
+            msg.textContent = j.categories.length + ' kategori ditemukan. Centang yang ingin dipindah, lalu klik Periksa jumlah berita atau Mulai Impor.';
+        } catch (e) {
+            msg.innerHTML = ''; const sp = document.createElement('span'); sp.className = 'text-danger'; sp.textContent = e.message; msg.append(sp);
+        }
+        wpBtn.disabled = false;
     });
 
     // ---- Impor satu berita (tempel alamat beritanya) ----

@@ -279,6 +279,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
     </ul>
     <h3>Memindahkan berita dari website lama</h3>
     <p>Super Admin: <em>Sistem → Impor Berita Lama</em>. Isi alamat website lama, pilih kategori (mis. <em>Berita Terkini</em> → Berita Kegiatan, <em>Arsip Berita</em> → Pengumuman), klik <strong>Periksa jumlah berita</strong> lalu <strong>Mulai Impor</strong>. Tanggal, penulis, jumlah dibaca, gambar, dan PDF ikut dipindah; impor dapat dihentikan dan dilanjutkan tanpa dobel. Alamat berita lama otomatis dialihkan ke alamat baru setelah domain dipindah.</p>
+    <p><strong>Website lama berbasis WordPress?</strong> Pilih tab <strong>Website WordPress</strong> di halaman impor, isi alamat website lama, klik <strong>Ambil daftar kategori dari WordPress</strong>, centang kategori berita (mis. <em>Berita</em>; <em>Uncategorized</em> biasanya bukan berita), pilih kategori tujuannya, lalu <strong>Mulai Impor</strong>. Judul, isi, tanggal, gambar utama, gambar di dalam isi, dan PDF ikut dipindah. Satu berita juga bisa diimpor dengan menempel alamatnya (mis. <code>…/judul-berita/</code>). Fitur ini memakai jalur data bawaan WordPress (REST API <code>/wp-json/</code>); bila jalur itu ditutup oleh plugin keamanan, minta pengelola website lama membukanya sementara.</p>
     <?= $tip('Berita sebaiknya berorientasi pada pelayanan & inovasi, bukan sekadar liputan seremonial (SK Bab III huruf D).') ?>
     <?= $go('data/berita', 'Buka Berita & Publikasi') ?>
 </section>

@@ -70,6 +70,8 @@ $routes->group($admin, ['namespace' => 'App\Controllers\Admin'], static function
         $routes->get('log', 'Logs::index');
         $routes->get('panduan', 'Guide::index');
         $routes->get('impor', 'Import::index');
+        $routes->get('impor/wordpress', 'Import::wordpress');
+        $routes->post('impor/kategori-wp', 'Import::wpCategories');
         $routes->post('impor/daftar', 'Import::list');
         $routes->post('impor/jalankan', 'Import::run');
         $routes->post('impor/satu', 'Import::one');

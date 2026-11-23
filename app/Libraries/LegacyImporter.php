@@ -9,7 +9,10 @@ use DOMXPath;
 use RuntimeException;
 
 /**
- * Impor berita dari website lama berbasis Joomla (template website PA/PTA lama).
+ * Impor berita dari website lama berbasis Joomla (template website PA/PTA lama) atau WordPress.
+ *
+ * WordPress: data diambil lewat REST API bawaan (/wp-json/wp/v2/…): daftar berita per kategori,
+ * judul, isi, tanggal, gambar utama. Penanda posts.source_ref = "wp:<id>".
  *
  * - Daftar artikel diambil dari halaman kategori (…/berita/berita-terkini.html?limit=0, atau per halaman).
  * - Setiap artikel: judul, tanggal, penulis, jumlah dibaca, isi; gambar & PDF dari situs lama diunduh
@@ -26,8 +29,9 @@ class LegacyImporter
     private string $host;   // pa-contoh.go.id (tanpa www.)
     private bool $insecure;
     private Uploader $uploader;
+    private ?string $platform; // 'joomla' | 'wordpress' | null = deteksi otomatis
 
-    public function __construct(string $siteUrl, bool $insecure = false)
+    public function __construct(string $siteUrl, bool $insecure = false, string $platform = 'auto')
     {
         $siteUrl = trim($siteUrl);
         if (! preg_match('#^https?://#i', $siteUrl)) {
@@ -41,6 +45,26 @@ class LegacyImporter
         $this->base     = strtolower($p['scheme'] ?? 'https') . '://' . strtolower($p['host']);
         $this->insecure = $insecure;
         $this->uploader = service('uploader');
+        $this->platform = in_array($platform, ['joomla', 'wordpress'], true) ? $platform : null;
+    }
+
+    /** Jenis website lama: 'wordpress' bila REST API WordPress menjawab, selain itu 'joomla'. */
+    public function platform(): string
+    {
+        if ($this->platform !== null) {
+            return $this->platform;
+        }
+        $res = $this->wpGet('/');
+        if ($res['code'] === 200 && is_array($res['data']) && in_array('wp/v2', (array) ($res['data']['namespaces'] ?? []), true)) {
+            return $this->platform = 'wordpress';
+        }
+        $home = $this->fetch($this->base . '/');
+        if (preg_match('#/wp-(content|includes)/#i', $home['body'])) {
+            throw new RuntimeException('Website lama memakai WordPress, tetapi jalur datanya (REST API /wp-json/) ditutup. '
+                . 'Minta pengelola website lama membuka REST API sementara selama proses impor.');
+        }
+
+        return $this->platform = 'joomla';
     }
 
     // ------------------------------------------------------------------ daftar artikel
@@ -50,6 +74,9 @@ class LegacyImporter
      */
     public function listArticles(string $categoryUrl): array
     {
+        if ($this->platform() === 'wordpress') {
+            return $this->wpList($categoryUrl);
+        }
         $url = $this->absolute($categoryUrl, $this->base . '/');
         if (! $url || ! $this->isOwnHost($url)) {
             throw new RuntimeException('Alamat kategori harus berada di ' . $this->host . '.');
@@ -115,6 +142,9 @@ class LegacyImporter
      */
     public function import(string $url, array $opt): array
     {
+        if ($this->platform() === 'wordpress') {
+            return $this->wpImport($url, $opt);
+        }
         $db  = db_connect();
         $url = $this->absolute($url, $this->base . '/');
         if (! $url || ! $this->isOwnHost($url) || ! preg_match('#/(\d+)-[^/]+\.html?$#i', (string) parse_url($url, PHP_URL_PATH), $m)) {
@@ -176,29 +206,71 @@ class LegacyImporter
         $author = preg_match('/(?:Ditulis oleh|Written by)\s+(.+?)\s+(?:on|pada|\bDitulis\b|$)/iu', $meta, $am) ? trim($am[1], " .:\t") : 'Humas';
         $views  = preg_match('/(?:Dilihat|Hits|Dibaca)\s*:?\s*([\d.,]+)/iu', $meta, $vm) ? (int) preg_replace('/\D/', '', $vm[1]) : 0;
 
+        $alias = preg_replace(['#^.*/\d+-#', '#\.html?$#i'], '', (string) parse_url($url, PHP_URL_PATH));
+
+        return $this->build($dom, $xp, $body, $url, [
+            'ref' => $ref, 'old' => $old, 'title' => $title, 'ts' => $ts, 'author' => $author, 'views' => $views,
+            'slug' => $alias ?: url_title($title, '-', true), 'id' => (int) $m[1], 'cover' => null,
+        ], $opt);
+    }
+
+    /**
+     * Bersihkan isi, unduh gambar & PDF, tentukan gambar utama, lalu simpan berita (dipakai Joomla & WordPress).
+     * $p: ref, old, title, ts, author, views, slug (dasar slug), id, cover (URL gambar utama terpisah, mis. featured image WordPress)
+     */
+    private function build(DOMDocument $dom, DOMXPath $xp, DOMNode $body, string $url, array $p, array $opt): array
+    {
+        $db    = db_connect();
+        $title = $p['title'];
+        $old   = $p['old'];
+        $ts    = $p['ts'];
+
         // bersihkan isi
         foreach (['.//script', './/style', './/form', './/noscript', ".//*[@id='jc' or @id='comments' or contains(@class,'jcomments')]",
-            ".//*[contains(@class,'pagenav') or contains(@class,'pager') or contains(@class,'icons') or contains(@class,'tags')]"] as $q) {
+            ".//*[contains(@class,'pagenav') or contains(@class,'pager') or contains(@class,'icons') or contains(@class,'tags')]",
+            ".//*[contains(@class,'sharedaddy') or contains(@class,'jp-relatedposts') or contains(@class,'wp-block-buttons') and .//a[contains(@href,'share')]]"] as $q) {
             foreach (iterator_to_array($xp->query($q, $body)) as $n) {
                 $n->parentNode?->removeChild($n);
             }
         }
         $this->dropTitleRepeat($body, $title);
 
+        $wantImages = $opt['images'] ?? true;
+        $images     = 0;
+        $pdfs       = 0;
+        $cover      = null;
+        $coverNode  = null;
+        $coverKey   = null;
+        // gambar utama terpisah (featured image WordPress)
+        if (! empty($p['cover']) && $wantImages && ($cu = $this->absolute($p['cover'], $url)) && $this->isOwnHost($cu) && ($rel = $this->downloadImage($cu))) {
+            $cover    = $rel;
+            $coverKey = $this->imageKey($cu);
+            $images++;
+        }
+
         // gambar & lampiran PDF
-        $images = 0;
-        $pdfs   = 0;
-        $cover  = null;
-        $coverNode = null;
         foreach (iterator_to_array($xp->query('.//img', $body)) as $img) {
             /** @var DOMElement $img */
-            $src = $this->absolute(html_entity_decode($img->getAttribute('src')), $url);
-            if (! $src) {
+            $raw = $img->getAttribute('src');
+            foreach (['data-src', 'data-lazy-src', 'data-orig-file'] as $lazy) { // gambar "lazy load"
+                if ((trim($raw) === '' || str_starts_with($raw, 'data:')) && $img->getAttribute($lazy) !== '') {
+                    $raw = $img->getAttribute($lazy);
+                }
+            }
+            foreach (['srcset', 'sizes', 'data-src', 'data-srcset', 'data-lazy-src', 'data-lazy-srcset', 'data-orig-file', 'data-medium-file', 'data-large-file', 'loading', 'decoding', 'fetchpriority'] as $attr) {
+                $img->removeAttribute($attr);
+            }
+            $src = $this->absolute(html_entity_decode($raw), $url);
+            if (! $src || str_starts_with($src, 'data:')) {
                 $img->parentNode?->removeChild($img);
                 continue;
             }
             $img->setAttribute('src', $src);
-            if (($opt['images'] ?? true) && $this->isOwnHost($src) && ($rel = $this->downloadImage($src))) {
+            if ($coverKey !== null && $coverNode === null && $this->imageKey($src) === $coverKey) {
+                // gambar yang sama dengan gambar utama: pakai berkas yang sudah diunduh
+                $img->setAttribute('src', base_url($cover));
+                $coverNode = $img;
+            } elseif ($wantImages && $this->isOwnHost($src) && ($rel = $this->downloadImage($src))) {
                 $img->setAttribute('src', base_url($rel));
                 $images++;
                 if ($cover === null) {
@@ -217,17 +289,19 @@ class LegacyImporter
                 continue;
             }
             $a->setAttribute('href', $href);
-            if (($opt['images'] ?? true) && $this->isOwnHost($href) && preg_match('/\.pdf$/i', (string) parse_url($href, PHP_URL_PATH)) && ($fid = $this->downloadPdf($href))) {
+            if ($wantImages && $this->isOwnHost($href) && preg_match('/\.pdf$/i', (string) parse_url($href, PHP_URL_PATH)) && ($fid = $this->downloadPdf($href))) {
                 $a->setAttribute('href', file_url($fid));
                 $pdfs++;
             }
         }
-        // gambar pertama jadi gambar utama; dihapus dari isi bila letaknya di awal (agar tidak tampil dua kali)
+        // gambar utama dihapus dari isi bila letaknya di awal (agar tidak tampil dua kali)
         if ($coverNode && ! $this->insideTag($coverNode, ['a', 'table']) && $this->isNearTop($coverNode, $body)) {
-            $p = $coverNode->parentNode;
-            $p?->removeChild($coverNode);
-            if ($p instanceof DOMElement && $p !== $body && trim(str_replace("\u{a0}", '', $p->textContent)) === '' && ! $xp->query('.//img|.//iframe', $p)->length) {
-                $p->parentNode?->removeChild($p);
+            $pn = $coverNode->parentNode;
+            $pn?->removeChild($coverNode);
+            while ($pn instanceof DOMElement && $pn !== $body && trim(str_replace("\u{a0}", '', $pn->textContent)) === '' && ! $xp->query('.//img|.//iframe', $pn)->length) {
+                $up = $pn->parentNode;
+                $up?->removeChild($pn);
+                $pn = $up;
             }
         }
 
@@ -254,7 +328,7 @@ class LegacyImporter
         $now = date('Y-m-d H:i:s');
         $db->table('posts')->insert([
             'category'     => $opt['category'],
-            'slug'         => $this->slug($url, (int) $m[1], $title),
+            'slug'         => $this->slug((string) $p['slug'], (int) $p['id'], $title),
             'title'        => mb_substr($title, 0, 255),
             'excerpt'      => $excerpt,
             'content'      => $html,
@@ -262,11 +336,11 @@ class LegacyImporter
             'image_alt'    => $cover ? mb_substr($title, 0, 255) : null,
             'status'       => ($opt['status'] ?? 'published') === 'draft' ? 'draft' : 'published',
             'published_at' => date('Y-m-d H:i:s', $ts),
-            'author'       => mb_substr($author, 0, 120),
-            'views'        => $views,
+            'author'       => mb_substr((string) $p['author'], 0, 120),
+            'views'        => (int) $p['views'],
             'created_at'   => $now,
             'updated_at'   => $now,
-            'source_ref'   => $ref,
+            'source_ref'   => $p['ref'],
         ]);
         $id   = (int) $db->insertID();
         $slug = (string) $db->table('posts')->select('slug')->where('id', $id)->get()->getRow('slug');
@@ -282,18 +356,218 @@ class LegacyImporter
         return ['status' => 'ok', 'message' => $info ? implode(', ', $info) : 'tanpa gambar', 'title' => $title, 'date' => date('Y-m-d', $ts), 'slug' => $slug, 'id' => $id];
     }
 
+    // ------------------------------------------------------------------ WordPress (REST API)
+
+    /**
+     * Daftar berita WordPress dari alamat kategori (…/category/berita/ atau ?cat=24). Kosong/akar situs = semua berita.
+     * @return list<array{url:string,id:int,ref:string}>
+     */
+    private function wpList(string $categoryUrl): array
+    {
+        $catId = null;
+        $categoryUrl = trim($categoryUrl);
+        if ($categoryUrl !== '') {
+            $url = $this->absolute($categoryUrl, $this->base . '/');
+            if (! $url || ! $this->isOwnHost($url)) {
+                throw new RuntimeException('Alamat kategori harus berada di ' . $this->host . '.');
+            }
+            $path = trim((string) parse_url($url, PHP_URL_PATH), '/');
+            parse_str((string) parse_url($url, PHP_URL_QUERY), $qs);
+            $path = preg_replace('#/page/\d+$#', '', $path); // halaman ke-2 dst. dari daftar kategori
+            if (! empty($qs['cat']) && ctype_digit((string) $qs['cat'])) {
+                $catId = (int) $qs['cat'];
+            } elseif (preg_match('#(?:^|/)(?:category|kategori)/(?:[^/]+/)*([^/]+)$#i', $path, $m)) {
+                $res = $this->wpGet('/wp/v2/categories', ['slug' => rawurldecode($m[1]), '_fields' => 'id,name,count']);
+                if (empty($res['data'][0]['id'])) {
+                    throw new RuntimeException('Kategori "' . rawurldecode($m[1]) . '" tidak ditemukan di website lama.');
+                }
+                $catId = (int) $res['data'][0]['id'];
+            } elseif ($path !== '') {
+                throw new RuntimeException('Alamat kategori WordPress tidak dikenali. Contoh: ' . $this->base . '/category/berita/ (kosongkan untuk semua berita).');
+            }
+        }
+
+        $found = [];
+        for ($page = 1; $page <= 300; $page++) {
+            $q = ['per_page' => 100, 'page' => $page, '_fields' => 'id,link', 'orderby' => 'date', 'order' => 'desc'];
+            if ($catId) {
+                $q['categories'] = $catId;
+            }
+            $res = $this->wpGet('/wp/v2/posts', $q);
+            if ($res['code'] === 400 && $page > 1) {
+                break; // melewati halaman terakhir
+            }
+            if ($res['code'] !== 200 || ! is_array($res['data'])) {
+                if ($page === 1) {
+                    throw new RuntimeException('Daftar berita WordPress tidak dapat diambil (HTTP ' . $res['code'] . ').');
+                }
+                break;
+            }
+            foreach ($res['data'] as $r) {
+                $id = (int) ($r['id'] ?? 0);
+                if ($id && ! isset($found[$id])) {
+                    $link       = (string) ($r['link'] ?? '');
+                    $found[$id] = ['url' => $link !== '' && $this->isOwnHost($link) ? $link : $this->base . '/?p=' . $id, 'id' => $id, 'ref' => 'wp:' . $id];
+                }
+            }
+            if (count($res['data']) < 100) {
+                break;
+            }
+        }
+        if (! $found) {
+            throw new RuntimeException('Tidak ada berita yang ditemukan di kategori ini.');
+        }
+
+        return array_values($found); // sudah urut terbaru dulu
+    }
+
+    /**
+     * Daftar kategori WordPress (untuk dipilih di halaman impor).
+     * @return list<array{id:int,name:string,slug:string,count:int,url:string}>
+     */
+    public function wpCategories(): array
+    {
+        if ($this->platform() !== 'wordpress') {
+            throw new RuntimeException('Website ini tidak terdeteksi sebagai WordPress. Gunakan tab Joomla.');
+        }
+        $out = [];
+        for ($page = 1; $page <= 10; $page++) {
+            $res = $this->wpGet('/wp/v2/categories', ['per_page' => 100, 'page' => $page, 'hide_empty' => 'true', '_fields' => 'id,name,slug,count,link']);
+            if ($res['code'] !== 200 || ! is_array($res['data']) || ! $res['data']) {
+                break;
+            }
+            foreach ($res['data'] as $c) {
+                $link  = (string) ($c['link'] ?? '');
+                $out[] = ['id' => (int) $c['id'], 'name' => html_entity_decode((string) $c['name'], ENT_QUOTES | ENT_HTML5, 'UTF-8'), 'slug' => (string) $c['slug'],
+                    'count' => (int) $c['count'], 'url' => $link !== '' && $this->isOwnHost($link) ? $link : $this->base . '/?cat=' . (int) $c['id']];
+            }
+            if (count($res['data']) < 100) {
+                break;
+            }
+        }
+        if (! $out) {
+            throw new RuntimeException('Kategori WordPress tidak dapat diambil.');
+        }
+        usort($out, static fn ($a, $b) => $b['count'] <=> $a['count']);
+
+        return $out;
+    }
+
+    /** Impor satu berita WordPress dari alamat beritanya (…/judul-berita/ atau …/?p=123). */
+    private function wpImport(string $url, array $opt): array
+    {
+        $db  = db_connect();
+        $url = $this->absolute($url, $this->base . '/');
+        if (! $url || ! $this->isOwnHost($url)) {
+            return ['status' => 'error', 'message' => 'Alamat berita harus berada di ' . $this->host . '.'];
+        }
+        parse_str((string) parse_url($url, PHP_URL_QUERY), $qs);
+        $embed = ['_embed' => 'wp:featuredmedia'];
+        if (! empty($qs['p']) && ctype_digit((string) $qs['p'])) {
+            $res  = $this->wpGet('/wp/v2/posts/' . (int) $qs['p'], $embed);
+            $post = $res['code'] === 200 && is_array($res['data']) ? $res['data'] : null;
+        } else {
+            $segs = array_values(array_filter(explode('/', trim((string) parse_url($url, PHP_URL_PATH), '/')), 'strlen'));
+            $slug = rawurldecode((string) end($segs));
+            if ($slug === '' || in_array(strtolower($slug), ['category', 'kategori', 'page', 'tag'], true)) {
+                return ['status' => 'error', 'message' => 'Alamat berita tidak valid (tempel alamat satu berita, bukan halaman kategori).'];
+            }
+            $res  = $this->wpGet('/wp/v2/posts', $embed + ['slug' => $slug]);
+            $post = $res['code'] === 200 && ! empty($res['data'][0]) ? $res['data'][0] : null;
+        }
+        if (! $post || empty($post['id'])) {
+            return ['status' => 'error', 'message' => 'Berita tidak ditemukan di website lama (mungkin berupa halaman, bukan berita).'];
+        }
+
+        $ref = 'wp:' . (int) $post['id'];
+        $old = $db->table('posts')->select('id, slug, title, image')->where('source_ref', $ref)->get()->getRowArray();
+        $title = trim(preg_replace('/\s+/u', ' ', html_entity_decode(strip_tags((string) ($post['title']['rendered'] ?? '')), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
+        if ($old && empty($opt['overwrite'])) {
+            return ['status' => 'skip', 'message' => 'Sudah ada', 'title' => $old['title'], 'slug' => $old['slug'], 'id' => (int) $old['id']];
+        }
+        if ($title === '') {
+            return ['status' => 'error', 'message' => 'Judul tidak ditemukan'];
+        }
+        if (! empty($post['content']['protected'])) {
+            return ['status' => 'error', 'message' => 'Berita dilindungi kata sandi', 'title' => $title];
+        }
+        $ts = strtotime((string) ($post['date'] ?? ''));
+        if (! $ts) {
+            return ['status' => 'error', 'message' => 'Tanggal terbit tidak ditemukan', 'title' => $title];
+        }
+        if (! empty($opt['since']) && (int) date('Y', $ts) < (int) $opt['since']) {
+            return ['status' => 'skip', 'message' => 'Terbit ' . date('Y', $ts) . ', sebelum tahun ' . (int) $opt['since'], 'title' => $title];
+        }
+
+        // penulis: nama akun admin (mis. "adm paptk") diganti "Humas"
+        $author = trim((string) ($post['yoast_head_json']['author'] ?? ''));
+        if ($author === '' || preg_match('/^(adm|admin|administrator|operator|user|webmaster|editor)\b/i', $author)) {
+            $author = 'Humas';
+        }
+        $views = 0;
+        foreach (['magazineBlocksPostViewCount', 'post_views_count', 'views'] as $k) {
+            if (isset($post[$k]) && is_numeric($post[$k])) {
+                $views = (int) $post[$k];
+                break;
+            }
+        }
+        // gambar utama: featured image → og:image (Yoast) → gambar pertama di isi
+        $cover = $post['_embedded']['wp:featuredmedia'][0]['source_url'] ?? null;
+        if (! is_string($cover) || $cover === '') {
+            $cover = $post['yoast_head_json']['og_image'][0]['url'] ?? ($post['jetpack_featured_media_url'] ?? null);
+        }
+
+        $dom = new DOMDocument();
+        libxml_use_internal_errors(true);
+        $dom->loadHTML('<?xml encoding="utf-8"?><div id="wp-isi">' . (string) ($post['content']['rendered'] ?? '') . '</div>', LIBXML_NONET | LIBXML_COMPACT);
+        libxml_clear_errors();
+        $xp   = new DOMXPath($dom);
+        $body = $this->first($xp, "//div[@id='wp-isi']");
+        if (! $body) {
+            return ['status' => 'error', 'message' => 'Isi berita tidak dikenali', 'title' => $title];
+        }
+        $link = (string) ($post['link'] ?? $url);
+
+        return $this->build($dom, $xp, $body, $this->isOwnHost($link) ? $link : $url, [
+            'ref' => $ref, 'old' => $old, 'title' => $title, 'ts' => $ts, 'author' => $author, 'views' => $views,
+            'slug' => (string) ($post['slug'] ?? ''), 'id' => (int) $post['id'], 'cover' => is_string($cover) ? $cover : null,
+        ], $opt);
+    }
+
+    /**
+     * Panggil REST API WordPress website lama. Jalur /wp-json/… lalu cadangan ?rest_route=… (permalink polos).
+     * @return array{code:int,data:mixed}
+     */
+    private function wpGet(string $route, array $query = []): array
+    {
+        $qs  = $query ? http_build_query($query) : '';
+        $res = $this->fetch($this->base . '/wp-json' . $route . ($qs !== '' ? '?' . $qs : ''));
+        $data = json_decode($res['body'], true);
+        if ($data === null && in_array($res['code'], [0, 404], true)) {
+            $res  = $this->fetch($this->base . '/?rest_route=' . rawurlencode($route) . ($qs !== '' ? '&' . $qs : ''));
+            $data = json_decode($res['body'], true);
+        }
+
+        return ['code' => $data === null ? ($res['code'] === 200 ? 502 : $res['code']) : $res['code'], 'data' => $data];
+    }
+
     // ------------------------------------------------------------------ bantu
 
-    private function slug(string $url, int $id, string $title): string
+    private function slug(string $base, int $id, string $title): string
     {
-        $alias = preg_replace(['#^.*/\d+-#', '#\.html?$#i'], '', (string) parse_url($url, PHP_URL_PATH));
-        $slug  = trim(preg_replace('/[^a-z0-9]+/', '-', strtolower($alias ?: url_title($title, '-', true))), '-');
-        $slug  = rtrim(mb_substr($slug ?: 'berita-' . $id, 0, 160), '-');
+        $slug = trim(preg_replace('/[^a-z0-9]+/', '-', strtolower(rawurldecode($base) ?: url_title($title, '-', true))), '-');
+        $slug = rtrim(mb_substr($slug ?: 'berita-' . $id, 0, 160), '-');
         if (db_connect()->table('posts')->where('slug', $slug)->countAllResults() > 0) {
             $slug .= '-' . $id;
         }
 
         return $slug;
+    }
+
+    /** Kunci pembanding gambar: nama berkas tanpa akhiran ukuran WordPress (-1024x768). */
+    private function imageKey(string $url): string
+    {
+        return strtolower(preg_replace('/-\d+x\d+(?=\.\w+$)/', '', rawurldecode(basename((string) parse_url($url, PHP_URL_PATH)))));
     }
 
     private function downloadImage(string $src): ?string

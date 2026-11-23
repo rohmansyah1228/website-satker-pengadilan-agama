@@ -1,9 +1,23 @@
 {
-  "build": 14,
+  "build": 15,
   "version": "2026-11-23",
   "repo": "rohmansyah1228/website-satker-pengadilan-agama",
   "branch": "main",
   "releases": [
+    {
+      "build": 15,
+      "version": "2026-11-23",
+      "notes": "Fitur baru: Impor berita dari website lama berbasis WordPress (tab 'Website WordPress' di Impor Berita): ambil daftar kategori, impor judul, isi, tanggal, gambar utama & gambar isi, PDF; alamat berita WordPress lama dialihkan otomatis ke berita baru.",
+      "files": [
+        "app/Config/Routes.php",
+        "app/Controllers/Admin/Import.php",
+        "app/Controllers/Site.php",
+        "app/Libraries/LegacyImporter.php",
+        "app/Views/admin/guide.php",
+        "app/Views/admin/import.php",
+        "public/assets/js/import.js"
+      ]
+    },
     {
       "build": 14,
       "version": "2026-11-23",

@@ -4,20 +4,60 @@ namespace App\Controllers\Admin;
 
 use App\Libraries\LegacyImporter;
 
-/** Impor berita dari website lama (Joomla) — Super Admin. */
+/** Impor berita dari website lama (Joomla atau WordPress) — Super Admin. */
 class Import extends AdminController
 {
     public function index()
     {
+        return $this->page('joomla');
+    }
+
+    /** Halaman impor khusus website lama berbasis WordPress. */
+    public function wordpress()
+    {
+        return $this->page('wordpress');
+    }
+
+    private function page(string $platform)
+    {
         $this->authorize([], true);
+        $wp = $platform === 'wordpress';
 
         return $this->view('import', [
-            'title'      => 'Impor Berita dari Website Lama',
+            'title'      => $wp ? 'Impor Berita dari WordPress' : 'Impor Berita dari Website Lama',
+            'platform'   => $platform,
             'categories' => config('SiteStructure')->postCategories,
-            'siteUrl'    => setting('import_site_url', ''),
-            'imported'   => $this->ready() ? $this->db->table('posts')->where('source_ref IS NOT NULL')->countAllResults() : 0,
+            'siteUrl'    => setting($wp ? 'import_wp_url' : 'import_site_url', ''),
+            'imported'   => $this->ready() ? $this->db->table('posts')->like('source_ref', $wp ? 'wp:' : 'joomla:', 'after')->countAllResults() : 0,
             'ready'      => $this->ready(),
         ]);
+    }
+
+    /** Daftar kategori website WordPress lama. */
+    public function wpCategories()
+    {
+        $this->authorize([], true);
+        $site = (string) $this->request->getPost('site');
+        try {
+            $cats = $this->importer('wordpress')->wpCategories();
+        } catch (\Throwable $e) {
+            return $this->json(['error' => $e->getMessage()]);
+        }
+        service('siteSettings')->set(['import_wp_url' => trim($site)]);
+
+        return $this->json(['categories' => $cats]);
+    }
+
+    private function platform(?string $force = null): string
+    {
+        $p = $force ?? (string) $this->request->getPost('platform');
+
+        return in_array($p, ['joomla', 'wordpress'], true) ? $p : 'auto';
+    }
+
+    private function importer(?string $force = null): LegacyImporter
+    {
+        return new LegacyImporter((string) $this->request->getPost('site'), (bool) $this->request->getPost('insecure'), $this->platform($force));
     }
 
     /** Ambil daftar berita di satu kategori situs lama. */
@@ -30,18 +70,19 @@ class Import extends AdminController
         @set_time_limit(300);
         $site = (string) $this->request->getPost('site');
         try {
-            $imp   = new LegacyImporter($site, (bool) $this->request->getPost('insecure'));
+            $imp   = $this->importer();
             $items = $imp->listArticles((string) $this->request->getPost('category_url'));
         } catch (\Throwable $e) {
             return $this->json(['error' => $e->getMessage()]);
         }
-        service('siteSettings')->set(['import_site_url' => trim($site)]);
-        $refs = array_map(static fn ($i) => 'joomla:' . $i['id'], $items);
+        service('siteSettings')->set([$imp->platform() === 'wordpress' ? 'import_wp_url' : 'import_site_url' => trim($site)]);
+        $ref  = static fn ($i) => $i['ref'] ?? ('joomla:' . $i['id']);
+        $refs = array_map($ref, $items);
         $have = $refs ? array_column($this->db->table('posts')->select('source_ref')->whereIn('source_ref', $refs)->get()->getResultArray(), 'source_ref') : [];
         $have = array_flip($have);
 
         return $this->json([
-            'items'    => array_map(static fn ($i) => $i + ['done' => isset($have['joomla:' . $i['id']])], $items),
+            'items'    => array_map(static fn ($i) => $i + ['done' => isset($have[$ref($i)])], $items),
             'total'    => count($items),
             'existing' => count($have),
         ]);
@@ -59,7 +100,7 @@ class Import extends AdminController
         }
         $urls = array_slice((array) $this->request->getPost('urls'), 0, 5);
         try {
-            $imp = new LegacyImporter((string) $this->request->getPost('site'), (bool) $this->request->getPost('insecure'));
+            $imp = $this->importer();
         } catch (\Throwable $e) {
             return $this->json(['error' => $e->getMessage()]);
         }
@@ -107,7 +148,7 @@ class Import extends AdminController
             return $this->json(['error' => 'Tempel minimal satu alamat berita.']);
         }
         try {
-            $imp = new LegacyImporter((string) $this->request->getPost('site'), (bool) $this->request->getPost('insecure'));
+            $imp = $this->importer();
         } catch (\Throwable $e) {
             return $this->json(['error' => $e->getMessage()]);
         }

@@ -1,6 +1,7 @@
 <?= $this->extend('layouts/admin') ?>
 <?= $this->section('content') ?>
 <?php
+$wp   = ($platform ?? 'joomla') === 'wordpress';
 $host = $siteUrl !== '' ? rtrim($siteUrl, '/') : 'https://pa-namasatker.go.id';
 $opts = static function (string $sel) use ($categories) {
     $o = '';
@@ -11,8 +12,16 @@ $opts = static function (string $sel) use ($categories) {
     return $o;
 };
 ?>
-<h1 class="h3 font-display fw-bold text-pa-primary mb-1">Impor Berita dari Website Lama</h1>
-<p class="text-secondary mb-3">Pindahkan berita dari website lama berbasis Joomla beserta tanggal, penulis, jumlah dibaca, gambar, dan lampiran PDF. Impor dapat diulang kapan saja: berita yang sudah dipindah dilewati, jadi tidak ada data dobel.</p>
+<h1 class="h3 font-display fw-bold text-pa-primary mb-1"><?= esc($title) ?></h1>
+<p class="text-secondary mb-3"><?= $wp
+    ? 'Pindahkan berita dari website lama berbasis <strong>WordPress</strong> beserta tanggal, gambar utama, gambar di dalam isi, dan lampiran PDF. Data diambil lewat jalur data bawaan WordPress (REST API).'
+    : 'Pindahkan berita dari website lama berbasis <strong>Joomla</strong> (template website PA/PTA lama) beserta tanggal, penulis, jumlah dibaca, gambar, dan lampiran PDF.' ?>
+    Impor dapat diulang kapan saja: berita yang sudah dipindah dilewati, jadi tidak ada data dobel.</p>
+
+<ul class="nav nav-tabs mb-3" role="tablist" aria-label="Jenis website lama">
+    <li class="nav-item"><a class="nav-link<?= $wp ? '' : ' active' ?>" <?= $wp ? '' : 'aria-current="page"' ?> href="<?= admin_url('impor') ?>"><i class="bi bi-globe2 me-1" aria-hidden="true"></i>Website Joomla</a></li>
+    <li class="nav-item"><a class="nav-link<?= $wp ? ' active' : '' ?>" <?= $wp ? 'aria-current="page"' : '' ?> href="<?= admin_url('impor/wordpress') ?>"><i class="bi bi-wordpress me-1" aria-hidden="true"></i>Website WordPress</a></li>
+</ul>
 
 <?php if (! $ready): ?>
     <div class="alert alert-warning"><i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i> Fitur ini memerlukan pembaruan database. Buka <a href="<?= admin_url() ?>">Dashboard</a> lalu klik <strong>Jalankan pembaruan</strong>.</div>
@@ -20,6 +29,7 @@ $opts = static function (string $sel) use ($categories) {
 
 <form id="importForm" class="row g-3" novalidate>
     <?= csrf_field() ?>
+    <input type="hidden" name="platform" value="<?= $wp ? 'wordpress' : 'joomla' ?>">
     <div class="col-xl-8">
         <div class="card mb-3"><div class="card-body">
             <h2 class="h6 fw-bold">1. Website lama</h2>
@@ -27,6 +37,25 @@ $opts = static function (string $sel) use ($categories) {
             <input type="url" class="form-control" id="impSite" name="site" value="<?= esc($siteUrl) ?>" placeholder="https://pa-namasatker.go.id" required>
             <div class="form-text">Server website ini yang mengambil berita, jadi server harus terhubung ke internet. Gambar dan PDF hanya diunduh dari alamat ini.</div>
 
+<?php if ($wp): ?>
+            <h2 class="h6 fw-bold mt-4">2. Kategori yang dipindah</h2>
+            <button type="button" class="btn btn-sm btn-outline-primary mb-2" id="impWpCats" <?= $ready ? '' : 'disabled' ?>><i class="bi bi-list-ul" aria-hidden="true"></i> Ambil daftar kategori dari WordPress</button>
+            <span class="small text-secondary ms-1" id="impWpCatsMsg" role="status" aria-live="polite"></span>
+            <div class="table-responsive"><table class="table table-sm align-middle mb-2" id="impRows">
+                <thead><tr><th scope="col" style="width: 3rem">Ikut</th><th scope="col">Kategori di website lama</th><th scope="col" style="width: 13rem">Masuk ke kategori</th><th scope="col" style="width: 7rem">Jumlah</th><th scope="col" style="width: 3rem"><span class="visually-hidden">Hapus</span></th></tr></thead>
+                <tbody>
+                    <tr>
+                        <td><input class="form-check-input" type="checkbox" data-imp="on" checked aria-label="Ikut diimpor"></td>
+                        <td><input type="text" class="form-control form-control-sm" data-imp="url" value="<?= esc($host . '/category/berita/') ?>" aria-label="Alamat kategori"></td>
+                        <td><select class="form-select form-select-sm" data-imp="cat" aria-label="Kategori tujuan"><?= $opts('berita') ?></select></td>
+                        <td class="small" data-imp="count">–</td>
+                        <td><button type="button" class="btn btn-sm btn-link text-danger" data-imp-del title="Hapus baris"><i class="bi bi-x-lg" aria-hidden="true"></i><span class="visually-hidden">Hapus baris</span></button></td>
+                    </tr>
+                </tbody>
+            </table></div>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="impAddRow"><i class="bi bi-plus-lg" aria-hidden="true"></i> Tambah kategori</button>
+            <div class="form-text">Klik <strong>Ambil daftar kategori</strong> untuk menampilkan semua kategori WordPress beserta jumlah beritanya, lalu centang yang ingin dipindah. Bisa juga menempel alamat kategori langsung, mis. <code>…/category/berita/</code>. Kategori seperti <em>Uncategorized</em> biasanya berisi halaman informasi, bukan berita — sebaiknya tidak dicentang.</div>
+<?php else: ?>
             <h2 class="h6 fw-bold mt-4">2. Kategori yang dipindah</h2>
             <div class="table-responsive"><table class="table table-sm align-middle mb-2" id="impRows">
                 <thead><tr><th scope="col" style="width: 3rem">Ikut</th><th scope="col">Alamat halaman kategori di website lama</th><th scope="col" style="width: 13rem">Masuk ke kategori</th><th scope="col" style="width: 7rem">Jumlah</th><th scope="col" style="width: 3rem"><span class="visually-hidden">Hapus</span></th></tr></thead>
@@ -44,12 +73,13 @@ $opts = static function (string $sel) use ($categories) {
             </table></div>
             <button type="button" class="btn btn-sm btn-outline-secondary" id="impAddRow"><i class="bi bi-plus-lg" aria-hidden="true"></i> Tambah kategori</button>
             <div class="form-text">Buka menu berita di website lama, lalu salin alamat halaman daftarnya, mis. <code>…/berita/berita-terkini.html</code>. Di website lama Badilag, <em>Arsip Berita</em> umumnya berisi surat/undangan dari Badilag &amp; MA, cocok masuk <strong>Pengumuman</strong>.</div>
+<?php endif ?>
         </div></div>
 
         <div class="card mb-3"><div class="card-body">
             <h2 class="h6 fw-bold">Impor satu berita <span class="text-secondary fw-normal small">(opsional)</span></h2>
             <p class="small text-secondary mb-2">Untuk memindahkan satu berita tertentu, tempel <strong>alamat beritanya</strong> (bukan halaman kategori), satu alamat per baris. Alamat website lama di kotak 1 harus sudah terisi.</p>
-            <textarea class="form-control font-monospace" id="impOneUrls" rows="3" placeholder="https://pa-namasatker.go.id/berita/berita-terkini/3066-judul-berita.html"></textarea>
+            <textarea class="form-control font-monospace" id="impOneUrls" rows="3" placeholder="<?= $wp ? 'https://pa-namasatker.go.id/judul-berita/' : 'https://pa-namasatker.go.id/berita/berita-terkini/3066-judul-berita.html' ?>"></textarea>
             <div class="row g-2 mt-1 align-items-end">
                 <div class="col-sm-6">
                     <label class="form-label small mb-1" for="impOneCat">Masuk ke kategori</label>
@@ -95,7 +125,7 @@ $opts = static function (string $sel) use ($categories) {
             <button type="button" class="btn btn-pa-primary" id="impStart" <?= $ready ? '' : 'disabled' ?>><i class="bi bi-cloud-download" aria-hidden="true"></i> Mulai Impor</button>
             <button type="button" class="btn btn-outline-danger d-none" id="impStop"><i class="bi bi-stop-circle" aria-hidden="true"></i> Hentikan</button>
         </div>
-        <p class="small text-secondary mt-2 mb-0"><?= number_format($imported, 0, ',', '.') ?> berita hasil impor saat ini.</p>
+        <p class="small text-secondary mt-2 mb-0"><?= number_format($imported, 0, ',', '.') ?> berita hasil impor dari <?= $wp ? 'WordPress' : 'Joomla' ?> saat ini.</p>
     </div>
 </form>
 
@@ -116,7 +146,7 @@ $opts = static function (string $sel) use ($categories) {
 </div></div>
 
 <div class="alert alert-light border mt-3 small mb-0">
-    <i class="bi bi-signpost-split me-1" aria-hidden="true"></i> Setelah domain dipindah ke website baru, alamat berita lama (mis. <code>/berita/berita-terkini/3064-judul.html</code>) otomatis dialihkan ke berita yang sama di website ini, jadi tautan di Google dan media sosial tetap berfungsi.
+    <i class="bi bi-signpost-split me-1" aria-hidden="true"></i> Setelah domain dipindah ke website baru, alamat berita lama (mis. <code><?= $wp ? '/judul-berita/' : '/berita/berita-terkini/3064-judul.html' ?></code>) otomatis dialihkan ke berita yang sama di website ini, jadi tautan di Google dan media sosial tetap berfungsi.
 </div>
 <script src="<?= asset('assets/js/import.js') ?>" defer></script>
 <?= $this->endSection() ?>

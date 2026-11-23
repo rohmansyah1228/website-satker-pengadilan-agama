@@ -112,6 +112,24 @@ class Site extends BaseController
                     return redirect()->to(site_url('berita/' . $post['slug']), 301);
                 }
             }
+            // alamat berita website lama WordPress (mis. /judul-berita/ atau /2026/11/20/judul-berita/) → berita hasil impor
+            $last = strtolower(rawurldecode((string) basename($path)));
+            if ($last !== '' && preg_match('/^[a-z0-9-]{3,160}$/', $last)) {
+                $rows = db_connect()->table('posts')->select('slug')->like('source_ref', 'wp:', 'after')
+                    ->groupStart()->where('slug', $last)->orLike('slug', $last . '-', 'after')->groupEnd()->get(20)->getResultArray();
+                $post = null;
+                foreach ($rows as $r) { // sama persis, atau + akhiran "-<id>" bila slug bentrok saat impor
+                    if ($r['slug'] === $last || preg_match('/^' . preg_quote($last, '/') . '-\d+$/', $r['slug'])) {
+                        $post = $r;
+                        if ($r['slug'] === $last) {
+                            break;
+                        }
+                    }
+                }
+                if ($post) {
+                    return redirect()->to(site_url('berita/' . $post['slug']), 301);
+                }
+            }
         } catch (\Throwable) {
         }
 
