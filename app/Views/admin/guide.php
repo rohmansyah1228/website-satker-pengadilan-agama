@@ -96,6 +96,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
     <p>Alamat website terdeteksi otomatis (domain, IP, atau folder berganti tidak perlu diatur). Untuk PA lain cukup ganti <em>Pengaturan → Identitas Satker</em> dan <em>Alamat & Kontak</em>.</p>
     <h3>Pembaruan database</h3>
     <p>Setiap kali file website diperbarui, buka <strong>Dashboard SINOVA</strong>. Bila muncul kotak <strong>Pembaruan database tersedia</strong>, klik <strong>Jalankan pembaruan</strong> (Super Admin). Aman dijalankan ulang dan tidak menghapus data.</p>
+    <?= $tip('<strong>Pemberitahuan versi.</strong> Dashboard otomatis memberi tahu bila ada versi baru di GitHub, lengkap dengan <strong>daftar berkas yang berubah</strong>. Satker cukup menimpa berkas yang disebut itu saja (jangan timpa <code>.env</code>, <code>writable/</code>, <code>public/uploads/</code>), lalu jalankan pembaruan database bila diminta. Website satker lain tidak ikut berubah saat Anda publish — tiap satker memasang pembaruannya sendiri.') ?>
     <?= $tip('Sebelum memperbarui website, cadangkan database serta folder <code>public/uploads</code> dan <code>writable/uploads</code>.', 'warn') ?>
 </section>
 

@@ -16,6 +16,7 @@ class Dashboard extends AdminController
             'visitors' => service('visitorStats')->summary(),
             'recent'  => $this->db->table('activity_logs')->orderBy('id', 'DESC')->get(8)->getResultArray(),
             'pendingMigrations' => can([], true) ? $this->pendingMigrations() : [],
+            'update' => can([], true) ? (new \App\Libraries\VersionCheck())->status() : null,
         ]);
     }
 

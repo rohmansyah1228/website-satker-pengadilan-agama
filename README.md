@@ -123,6 +123,10 @@ php spark serve                 &:: http://localhost:8080
 
 **Pembaruan versi di hosting.** Unggah berkas baru dengan menimpa yang lama, **kecuali** `.env`, `writable/`, dan `public/uploads/`. Bila pembaruan membawa perubahan tabel, Dashboard admin menampilkan tombol **Jalankan pembaruan** (khusus Super Admin). Cadangkan database lebih dulu.
 
+**Pemberitahuan versi.** Dashboard SINOVA otomatis mengecek `version.json` di GitHub (sekali per 6 jam). Bila ada versi lebih baru, muncul pemberitahuan berisi ringkasan perubahan dan **daftar berkas yang berubah** — satker cukup menimpa berkas-berkas itu saja (tidak perlu seluruh folder), lalu klik **Jalankan pembaruan** bila ada perubahan tabel. Pemberitahuan ini hanya memberi tahu, tidak mengubah apa pun otomatis.
+
+> **Untuk pemelihara (yang mem-publish ke GitHub).** Setiap rilis, jalankan `bash deploy/rilis.sh "catatan perubahan"` sebelum commit — skrip menaikkan nomor build di `version.json` dan mencatat berkas yang berubah. Lalu `git add -A && git commit && git push`. Nomor build yang naik inilah yang memicu pemberitahuan di Dashboard semua satker.
+
 ---
 
 ## Instalasi di Server Linux — untuk produksi

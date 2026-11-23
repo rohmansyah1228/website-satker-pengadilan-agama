@@ -1,0 +1,75 @@
+{
+  "build": 7,
+  "version": "2026-11-23",
+  "repo": "rohmansyah1228/website-satker-pengadilan-agama",
+  "branch": "main",
+  "releases": [
+    {
+      "build": 7,
+      "version": "2026-11-23",
+      "notes": "Saklar buka/kunci halaman & menu wajib SK (menyesuaikan SK baru)",
+      "files": [
+        "app/Controllers/Admin/Menus.php",
+        "app/Controllers/Admin/Pages.php",
+        "app/Controllers/Admin/Settings.php",
+        "app/Helpers/site_helper.php",
+        "app/Views/admin/guide.php",
+        "app/Views/admin/menus/form.php",
+        "app/Views/admin/menus/index.php",
+        "app/Views/admin/pages/form.php",
+        "app/Views/admin/pages/index.php"
+      ]
+    },
+    {
+      "build": 6,
+      "version": "2026-11-23",
+      "notes": "Impor satu berita (tempel alamatnya) + opsi Timpa bila sudah ada",
+      "files": [
+        "app/Config/Routes.php",
+        "app/Controllers/Admin/Import.php",
+        "app/Libraries/LegacyImporter.php",
+        "app/Views/admin/import.php",
+        "public/assets/js/import.js"
+      ]
+    },
+    {
+      "build": 5,
+      "version": "2026-11-23",
+      "notes": "Perbaikan: toolbar editor hilang saat blok dipindah/dihapus",
+      "files": [
+        "public/assets/js/editor.js",
+        "public/assets/js/page-builder.js"
+      ]
+    },
+    {
+      "build": 4,
+      "version": "2026-11-23",
+      "notes": "Perkuat .htaccess & panduan hosting (cegah gangguan subdomain)",
+      "files": [
+        ".htaccess",
+        "app/Views/admin/guide.php"
+      ]
+    },
+    {
+      "build": 3,
+      "version": "2026-11-23",
+      "notes": "Menu samping admin jadi laci buka/tutup di layar HP",
+      "files": [
+        "app/Views/layouts/admin.php",
+        "public/assets/css/admin.css",
+        "public/assets/js/admin.js"
+      ]
+    },
+    {
+      "build": 2,
+      "version": "2026-11-23",
+      "notes": "Keamanan: tutup SSRF impor/feed & tolak GIF polyglot",
+      "files": [
+        "app/Libraries/AnnouncementFeed.php",
+        "app/Libraries/LegacyImporter.php",
+        "app/Libraries/Uploader.php",
+        "app/Libraries/UrlGuard.php"
+      ]
+    }
+  ]
+}
