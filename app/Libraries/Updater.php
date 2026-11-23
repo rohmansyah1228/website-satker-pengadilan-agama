@@ -350,16 +350,10 @@ class Updater
         }
     }
 
-    /** SHA commit terbaru cabang (null bila API GitHub tidak dapat dihubungi → pakai nama cabang). */
+    /** SHA commit terbaru cabang (null bila GitHub tidak dapat dihubungi → pakai nama cabang). */
     private function latestCommit(): ?string
     {
-        try {
-            $sha = trim($this->fetch(self::API . $this->repo . '/commits/' . rawurlencode($this->branch), 4096, ['Accept: application/vnd.github.sha']));
-
-            return preg_match('/^[0-9a-f]{40}$/', $sha) ? $sha : null;
-        } catch (\Throwable) {
-            return null;
-        }
+        return VersionCheck::latestSha($this->repo, $this->branch);
     }
 
     /** Unduh lewat HTTPS dari GitHub saja. */

@@ -1,9 +1,18 @@
 {
-  "build": 12,
+  "build": 13,
   "version": "2026-11-23",
   "repo": "rohmansyah1228/website-satker-pengadilan-agama",
   "branch": "main",
   "releases": [
+    {
+      "build": 13,
+      "version": "2026-11-23",
+      "notes": "Perbaikan: pemeriksaan versi & Update Website tetap mendapat rilis terbaru walau batas API GitHub per IP habis (umum di shared hosting).",
+      "files": [
+        "app/Libraries/Updater.php",
+        "app/Libraries/VersionCheck.php"
+      ]
+    },
     {
       "build": 12,
       "version": "2026-11-23",

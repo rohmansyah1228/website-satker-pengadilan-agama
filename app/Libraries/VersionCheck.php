@@ -80,16 +80,9 @@ class VersionCheck
             if (! function_exists('curl_init')) {
                 throw new \RuntimeException('cURL tidak aktif');
             }
-            // commit terbaru lewat API (selalu segar); version.json dibaca pada commit itu, bukan nama cabang
-            // yang bisa tertahan cache CDN GitHub beberapa menit. Bila API gagal → pakai nama cabang.
-            $ref = $branch;
-            try {
-                [$code, $sha] = $this->get('https://api.github.com/repos/' . $repo . '/commits/' . rawurlencode($branch), ['Accept: application/vnd.github.sha'], 4096);
-                if ($code === 200 && preg_match('/^[0-9a-f]{40}$/', trim($sha))) {
-                    $ref = trim($sha);
-                }
-            } catch (\Throwable) {
-            }
+            // version.json dibaca pada SHA commit terbaru (selalu segar), bukan nama cabang yang bisa
+            // tertahan cache CDN GitHub beberapa menit. Bila SHA tak didapat → pakai nama cabang.
+            $ref = self::latestSha($repo, $branch) ?? $branch;
             [$code, $buf, $err] = $this->get('https://raw.githubusercontent.com/' . $repo . '/' . $ref . '/version.json', [], 262144);
             if ($code !== 200 || $buf === '') {
                 throw new \RuntimeException($err ?: ('HTTP ' . $code));
@@ -107,8 +100,37 @@ class VersionCheck
         return $res;
     }
 
+    /**
+     * SHA commit terbaru sebuah cabang di GitHub.
+     * Utama: info/refs (jalur yang dipakai `git clone`, tidak terkena batas API 60/jam per IP —
+     * penting di shared hosting yang IP-nya dipakai bersama). Cadangan: API GitHub.
+     */
+    public static function latestSha(string $repo, string $branch): ?string
+    {
+        if (! preg_match('#^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$#', $repo) || ! preg_match('#^[A-Za-z0-9_./-]+$#', $branch) || ! function_exists('curl_init')) {
+            return null;
+        }
+        $self = new self();
+        try {
+            [$code, $body] = $self->get('https://github.com/' . $repo . '.git/info/refs?service=git-upload-pack', [], 2 * 1024 * 1024, 'git/2.43.0');
+            if ($code === 200 && preg_match('#([0-9a-f]{40}) refs/heads/' . preg_quote($branch, '#') . '\n#', $body, $m)) {
+                return $m[1];
+            }
+        } catch (\Throwable) {
+        }
+        try {
+            [$code, $sha] = $self->get('https://api.github.com/repos/' . $repo . '/commits/' . rawurlencode($branch), ['Accept: application/vnd.github.sha'], 4096);
+            if ($code === 200 && preg_match('/^[0-9a-f]{40}$/', trim($sha))) {
+                return trim($sha);
+            }
+        } catch (\Throwable) {
+        }
+
+        return null;
+    }
+
     /** GET HTTPS sederhana (host publik saja). @return array{0:int,1:string,2:string} */
-    private function get(string $url, array $headers, int $max): array
+    private function get(string $url, array $headers, int $max, string $ua = 'WebsiteSatker-VersionCheck'): array
     {
         UrlGuard::assertPublic($url);
         $ch  = curl_init($url);
@@ -120,7 +142,7 @@ class VersionCheck
             CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTPS,
             CURLOPT_CONNECTTIMEOUT  => 4,
             CURLOPT_TIMEOUT         => 6,
-            CURLOPT_USERAGENT       => 'WebsiteSatker-VersionCheck',
+            CURLOPT_USERAGENT       => $ua,
             CURLOPT_HTTPHEADER      => $headers,
             CURLOPT_WRITEFUNCTION   => static function ($c, $chunk) use (&$buf, $max) {
                 $buf .= $chunk;
