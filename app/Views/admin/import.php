@@ -45,6 +45,27 @@ $opts = static function (string $sel) use ($categories) {
             <button type="button" class="btn btn-sm btn-outline-secondary" id="impAddRow"><i class="bi bi-plus-lg" aria-hidden="true"></i> Tambah kategori</button>
             <div class="form-text">Buka menu berita di website lama, lalu salin alamat halaman daftarnya, mis. <code>…/berita/berita-terkini.html</code>. Di website lama Badilag, <em>Arsip Berita</em> umumnya berisi surat/undangan dari Badilag &amp; MA, cocok masuk <strong>Pengumuman</strong>.</div>
         </div></div>
+
+        <div class="card mb-3"><div class="card-body">
+            <h2 class="h6 fw-bold">Impor satu berita <span class="text-secondary fw-normal small">(opsional)</span></h2>
+            <p class="small text-secondary mb-2">Untuk memindahkan satu berita tertentu, tempel <strong>alamat beritanya</strong> (bukan halaman kategori), satu alamat per baris. Alamat website lama di kotak 1 harus sudah terisi.</p>
+            <textarea class="form-control font-monospace" id="impOneUrls" rows="3" placeholder="https://pa-namasatker.go.id/berita/berita-terkini/3066-judul-berita.html"></textarea>
+            <div class="row g-2 mt-1 align-items-end">
+                <div class="col-sm-6">
+                    <label class="form-label small mb-1" for="impOneCat">Masuk ke kategori</label>
+                    <select class="form-select form-select-sm" id="impOneCat"><?php foreach ($categories as $k => $l): ?><option value="<?= esc($k, 'attr') ?>"><?= esc($l) ?></option><?php endforeach ?></select>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="impOverwrite">
+                        <label class="form-check-label small" for="impOverwrite">Timpa bila berita sudah ada</label>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn btn-sm btn-pa-primary mt-2" id="impOneBtn"><i class="bi bi-download" aria-hidden="true"></i> Impor berita ini</button>
+            <div class="small mt-2" id="impOneResult" role="status" aria-live="polite"></div>
+            <div class="form-text">Berita yang sudah pernah dipindah akan dilewati, kecuali dicentang <em>Timpa</em> (isi lama diganti dengan yang terbaru dari website lama).</div>
+        </div></div>
     </div>
 
     <div class="col-xl-4">

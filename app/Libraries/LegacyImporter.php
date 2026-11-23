@@ -121,9 +121,12 @@ class LegacyImporter
             return ['status' => 'error', 'message' => 'Alamat berita tidak valid.'];
         }
         $ref = 'joomla:' . (int) $m[1];
-        if ($row = $db->table('posts')->select('id, slug, title')->where('source_ref', $ref)->get()->getRowArray()) {
-            return ['status' => 'skip', 'message' => 'Sudah ada', 'title' => $row['title'], 'slug' => $row['slug'], 'id' => (int) $row['id']];
+        $old = $db->table('posts')->select('id, slug, title, image')->where('source_ref', $ref)->get()->getRowArray();
+        if ($old && empty($opt['overwrite'])) {
+            return ['status' => 'skip', 'message' => 'Sudah ada', 'title' => $old['title'], 'slug' => $old['slug'], 'id' => (int) $old['id']];
         }
+        // Bila "timpa": berita lama BARU dihapus setelah berita baru berhasil dibangun (lihat sebelum insert),
+        // agar berita lama tidak hilang jika pengambilan dari website lama gagal.
 
         $res = $this->fetch($url);
         if ($res['code'] >= 400 || $res['body'] === '') {
@@ -239,6 +242,14 @@ class LegacyImporter
 
         $text    = trim(preg_replace(['/\s+/u', '/\s+([.,;:!?)])/u'], [' ', '$1'], html_entity_decode(strip_tags(str_replace('<', ' <', $html)), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
         $excerpt = mb_strlen($text) > 240 ? rtrim(mb_substr($text, 0, mb_strrpos(mb_substr($text, 0, 240), ' ') ?: 240), ' ,.;:') . '…' : $text;
+
+        // "timpa": sekarang berita baru siap — hapus berita lama (beserta gambar utamanya) tepat sebelum menyimpan yang baru
+        if ($old) {
+            if (! empty($old['image']) && $old['image'] !== $cover) {
+                $this->uploader->deleteImage($old['image']);
+            }
+            $db->table('posts')->where('id', (int) $old['id'])->delete();
+        }
 
         $now = date('Y-m-d H:i:s');
         $db->table('posts')->insert([

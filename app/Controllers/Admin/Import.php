@@ -68,10 +68,11 @@ class Import extends AdminController
         foreach ($urls as $u) {
             try {
                 $r = $imp->import((string) $u, [
-                    'category' => $cat,
-                    'since'    => (int) $this->request->getPost('since') ?: null,
-                    'images'   => (bool) $this->request->getPost('images'),
-                    'status'   => (string) $this->request->getPost('status'),
+                    'category'  => $cat,
+                    'since'     => (int) $this->request->getPost('since') ?: null,
+                    'images'    => (bool) $this->request->getPost('images'),
+                    'status'    => (string) $this->request->getPost('status'),
+                    'overwrite' => (bool) $this->request->getPost('overwrite'),
                 ]);
             } catch (\Throwable $e) {
                 $r = ['status' => 'error', 'message' => $e->getMessage()];
@@ -85,6 +86,53 @@ class Import extends AdminController
         }
         if ($ok) {
             $this->log('import', $ok . ' berita dari ' . (string) $this->request->getPost('site'));
+        }
+
+        return $this->json(['results' => $out]);
+    }
+
+    /** Impor satu (atau beberapa) berita dari alamat beritanya langsung, tanpa lewat halaman kategori. */
+    public function one()
+    {
+        $this->authorize([], true);
+        @set_time_limit(300);
+        $cats = config('SiteStructure')->postCategories;
+        $cat  = (string) $this->request->getPost('category');
+        if (! isset($cats[$cat])) {
+            return $this->json(['error' => 'Kategori tujuan tidak valid.']);
+        }
+        $urls = array_values(array_filter(array_map('trim', preg_split('/[\r\n]+/', (string) $this->request->getPost('urls'))), static fn ($u) => $u !== ''));
+        $urls = array_slice($urls, 0, 20);
+        if (! $urls) {
+            return $this->json(['error' => 'Tempel minimal satu alamat berita.']);
+        }
+        try {
+            $imp = new LegacyImporter((string) $this->request->getPost('site'), (bool) $this->request->getPost('insecure'));
+        } catch (\Throwable $e) {
+            return $this->json(['error' => $e->getMessage()]);
+        }
+        $out = [];
+        $ok  = 0;
+        foreach ($urls as $u) {
+            try {
+                $r = $imp->import($u, [
+                    'category'  => $cat,
+                    'images'    => (bool) $this->request->getPost('images'),
+                    'status'    => (string) $this->request->getPost('status'),
+                    'overwrite' => (bool) $this->request->getPost('overwrite'),
+                ]);
+            } catch (\Throwable $e) {
+                $r = ['status' => 'error', 'message' => $e->getMessage()];
+            }
+            if ($r['status'] === 'ok') {
+                $ok++;
+                $r['view'] = site_url('berita/' . $r['slug']);
+                $r['edit'] = admin_url('data/berita/' . $r['id']);
+            }
+            $out[] = ['url' => $u] + $r;
+        }
+        if ($ok) {
+            $this->log('import', $ok . ' berita (satuan) dari ' . (string) $this->request->getPost('site'));
         }
 
         return $this->json(['results' => $out]);

@@ -153,4 +153,31 @@
         const b = e.target.closest('[data-imp-del]');
         if (b && rows.rows.length > 1) b.closest('tr').remove();
     });
+
+    // ---- Impor satu berita (tempel alamat beritanya) ----
+    const oneBtn = $('impOneBtn');
+    if (oneBtn) oneBtn.addEventListener('click', async () => {
+        if (busy || !form.elements.site.reportValidity()) return;
+        const urls = $('impOneUrls').value.trim();
+        const out = $('impOneResult');
+        if (!urls) { out.innerHTML = '<span class="text-danger">Tempel dulu alamat beritanya.</span>'; return; }
+        oneBtn.disabled = true; out.innerHTML = '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Memindahkan…';
+        try {
+            const j = await post('satu', { urls, category: $('impOneCat').value, overwrite: $('impOverwrite').checked ? '1' : '' });
+            out.innerHTML = '';
+            (j.results || []).forEach((r) => {
+                const badge = { ok: ['success', 'Dipindah'], skip: ['secondary', 'Dilewati'], error: ['danger', 'Gagal'] }[r.status] || ['secondary', r.status];
+                const d = document.createElement('div'); d.className = 'mb-1';
+                const b = document.createElement('span'); b.className = 'badge text-bg-' + badge[0] + ' me-1'; b.textContent = badge[1]; d.append(b);
+                if (r.view) { const a = document.createElement('a'); a.href = r.view; a.target = '_blank'; a.rel = 'noopener'; a.textContent = r.title || r.url; d.append(a); const e = document.createElement('a'); e.href = r.edit; e.className = 'ms-2'; e.textContent = 'Ubah'; d.append(e); }
+                else { d.append(document.createTextNode((r.title || r.url || '') + ' — ' + (r.message || ''))); }
+                if (r.status === 'skip' && !$('impOverwrite').checked) d.append(document.createTextNode(' (centang "Timpa" untuk menggantinya)'));
+                out.append(d);
+            });
+            if (!(j.results || []).length) out.innerHTML = '<span class="text-secondary">Tidak ada yang diproses.</span>';
+        } catch (e) {
+            out.innerHTML = '<span class="text-danger">' + (e.message || 'Gagal') + '</span>';
+        }
+        oneBtn.disabled = false;
+    });
 })();
