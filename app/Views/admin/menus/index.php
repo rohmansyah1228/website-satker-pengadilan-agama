@@ -1,5 +1,8 @@
 <?= $this->extend('layouts/admin') ?>
 <?= $this->section('content') ?>
+<?php if (sk_unlocked()): ?>
+<div class="alert alert-warning d-flex align-items-start gap-2 mb-3"><i class="bi bi-unlock-fill mt-1" aria-hidden="true"></i><div><strong>Kunci menu wajib SK sedang terbuka.</strong> Menu wajib SK kini dapat dipindah/dihapus untuk menyesuaikan SK baru. Setelah selesai, kembalikan ke <em>Terkunci</em> di <a href="<?= admin_url('pengaturan?tab=keamanan') ?>">Pengaturan → Keamanan</a>.</div></div>
+<?php endif ?>
 <?php
 $moved = (int) session('moved');
 $max   = \App\Libraries\MenuTree::MAX_DEPTH;
@@ -8,7 +11,7 @@ $renderTree = static function (array $items, int $depth = 1, ?int $top = null) u
     ob_start(); ?>
     <ul class="menu-tree"<?= $depth === 1 ? ' aria-label="Struktur menu" id="menuTree"' : '' ?>>
         <?php foreach ($items as $i => $m): ?>
-            <li data-id="<?= $m['id'] ?>" data-top="<?= $top ?? $m['id'] ?>"<?= $m['is_required'] ? ' data-required' : '' ?>>
+            <li data-id="<?= $m['id'] ?>" data-top="<?= $top ?? $m['id'] ?>"<?= ($m['is_required'] && ! sk_unlocked()) ? ' data-required' : '' ?>>
                 <div class="menu-item<?= $moved === (int) $m['id'] ? ' moved' : '' ?>" id="menu-<?= $m['id'] ?>">
                     <div class="menu-main">
                         <span class="menu-handle" title="Seret untuk memindahkan" aria-hidden="true"><i class="bi bi-grip-vertical"></i></span>
@@ -29,7 +32,7 @@ $renderTree = static function (array $items, int $depth = 1, ?int $top = null) u
                             <button class="btn btn-sm btn-outline-secondary" data-dir="down"<?= $i === $count - 1 ? ' disabled' : '' ?>><i class="bi bi-arrow-down" aria-hidden="true"></i><span class="visually-hidden">Pindah <?= esc($m['label']) ?> ke bawah</span></button></form>
                         <a href="<?= admin_url('menu/baru?parent=' . $m['id']) ?>" class="btn btn-sm btn-outline-success" data-submenu<?= $depth >= $max ? ' hidden' : '' ?>><i class="bi bi-plus" aria-hidden="true"></i> Sub-menu<span class="visually-hidden"> untuk <?= esc($m['label']) ?></span></a>
                         <a href="<?= admin_url('menu/' . $m['id']) ?>" class="btn btn-sm btn-outline-success"><i class="bi bi-pencil" aria-hidden="true"></i><span class="visually-hidden">Ubah <?= esc($m['label']) ?></span></a>
-                        <?php if (! $m['is_required']): ?>
+                        <?php if (! $m['is_required'] || sk_unlocked()): ?>
                             <form action="<?= admin_url('menu/' . $m['id'] . '/hapus') ?>" method="post" class="d-inline" data-confirm="Hapus menu “<?= esc($m['label'], 'attr') ?>”? Halaman yang ditautkan tidak ikut terhapus."><?= csrf_field() ?>
                                 <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash" aria-hidden="true"></i><span class="visually-hidden">Hapus <?= esc($m['label']) ?></span></button></form>
                         <?php endif ?>

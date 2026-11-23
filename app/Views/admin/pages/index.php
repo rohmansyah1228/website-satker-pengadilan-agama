@@ -5,6 +5,9 @@
         <p class="text-secondary small mb-0">Halaman bertanda <i class="bi bi-lock-fill" aria-hidden="true"></i> wajib menurut SK — alamatnya dikunci agar URL yang diinput ke SINOVA tetap berlaku.</p></div>
     <a href="<?= admin_url('halaman/baru') ?>" class="btn btn-pa-primary"><i class="bi bi-plus-lg" aria-hidden="true"></i> Halaman Baru</a>
 </div>
+<?php if (sk_unlocked()): ?>
+<div class="alert alert-warning d-flex align-items-start gap-2"><i class="bi bi-unlock-fill mt-1" aria-hidden="true"></i><div><strong>Kunci halaman wajib SK sedang terbuka.</strong> Alamat (slug) dan modul halaman wajib SK kini dapat diubah/dihapus untuk menyesuaikan SK baru. Setelah selesai, kembalikan ke <em>Terkunci</em> di <a href="<?= admin_url('pengaturan?tab=keamanan') ?>">Pengaturan → Keamanan</a>.</div></div>
+<?php endif ?>
 <?php foreach ($sections as $sec => $label): ?>
     <?php if (empty($grouped[$sec])) continue; ?>
     <div class="card mb-3">

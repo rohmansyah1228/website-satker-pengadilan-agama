@@ -1,10 +1,10 @@
 <?= $this->extend('layouts/admin') ?>
 <?= $this->section('content') ?>
-<?php $req = ! empty($m['is_required']); ?>
+<?php $skMenu = ! empty($m['is_required']); $req = $skMenu && ! sk_unlocked(); ?>
 <nav aria-label="breadcrumb"><ol class="breadcrumb small mb-1"><li class="breadcrumb-item"><a href="<?= admin_url('menu') ?>">Menu Navigasi</a></li><li class="breadcrumb-item active" aria-current="page"><?= esc($title) ?></li></ol></nav>
 <h1 class="h3 font-display fw-bold text-pa-primary mb-3"><?= esc($title) ?></h1>
 <?php if ($errors): ?><div class="alert alert-danger" role="alert"><ul class="mb-0"><?php foreach ($errors as $e): ?><li><?= esc($e) ?></li><?php endforeach ?></ul></div><?php endif ?>
-<?php if ($req): ?><div class="alert alert-info small"><i class="bi bi-lock-fill" aria-hidden="true"></i> Menu wajib SK: hanya label yang dapat diubah. Urutan diatur dari daftar menu.</div><?php endif ?>
+<?php if ($req): ?><div class="alert alert-info small"><i class="bi bi-lock-fill" aria-hidden="true"></i> Menu wajib SK: hanya label yang dapat diubah. Urutan diatur dari daftar menu.</div><?php elseif ($skMenu): ?><div class="alert alert-warning small"><i class="bi bi-unlock-fill" aria-hidden="true"></i> Menu wajib SK — <strong>kunci sedang terbuka</strong>. Ubah seperlunya untuk menyesuaikan SK baru, lalu kunci kembali di <em>Pengaturan → Keamanan</em>.</div><?php endif ?>
 <form action="<?= $id ? admin_url('menu/' . $id) : admin_url('menu/baru') ?>" method="post" class="card p-4" style="max-width: 46rem" novalidate>
     <?= csrf_field() ?>
     <div class="mb-3">

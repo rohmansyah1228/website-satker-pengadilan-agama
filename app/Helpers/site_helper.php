@@ -124,6 +124,14 @@ if (! function_exists('admin_user')) {
     }
 }
 
+if (! function_exists('sk_unlocked')) {
+    /** True bila kunci halaman/menu wajib SK sedang dibuka (Pengaturan → Keamanan) untuk menyesuaikan SK baru. */
+    function sk_unlocked(): bool
+    {
+        return setting('sk_unlock') === '1';
+    }
+}
+
 if (! function_exists('can')) {
     /** Cek apakah pengguna admin aktif memiliki salah satu peran. superadmin & admin selalu boleh kecuali dibatasi. */
     function can(array $roles, bool $superOnly = false): bool

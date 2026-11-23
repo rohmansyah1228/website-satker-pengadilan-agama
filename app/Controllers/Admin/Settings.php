@@ -73,6 +73,7 @@ class Settings extends AdminController
             ]],
             'keamanan' => ['Keamanan', [
                 'require_2fa' => ['Wajibkan MFA untuk semua pengguna', 'select', 'SK 2722/2026 Bab II B.3: login admin dilindungi Captcha dan/atau MFA. Dinilai pada kriteria Keamanan.', ['1' => 'Ya (disarankan)', '0' => 'Tidak']],
+                'sk_unlock'   => ['Buka kunci halaman & menu wajib SK', 'select', 'Normalnya halaman dan menu wajib SK terkunci (slug & jenis tidak bisa diubah, tidak bisa dihapus/dipindah) agar alamat yang dinilai SINOVA tetap berlaku. Buka HANYA saat ada SK baru yang mengubah struktur, sesuaikan halaman/menunya, lalu kunci kembali. Saat terbuka, mengubah alamat halaman yang sudah dinilai dapat memengaruhi penilaian SINOVA sampai diperbarui.', ['0' => 'Terkunci (disarankan)', '1' => 'Terbuka — untuk menyesuaikan SK baru']],
             ]],
         ];
     }

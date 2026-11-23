@@ -120,7 +120,7 @@ class Menus extends AdminController
             if ($depth > MenuTree::MAX_DEPTH) {
                 return $fail('Menu paling banyak ' . MenuTree::MAX_DEPTH . ' tingkat. “' . $rows[$id]['label'] . '” terlalu dalam.');
             }
-            if ($rows[$id]['is_required']) {
+            if ($rows[$id]['is_required'] && ! sk_unlocked()) {
                 [$oldTop] = $topOf($id, $oldMap);
                 if ($oldTop !== $top || ($rows[$id]['parent_id'] === null) !== ($n['parent_id'] === null)) {
                     return $fail('“' . $rows[$id]['label'] . '” adalah menu wajib SK: boleh diurutkan, tetapi harus tetap berada di bawah menu “' . $rows[$oldTop]['label'] . '”.');
@@ -149,8 +149,8 @@ class Menus extends AdminController
     public function delete(int $id)
     {
         $m = $this->find($id);
-        if ($m['is_required']) {
-            return redirect()->back()->with('error', 'Menu wajib SK tidak dapat dihapus.');
+        if ($m['is_required'] && ! sk_unlocked()) {
+            return redirect()->back()->with('error', 'Menu wajib SK tidak dapat dihapus. Buka kuncinya dulu di Pengaturan → Keamanan bila SK berubah.');
         }
         if ($this->db->table('menus')->where('parent_id', $id)->countAllResults()) {
             return redirect()->back()->with('error', 'Hapus atau pindahkan sub-menu terlebih dahulu.');
@@ -230,7 +230,7 @@ class Menus extends AdminController
     {
         $old  = $id ? $this->find($id) : ['is_required' => 0];
         $post = $this->request->getPost();
-        $req  = (bool) $old['is_required'];
+        $req  = (bool) $old['is_required'] && ! sk_unlocked();
 
         $rules = ['label' => ['label' => 'Label', 'rules' => 'required|max_length[120]']];
         if (! $req) {

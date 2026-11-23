@@ -1,6 +1,6 @@
 <?= $this->extend('layouts/admin') ?>
 <?= $this->section('content') ?>
-<?php $req = ! empty($page['is_required']); $codes = array_filter(explode(',', (string) ($page['module_param'] ?? ''))); ?>
+<?php $skPage = ! empty($page['is_required']); $req = $skPage && ! sk_unlocked(); $codes = array_filter(explode(',', (string) ($page['module_param'] ?? ''))); ?>
 <nav aria-label="breadcrumb"><ol class="breadcrumb small mb-1"><li class="breadcrumb-item"><a href="<?= admin_url('halaman') ?>">Halaman</a></li><li class="breadcrumb-item active" aria-current="page"><?= esc($title) ?></li></ol></nav>
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
     <h1 class="h3 font-display fw-bold text-pa-primary mb-0"><?= esc($title) ?></h1>
@@ -8,6 +8,9 @@
 </div>
 <?php if ($errors): ?>
     <div class="alert alert-danger" role="alert"><ul class="mb-0"><?php foreach ($errors as $n => $e): ?><li><?= esc($e) ?></li><?php endforeach ?></ul></div>
+<?php endif ?>
+<?php if ($skPage && sk_unlocked()): ?>
+    <div class="alert alert-warning small"><i class="bi bi-unlock-fill" aria-hidden="true"></i> Halaman wajib SK — <strong>kunci sedang terbuka</strong>. Alamat (slug), bagian, dan modul kini dapat diubah untuk menyesuaikan SK baru. Alamat lama akan dialihkan otomatis. Setelah selesai, kunci kembali di <em>Pengaturan → Keamanan</em>.</div>
 <?php endif ?>
 <?php if ($criteria): ?>
     <div class="alert alert-light border small"><strong><i class="bi bi-clipboard-check text-pa-primary" aria-hidden="true"></i> Kriteria SINOVA untuk halaman ini:</strong>

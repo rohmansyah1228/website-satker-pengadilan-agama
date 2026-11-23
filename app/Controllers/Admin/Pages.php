@@ -82,8 +82,8 @@ class Pages extends AdminController
     public function delete(int $id)
     {
         $p = $this->find($id);
-        if ($p['is_required']) {
-            return redirect()->back()->with('error', 'Halaman wajib SK tidak dapat dihapus.');
+        if ($p['is_required'] && ! sk_unlocked()) {
+            return redirect()->back()->with('error', 'Halaman wajib SK tidak dapat dihapus. Buka kuncinya dulu di Pengaturan → Keamanan bila SK berubah.');
         }
         $this->db->table('menus')->where(['type' => 'page', 'page_id' => $id])->delete();
         service('uploader')->deleteImage($p['image']);
@@ -178,7 +178,7 @@ class Pages extends AdminController
     private function save(?int $id)
     {
         $old      = $id ? $this->find($id) : ['is_required' => 0, 'image' => null];
-        $required = (bool) $old['is_required'];
+        $required = (bool) $old['is_required'] && ! sk_unlocked();
         $post     = $this->request->getPost();
 
         $rules = [

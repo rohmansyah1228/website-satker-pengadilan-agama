@@ -353,7 +353,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
             <tr><td>Tautan Layanan</td><td>SIPP, e-Court, Direktori Putusan, SIWAS, PPID, <strong>CCTV Online</strong> + ikon/GIF, website survei, jadwal dari SIPP</td></tr>
             <tr><td>Nilai Survei</td><td>IKM, IPKP, IPAK, periode</td></tr>
             <tr><td>Popup Pembuka</td><td>Aktif, lokasi, frekuensi, ukuran, gambar, judul, teks, tombol</td></tr>
-            <tr><td>Keamanan</td><td>Wajibkan MFA</td></tr>
+            <tr><td>Keamanan</td><td>Wajibkan MFA; buka/kunci halaman &amp; menu wajib SK</td></tr>
         </tbody>
     </table></div>
     <?= $img('10-pengaturan-kontak.jpg', 'Tab Alamat & Kontak, termasuk WhatsApp PTSP dan jam pelayanan.') ?>
@@ -428,6 +428,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
     </table></div>
     <ul>
         <li>Wajibkan MFA; gunakan HTTPS & domain <code>.go.id</code>.</li>
+        <li><strong>Buka kunci halaman &amp; menu wajib SK</strong> (Pengaturan → Keamanan): normalnya terkunci agar alamat yang dinilai SINOVA tetap. Buka hanya saat ada <strong>SK baru</strong> yang mengubah struktur — sesuaikan slug/menunya (alamat lama otomatis dialihkan), lalu <strong>kunci kembali</strong>.</li>
         <li>Hanya folder <code>public</code> yang boleh diakses internet; file <code>.env</code> berisi kata sandi database — jangan dibagikan.</li>
         <li>Isi editor dibersihkan otomatis dari kode berbahaya.</li>
         <li><strong>Kapasitas</strong> (uji 500 pengunjung serentak, 2 CPU/8 GB): 0 gagal, 95% halaman &lt; 33 ms, CPU rata-rata 40%. Untuk lonjakan, aktifkan cache nginx dari <code>deploy/nginx-satker.conf</code>.</li>
