@@ -16,8 +16,12 @@ if ($show !== 'selamat') {
 // buang kolom yang kosong; bila semua kosong, jangan render apa-apa
 $cols = array_filter($cols, static fn ($c) => ! empty($c[1]));
 if (! $cols) {
+    echo '<p class="text-secondary small mb-0">Belum ada banner untuk ditampilkan.</p>';
+
     return;
 }
+// judul kolom di dalam blok hanya bila 2 kolom tampil, atau blok tidak memiliki judul sendiri
+$showHead = count($cols) > 1 || trim((string) ($b['title'] ?? '')) === '';
 $colCls = count($cols) > 1 ? 'col-12 col-md-6' : 'col-12';
 
 // gaya ringkas, cukup ditulis sekali per halaman
@@ -26,8 +30,8 @@ if (! $cssDone):
     $cssDone = true; ?>
 <style>
 .greet-col .greet-head{font-family:var(--font-display,inherit);font-weight:700;color:var(--pa-primary,#0a5c36);text-transform:uppercase;letter-spacing:.02em;font-size:1.05rem;margin-bottom:.5rem}
-.greet-inner{max-width:340px;margin-inline:auto}
-.greet-frame{aspect-ratio:4/5;background:#f5f6f8;border:1px solid rgba(0,0,0,.06);border-radius:.5rem;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.greet-inner{max-width:420px;margin-inline:auto}
+.greet-frame{aspect-ratio:1/1;border-radius:.5rem;overflow:hidden;display:flex;align-items:center;justify-content:center}
 .greet-frame img{width:100%;height:100%;object-fit:contain}
 .greet-dots{display:flex;gap:.35rem;margin-bottom:.5rem}
 .greet-dots button{width:14px;height:14px;padding:0;border:0;border-radius:3px;background:#cfd4da;opacity:1;text-indent:-9999px;transition:background .2s}
@@ -38,7 +42,7 @@ if (! $cssDone):
     <?php foreach ($cols as $kind => [$heading, $items]): $cid = 'greet-' . $kind . '-' . $b['id']; ?>
         <div class="<?= $colCls ?> greet-col">
           <div class="greet-inner">
-            <div class="greet-head"><?= esc($heading) ?></div>
+            <?php if ($showHead): ?><div class="greet-head"><?= esc($heading) ?></div><?php endif ?>
             <div id="<?= $cid ?>" class="carousel slide" data-bs-ride="carousel" data-bs-interval="6000"
                  aria-roledescription="carousel" aria-label="<?= esc($heading, 'attr') ?>">
                 <?php if (count($items) > 1): ?>
@@ -61,9 +65,6 @@ if (! $cssDone):
                                 <a href="<?= esc($u, 'attr') ?>"<?= is_external($u) ? ' target="_blank" rel="noopener noreferrer"' : '' ?>><?= $img ?></a>
                             <?php else: ?>
                                 <?= $img ?>
-                            <?php endif ?>
-                            <?php if (! empty($g['title'])): ?>
-                                <p class="small text-secondary text-center mt-2 mb-0"><?= esc($g['title']) ?></p>
                             <?php endif ?>
                         </div>
                     <?php endforeach ?>

@@ -1,9 +1,17 @@
 {
-  "build": 13,
+  "build": 14,
   "version": "2026-11-23",
   "repo": "rohmansyah1228/website-satker-pengadilan-agama",
   "branch": "main",
   "releases": [
+    {
+      "build": 14,
+      "version": "2026-11-23",
+      "notes": "Perbaikan tampilan Ucapan & Belasungkawa: hanya satu judul (judul kotak), keterangan di bawah banner dihilangkan, bingkai persegi, dan pesan singkat bila belum ada banner.",
+      "files": [
+        "app/Views/site/blocks/greetings.php"
+      ]
+    },
     {
       "build": 13,
       "version": "2026-11-23",
