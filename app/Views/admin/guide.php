@@ -13,12 +13,13 @@ $toc = [
     'slider'      => ['9', 'Slider Beranda', 'bi-images'],
     'pintasan'    => ['10', 'Pintasan Layanan', 'bi-grid-3x3-gap'],
     'video'       => ['11', 'Galeri Video', 'bi-camera-video'],
-    'data'        => ['12', 'Dokumen & Data Layanan', 'bi-folder2-open'],
-    'pengaturan'  => ['13', 'Pengaturan Situs', 'bi-gear'],
-    'pengunjung'  => ['14', 'Fitur untuk Pengunjung', 'bi-universal-access'],
-    'pengguna'    => ['15', 'Pengguna, Peran & Log', 'bi-people'],
-    'perawatan'   => ['16', 'Perawatan & Keamanan', 'bi-tools'],
-    'faq'         => ['17', 'Pertanyaan Umum', 'bi-question-circle'],
+    'ucapan'      => ['12', 'Ucapan & Belasungkawa', 'bi-card-image'],
+    'data'        => ['13', 'Dokumen & Data Layanan', 'bi-folder2-open'],
+    'pengaturan'  => ['14', 'Pengaturan Situs', 'bi-gear'],
+    'pengunjung'  => ['15', 'Fitur untuk Pengunjung', 'bi-universal-access'],
+    'pengguna'    => ['16', 'Pengguna, Peran & Log', 'bi-people'],
+    'perawatan'   => ['17', 'Perawatan & Keamanan', 'bi-tools'],
+    'faq'         => ['18', 'Pertanyaan Umum', 'bi-question-circle'],
 ];
 $img = static function (string $file, string $cap): string {
     $url = base_url('assets/img/panduan/' . $file);
@@ -66,11 +67,13 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
             <tr><td>Menu Navigasi</td><td>Seret & lepas, sub-menu hingga 4 tingkat</td></tr>
             <tr><td>Tampilan Beranda</td><td>Susun blok: slider, pintasan, pengumuman, berita, survei, video, jam layanan</td></tr>
             <tr><td>Dashboard SINOVA</td><td>Pantau kelengkapan kriteria penilaian website secara otomatis</td></tr>
-            <tr><td>Publikasi</td><td>Berita, Informasi Serta Merta, slider, pintasan, galeri video</td></tr>
+            <tr><td>Publikasi</td><td>Berita, Informasi Serta Merta, slider, pintasan, galeri video, ucapan &amp; belasungkawa</td></tr>
             <tr><td>Data layanan</td><td>Arsip dokumen, jadwal sidang, panggilan ghaib, statistik, pegawai, LHKPN, dll.</td></tr>
             <tr><td>Pengunjung</td><td>Sarana disabilitas & Suara Panduan, popup pembuka, tombol CCTV & WhatsApp</td></tr>
+            <tr><td>Pembaruan</td><td>Tombol <strong>Update Website</strong> di Dashboard: versi baru dari GitHub dipasang otomatis</td></tr>
         </tbody>
     </table></div>
+    <?= $tip('Membuka panel admin dari HP/tablet: menu samping disembunyikan agar layar lega. Ketuk tombol <i class="bi bi-list"></i> di kiri atas untuk membuka menu, ketuk lagi, area gelap, atau tombol Esc untuk menutup.') ?>
     <?= $img('01-beranda.jpg', 'Beranda: menu utama, pita Informasi Serta Merta, slider, tombol CCTV (kiri atas), WhatsApp (kiri bawah), dan Disabilitas (kanan bawah).') ?>
 </section>
 
@@ -153,6 +156,13 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
         <li>Hapus semua teks <strong>[LENGKAPI]</strong>.</li>
     </ul>
     <p><strong>Salin URL</strong> menyalin alamat bukti untuk diisikan ke aplikasi SINOVA Badilag. Persentase = Lengkap (nilai penuh) + Perlu perbaikan (setengah).</p>
+    <h3>Kotak di bagian atas Dashboard</h3>
+    <ul>
+        <li><strong>Versi baru website tersedia</strong> (Super Admin): berisi catatan perubahan dan tombol <strong>Update Website</strong>. Lihat <a href="#pemasangan">bab 2 — Pembaruan website</a>.</li>
+        <li><strong>Website diperbarui otomatis …</strong>: muncul setelah pembaruan, dengan tombol <strong>Batalkan pembaruan terakhir</strong>.</li>
+        <li><strong>Ada pembaruan database</strong>: klik <strong>Jalankan pembaruan</strong> (biasanya sudah dijalankan otomatis oleh Update Website).</li>
+    </ul>
+    <?= $img('04-update-website.jpg', 'Kotak Versi baru website tersedia dengan tombol Update Website.') ?>
     <?= $go('', 'Buka Dashboard SINOVA') ?>
 </section>
 
@@ -239,6 +249,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
             <tr><td>Slider Utama</td><td>Publikasi → Slider Beranda</td></tr>
             <tr><td>Pintasan Layanan (per kelompok, 3 gaya)</td><td>Publikasi → Pintasan Layanan</td></tr>
             <tr><td>Galeri Video</td><td>Publikasi → Galeri Video</td></tr>
+            <tr><td>Ucapan & Belasungkawa (carousel banner terbaru)</td><td>Publikasi → Ucapan & Belasungkawa</td></tr>
             <tr><td>Pengumuman & Panggilan Ghaib</td><td>Panggilan Ghaib + berita Pengumuman/Serta Merta</td></tr>
             <tr><td>Berita & Publikasi</td><td>Berita (bisa per kategori)</td></tr>
             <tr><td>Jadwal Sidang Hari Ini · Dokumen Terbaru · Statistik Perkara</td><td>Menu data terkait</td></tr>
@@ -277,9 +288,28 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
         <li>Pengumuman lama diambil bertahap mundur sampai tahun di <em>Pengaturan → Tautan Layanan → Arsip pengumuman mulai tahun</em>. Klik <strong>Ambil sekarang</strong> untuk mempercepat.</li>
         <li>Alamat sumber dapat diubah atau dikosongkan (mematikan) di tab yang sama. Situs MA saat ini menolak pengambilan otomatis (HTTP 403); pengunjung tetap mendapat tautan ke halaman pengumuman MA.</li>
     </ul>
-    <h3>Memindahkan berita dari website lama</h3>
-    <p>Super Admin: <em>Sistem → Impor Berita Lama</em>. Isi alamat website lama, pilih kategori (mis. <em>Berita Terkini</em> → Berita Kegiatan, <em>Arsip Berita</em> → Pengumuman), klik <strong>Periksa jumlah berita</strong> lalu <strong>Mulai Impor</strong>. Tanggal, penulis, jumlah dibaca, gambar, dan PDF ikut dipindah; impor dapat dihentikan dan dilanjutkan tanpa dobel. Alamat berita lama otomatis dialihkan ke alamat baru setelah domain dipindah.</p>
-    <p><strong>Website lama berbasis WordPress?</strong> Pilih tab <strong>Website WordPress</strong> di halaman impor, isi alamat website lama, klik <strong>Ambil daftar kategori dari WordPress</strong>, centang kategori berita (mis. <em>Berita</em>; <em>Uncategorized</em> biasanya bukan berita), pilih kategori tujuannya, lalu <strong>Mulai Impor</strong>. Judul, isi, tanggal, gambar utama, gambar di dalam isi, dan PDF ikut dipindah. Satu berita juga bisa diimpor dengan menempel alamatnya (mis. <code>…/judul-berita/</code>). Fitur ini memakai jalur data bawaan WordPress (REST API <code>/wp-json/</code>); bila jalur itu ditutup oleh plugin keamanan, minta pengelola website lama membukanya sementara.</p>
+    <h3 id="impor-berita">Memindahkan berita dari website lama</h3>
+    <p>Super Admin: <em>Sistem → Impor Berita Lama</em>. Ada dua tab sesuai jenis website lama: <strong>Website Joomla</strong> (template website PA/PTA lama Badilag) dan <strong>Website WordPress</strong>. Impor dapat dihentikan dan dilanjutkan; berita yang sudah dipindah dilewati, jadi tidak ada data dobel. Setelah domain dipindah, alamat berita lama otomatis dialihkan ke berita yang sama di website baru.</p>
+    <h4 class="h6 fw-bold mt-3">a. Dari website Joomla</h4>
+    <ol>
+        <li>Isi <strong>Alamat website lama</strong>, mis. <code>https://pa-namasatker.go.id</code>.</li>
+        <li>Isi alamat halaman daftar kategori, mis. <em>…/berita/berita-terkini.html</em> → Berita Kegiatan, <em>…/berita/arsip-berita.html</em> → Pengumuman.</li>
+        <li>Klik <strong>Periksa jumlah berita</strong>, lalu <strong>Mulai Impor</strong>.</li>
+    </ol>
+    <p>Tanggal, penulis, jumlah dibaca, gambar, dan PDF ikut dipindah.</p>
+    <h4 class="h6 fw-bold mt-3">b. Dari website WordPress</h4>
+    <ol>
+        <li>Buka tab <strong>Website WordPress</strong>, isi alamat website lama.</li>
+        <li>Klik <strong>Ambil daftar kategori dari WordPress</strong>: semua kategori tampil beserta jumlah beritanya.</li>
+        <li>Centang kategori berita (mis. <em>Berita</em>, <em>Pengumuman</em>). <em>Uncategorized</em> biasanya berisi halaman informasi, bukan berita — jangan dicentang.</li>
+        <li>Pilih <strong>Masuk ke kategori</strong> untuk tiap baris, lalu <strong>Periksa jumlah berita</strong> dan <strong>Mulai Impor</strong>.</li>
+    </ol>
+    <p>Judul, isi, tanggal &amp; jam terbit, gambar utama, gambar di dalam isi, PDF, dan jumlah dibaca (bila tersedia) ikut dipindah. Penulis berupa nama akun admin (mis. <em>adm …</em>) diganti <em>Humas</em>.</p>
+    <?= $img('08-impor-wordpress.jpg', 'Tab Website WordPress: daftar kategori dari website lama, kategori tujuan, dan jumlah berita.') ?>
+    <?= $tip('Impor WordPress memakai jalur data bawaan WordPress (REST API <code>/wp-json/</code>). Bila muncul pesan bahwa jalur itu ditutup, minta pengelola website lama membukanya sementara (biasanya lewat pengaturan plugin keamanan) selama proses impor.') ?>
+    <h4 class="h6 fw-bold mt-3">c. Impor satu berita</h4>
+    <p>Di kotak <strong>Impor satu berita</strong>, tempel alamat beritanya (bukan halaman kategori), satu per baris — mis. <code>…/berita/berita-terkini/3066-judul.html</code> (Joomla) atau <code>…/judul-berita/</code> (WordPress). Pilih kategori tujuan lalu <strong>Impor berita ini</strong>. Berita yang sudah ada dilewati, kecuali dicentang <strong>Timpa bila berita sudah ada</strong>.</p>
+    <?= $tip('Bila muncul galat sertifikat SSL (umum di XAMPP Windows), centang <strong>Abaikan verifikasi sertifikat SSL</strong> di panel Pilihan.') ?>
     <?= $tip('Berita sebaiknya berorientasi pada pelayanan & inovasi, bukan sekadar liputan seremonial (SK Bab III huruf D).') ?>
     <?= $go('data/berita', 'Buka Berita & Publikasi') ?>
 </section>
@@ -305,6 +335,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
     </table></div>
     <?= $img('08-pemilih-ikon.jpg', 'Pemilih ikon: ketik kata kunci, lalu klik ikonnya.') ?>
     <p>Tampilkan tiap kelompok lewat <em>Tampilan Beranda → Tambah → Pintasan Layanan</em>: pilih kelompok dan gaya <strong>Kartu</strong>, <strong>Gambar saja (banner)</strong>, atau <strong>Tombol kotak</strong>.</p>
+    <p><strong>Kartu per baris</strong> menentukan jumlah kartu yang sejajar; kartu berikutnya otomatis turun ke baris baru. Contoh: Zona Integritas dengan 3 kartu per baris → 3 kartu sejajar, kartu ke-4 di baris kedua. Berlaku mulai layar sedang (tablet/laptop); di HP kartu tersusun 1–2 per baris. Bila kartu terasa sempit, perlebar kotak tampilannya (mis. 12 kolom).</p>
     <div class="guide-grid2">
         <?= $img('08-pintasan-zi.jpg', 'Gaya Gambar saja (banner), mis. Zona Integritas.') ?>
         <?= $img('08-pintasan-aplikasi.jpg', 'Gaya Tombol kotak, mis. Aplikasi Pendukung.') ?>
@@ -325,8 +356,33 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
     <?= $go('data/video', 'Buka Galeri Video') ?>
 </section>
 
+<section id="ucapan" class="guide-sec card">
+    <h2>12. Ucapan & Belasungkawa</h2>
+    <p>Banner <strong>ucapan selamat</strong> (hari besar, ucapan sukses, purnabakti) dan <strong>belasungkawa</strong> tampil di Beranda sebagai carousel: banner terbaru bergantian otomatis setiap 6 detik.</p>
+    <h3>Menambah banner</h3>
+    <ol>
+        <li><em>Publikasi → Ucapan &amp; Belasungkawa → Tambah</em>.</li>
+        <li>Pilih <strong>Jenis</strong>: <em>Ucapan Selamat</em> atau <em>Belasungkawa</em>.</li>
+        <li>Unggah <strong>Banner</strong> (wajib). Poster persegi (1:1, mis. 1080 × 1080 px seperti untuk Instagram) paling pas; gambar otomatis dikompres ke WebP.</li>
+        <li>Isi <strong>Judul / Keterangan</strong>, mis. <em>Hari Guru Nasional 2026</em> atau nama yang berduka. Judul tidak tampil di bawah banner, tetapi dibacakan untuk pengguna pembaca layar.</li>
+        <li><strong>Tanggal</strong> menentukan urutan "terbaru" (kosong = hari ini). <strong>Tautan</strong> opsional: banner dapat diklik menuju berita terkait.</li>
+        <li>Matikan <strong>Tampilkan</strong> untuk menyembunyikan banner tanpa menghapusnya.</li>
+    </ol>
+    <?= $img('12-ucapan-form.jpg', 'Tambah Ucapan: banner, jenis, dan tanggal di panel kanan.') ?>
+    <h3>Menampilkan di Beranda</h3>
+    <ol>
+        <li><em>Tampilan Beranda → Tambah Tampilan → Ucapan &amp; Belasungkawa</em>.</li>
+        <li><strong>Banner per kolom</strong>: jumlah banner terbaru yang diputar (mis. <strong>3</strong>).</li>
+        <li><strong>Kolom yang ditampilkan</strong>: <em>Keduanya</em> (dua kolom dalam satu kotak), atau <em>Ucapan Selamat saja</em> / <em>Belasungkawa saja</em>.</li>
+    </ol>
+    <p>Agar seperti contoh di bawah, buat <strong>dua tampilan</strong> berdampingan selebar 6 kolom: satu berjudul <em>Ucapan Selamat</em> (Ucapan Selamat saja, aksen hijau) dan satu berjudul <em>Belasungkawa</em> (Belasungkawa saja, aksen oranye). Judul kotak menjadi satu-satunya judul; kotak tanpa banner menampilkan keterangan singkat.</p>
+    <?= $img('12-ucapan-beranda.jpg', 'Beranda: kotak Ucapan Selamat (carousel 2 banner) dan Belasungkawa berdampingan.') ?>
+    <?= $tip('Belasungkawa sebaiknya dinonaktifkan atau diberi tanggal lama setelah masa berkabung, agar ucapan selamat terbaru yang tampil.') ?>
+    <?= $go('data/ucapan', 'Buka Ucapan & Belasungkawa') ?>
+</section>
+
 <section id="data" class="guide-sec card">
-    <h2>12. Dokumen & Data Layanan</h2>
+    <h2>13. Dokumen & Data Layanan</h2>
     <p>Data di menu samping otomatis tampil di halaman terkait dan dihitung Dashboard SINOVA.</p>
     <div class="table-responsive"><table class="table table-sm align-middle">
         <thead><tr><th>Menu</th><th>Isian utama</th><th>Tampil di</th></tr></thead>
@@ -354,7 +410,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
 </section>
 
 <section id="pengaturan" class="guide-sec card">
-    <h2>13. Pengaturan Situs</h2>
+    <h2>14. Pengaturan Situs</h2>
     <p><em>Sistem → Pengaturan</em> (Super Admin). Klik <strong>Simpan Pengaturan</strong> di setiap tab.</p>
     <div class="table-responsive"><table class="table table-sm align-middle">
         <thead><tr><th>Tab</th><th>Isian penting</th></tr></thead>
@@ -386,7 +442,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
 </section>
 
 <section id="pengunjung" class="guide-sec card">
-    <h2>14. Fitur untuk Pengunjung</h2>
+    <h2>15. Fitur untuk Pengunjung</h2>
     <h3>Sarana Disabilitas & Suara Panduan</h3>
     <p>Tombol <strong>Disabilitas</strong> (kanan bawah): perbesar/perkecil teks, kontras tinggi, <strong>Suara Panduan</strong> (aktif bawaan), <strong>Bacakan Isi Halaman</strong>, reset.</p>
     <ol>
@@ -406,7 +462,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
 </section>
 
 <section id="pengguna" class="guide-sec card">
-    <h2>15. Pengguna, Peran & Log Aktivitas</h2>
+    <h2>16. Pengguna, Peran & Log Aktivitas</h2>
     <div class="table-responsive"><table class="table table-sm align-middle">
         <thead><tr><th>Peran</th><th>Boleh mengelola</th></tr></thead>
         <tbody>
@@ -425,7 +481,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
 </section>
 
 <section id="perawatan" class="guide-sec card">
-    <h2>16. Perawatan & Keamanan</h2>
+    <h2>17. Perawatan & Keamanan</h2>
     <div class="table-responsive"><table class="table table-sm align-middle">
         <thead><tr><th>Kapan</th><th>Tugas</th></tr></thead>
         <tbody>
@@ -447,7 +503,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
 </section>
 
 <section id="faq" class="guide-sec card">
-    <h2>17. Pertanyaan Umum</h2>
+    <h2>18. Pertanyaan Umum</h2>
     <div class="accordion" id="faqAcc">
         <?php $faq = [
             ['Tampilan belum berubah setelah memperbarui file', 'Tekan <strong>Ctrl+F5</strong> atau buka di jendela penyamaran (cache browser).'],
@@ -461,6 +517,10 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
             ['Sambutan suara tidak terdengar', 'Browser baru mengizinkan suara setelah klik pertama; cek Suara Panduan aktif & volume.'],
             ['Pita Informasi Serta Merta tidak hilang', 'Cek isian <em>Tampilkan pita sampai</em>, atau ubah status ke Draft. Perubahan tampil dalam ≤ 60 detik.'],
             ['Lupa kata sandi / kode MFA', 'Minta Super Admin mengatur ulang di menu Pengguna.'],
+            ['Tombol Update Website tidak muncul', 'Tombol hanya untuk Super Admin dan hanya bila ada versi baru. Klik <strong>Bersihkan Cache</strong> di Dashboard untuk memeriksa ulang. Website yang dipasang sebelum fitur ini ada perlu diperbarui manual sekali.'],
+            ['Banner ucapan tidak tampil di Beranda', 'Pastikan banner berstatus Tampilkan, jenisnya sesuai dengan pilihan <em>Kolom yang ditampilkan</em> di tampilan Beranda, dan termasuk yang terbaru sesuai <em>Banner per kolom</em>.'],
+            ['Impor WordPress: "Kategori tidak ditemukan" atau jalur data ditutup', 'Gunakan tombol <strong>Ambil daftar kategori</strong> agar alamat kategori tepat. Bila REST API ditutup, minta pengelola website lama membukanya sementara.'],
+            ['Kartu Pintasan hanya 2 per baris', 'Atur <em>Kartu per baris</em> di tampilan Pintasan Layanan, perlebar kotak tampilannya, lalu tekan Ctrl+F5.'],
         ];
         foreach ($faq as $i => [$q, $a]): ?>
             <div class="accordion-item">

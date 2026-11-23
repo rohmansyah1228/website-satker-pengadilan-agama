@@ -1,9 +1,22 @@
 {
-  "build": 15,
+  "build": 16,
   "version": "2026-11-23",
   "repo": "rohmansyah1228/website-satker-pengadilan-agama",
   "branch": "main",
   "releases": [
+    {
+      "build": 16,
+      "version": "2026-11-23",
+      "notes": "Panduan (manual book) diperbarui: bab baru Ucapan & Belasungkawa, tombol Update Website & Batalkan pembaruan di bab Dashboard, impor berita dari WordPress, Kartu per baris Pintasan, menu samping di HP, FAQ baru, dan tangkapan layar baru.",
+      "files": [
+        "app/Views/admin/guide.php",
+        "app/Views/layouts/admin.php",
+        "public/assets/img/panduan/04-update-website.jpg",
+        "public/assets/img/panduan/08-impor-wordpress.jpg",
+        "public/assets/img/panduan/12-ucapan-beranda.jpg",
+        "public/assets/img/panduan/12-ucapan-form.jpg"
+      ]
+    },
     {
       "build": 15,
       "version": "2026-11-23",
