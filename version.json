@@ -1,13 +1,27 @@
 {
-  "build": 10,
+  "build": 11,
   "version": "2026-11-23",
   "repo": "rohmansyah1228/website-satker-pengadilan-agama",
   "branch": "main",
   "releases": [
     {
+      "build": 11,
+      "version": "2026-11-23",
+      "notes": "Fitur baru: tombol 'Update Website' di Dashboard (Super Admin) — memperbarui website otomatis dari GitHub: hanya berkas yang berubah, dicek lebih dulu, cadangan otomatis di writable/backups/, lalu pembaruan database dijalankan. Bila ada masalah, klik 'Batalkan pembaruan terakhir'.",
+      "files": [
+        "app/Config/Routes.php",
+        "app/Controllers/Admin/Dashboard.php",
+        "app/Libraries/Updater.php",
+        "app/Views/admin/dashboard.php",
+        "app/Views/admin/guide.php",
+        "deploy/rilis.sh",
+        "public/assets/js/admin.js"
+      ]
+    },
+    {
       "build": 10,
       "version": "2026-11-23",
-      "notes": "Fitur baru: Ucapan Selamat & Belasungkawa. Kelola banner di Publikasi -> Ucapan & Belasungkawa; tamb\nahkan blok 'Ucapan & Belasungkawa' di Tampilan Beranda untuk menampilkan 2 kolom carousel yang memutar banner terbaru.",
+      "notes": "Fitur baru: Ucapan Selamat & Belasungkawa. Kelola banner di Publikasi -> Ucapan & Belasungkawa; tambahkan blok 'Ucapan & Belasungkawa' di Tampilan Beranda untuk menampilkan 2 kolom carousel yang memutar banner terbaru.",
       "files": [
         "app/Config/AdminResources.php",
         "app/Config/HomeBlocks.php",

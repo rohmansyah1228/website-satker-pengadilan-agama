@@ -94,9 +94,18 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
     <?= $tip('<strong>Apakah mengganggu subdomain lain?</strong> Bila hosting hanya berisi website ini — tidak. Bila hosting juga menjalankan subdomain lain dan subdomainnya ikut terbelokkan, cara termudah (tanpa perlu paham teknis): minta penyedia hosting <strong>mengarahkan Document Root domain langsung ke folder <code>public/</code></strong>. Alternatif: gunakan berkas <code>deploy/htaccess-subdomain-bersama.txt</code> (ganti nama domainnya, lalu timpakan ke <code>public_html/.htaccess</code>). Rincian ada di README bagian Instalasi di Hosting.') ?>
     <h3>Pindah domain / dipakai PA lain</h3>
     <p>Alamat website terdeteksi otomatis (domain, IP, atau folder berganti tidak perlu diatur). Untuk PA lain cukup ganti <em>Pengaturan → Identitas Satker</em> dan <em>Alamat & Kontak</em>.</p>
+    <h3>Pembaruan website (otomatis)</h3>
+    <p>Bila ada versi baru di GitHub, <strong>Dashboard SINOVA</strong> menampilkan kotak <strong>Versi baru website tersedia</strong> beserta isi perubahannya. Super Admin cukup klik <strong>Update Website</strong>, konfirmasi, lalu tunggu sampai muncul pesan berhasil (jangan tutup halaman). Sistem akan:</p>
+    <ol>
+        <li>mengunduh <strong>hanya berkas yang berubah</strong> dari repositori resmi di GitHub dan memeriksanya lebih dulu — bila satu berkas gagal, tidak ada yang diubah;</li>
+        <li>menyimpan <strong>cadangan berkas lama</strong> di <code>writable/backups/pembaruan-…</code>;</li>
+        <li>menimpa berkas, lalu menjalankan <strong>pembaruan database</strong> bila ada.</li>
+    </ol>
+    <p>Berkas <code>.env</code>, folder <code>writable/</code>, dan <code>public/uploads/</code> tidak pernah disentuh, sehingga berita, pengaturan, unggahan, dan database tetap aman. Bila setelah pembaruan ada yang tidak berjalan semestinya, klik <strong>Batalkan pembaruan terakhir</strong> di Dashboard untuk mengembalikan berkas.</p>
+    <?= $tip('<strong>Bila tombol Update Website gagal</strong> (mis. hosting tidak mengizinkan PHP menulis berkas, atau server tidak bisa menghubungi GitHub), pesan galatnya menjelaskan sebabnya. Perbarui secara manual: buka rincian <em>Berkas yang akan diperbarui</em>, unduh berkas tersebut dari GitHub dan timpakan ke hosting, lalu muat ulang Dashboard dan klik <strong>Jalankan pembaruan</strong> bila diminta. Website satker lain tidak ikut berubah saat repositori diperbarui — tiap satker memasang pembaruannya sendiri.') ?>
+    <?= $tip('<strong>Pertama kali:</strong> website yang dipasang sebelum fitur ini ada belum memiliki tombol Update Website. Perbarui secara manual sekali (timpa berkas yang tercantum di Dashboard); setelah itu pembaruan berikutnya cukup dengan tombol.') ?>
     <h3>Pembaruan database</h3>
-    <p>Setiap kali file website diperbarui, buka <strong>Dashboard SINOVA</strong>. Bila muncul kotak <strong>Pembaruan database tersedia</strong>, klik <strong>Jalankan pembaruan</strong> (Super Admin). Aman dijalankan ulang dan tidak menghapus data.</p>
-    <?= $tip('<strong>Pemberitahuan versi.</strong> Dashboard otomatis memberi tahu bila ada versi baru di GitHub, lengkap dengan <strong>daftar berkas yang berubah</strong>. Satker cukup menimpa berkas yang disebut itu saja (jangan timpa <code>.env</code>, <code>writable/</code>, <code>public/uploads/</code>), lalu jalankan pembaruan database bila diminta. Website satker lain tidak ikut berubah saat Anda publish — tiap satker memasang pembaruannya sendiri.') ?>
+    <p>Pembaruan otomatis sudah menjalankan pembaruan database. Bila Anda memperbarui berkas secara manual, buka <strong>Dashboard SINOVA</strong>; bila muncul kotak <strong>Pembaruan database tersedia</strong>, klik <strong>Jalankan pembaruan</strong> (Super Admin). Aman dijalankan ulang dan tidak menghapus data.</p>
     <?= $tip('Sebelum memperbarui website, cadangkan database serta folder <code>public/uploads</code> dan <code>writable/uploads</code>.', 'warn') ?>
 </section>
 
@@ -424,7 +433,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
             <tr><td>Triwulan/semester</td><td>Nilai survei, LRA, laporan pengaduan</td></tr>
             <tr><td>Tahunan</td><td>DIPA, RKT, PK, IKU, LKjIP, Laporan Tahunan, LHKPN, RUP</td></tr>
             <tr><td>Mingguan</td><td>Cek Dashboard SINOVA & Log Aktivitas; cadangkan database</td></tr>
-            <tr><td>Setelah perbarui file</td><td>Dashboard → <strong>Jalankan pembaruan</strong></td></tr>
+            <tr><td>Ada versi baru</td><td>Dashboard → <strong>Update Website</strong> (bila manual: timpa berkas lalu <strong>Jalankan pembaruan</strong>)</td></tr>
         </tbody>
     </table></div>
     <ul>
@@ -441,7 +450,8 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
     <div class="accordion" id="faqAcc">
         <?php $faq = [
             ['Tampilan belum berubah setelah memperbarui file', 'Tekan <strong>Ctrl+F5</strong> atau buka di jendela penyamaran (cache browser).'],
-            ['Muncul pesan galat setelah memperbarui file', 'Buka Dashboard → klik <strong>Jalankan pembaruan</strong>.'],
+            ['Muncul pesan galat setelah memperbarui file', 'Buka Dashboard → klik <strong>Jalankan pembaruan</strong>. Bila masih galat setelah Update Website, klik <strong>Batalkan pembaruan terakhir</strong>.'],
+            ['Update Website gagal: "Server tidak mengizinkan menulis berkas"', 'Minta penyedia hosting memberi izin tulis pada folder website untuk PHP, atau perbarui berkas secara manual.'],
             ['Kriteria SINOVA tetap "Belum ada"', 'Baca kolom Catatan; tulis tahun/bulan di judul tabel, isi tautan, hapus [LENGKAPI].'],
             ['Tombol pintasan/CCTV/WhatsApp/survei tidak muncul', 'Tautan atau nomornya belum diisi di Pengaturan.'],
             ['Gambar tidak bisa diunggah', 'Gunakan JPG/PNG/WebP maks. 8 MB atau GIF maks. 2 MB.'],

@@ -12,10 +12,17 @@
     <div class="alert alert-info" role="alert">
         <div class="d-flex flex-wrap align-items-center gap-3">
             <i class="bi bi-arrow-up-circle fs-4" aria-hidden="true"></i>
-            <div class="me-auto">
-                <strong>Versi baru website tersedia</strong> (<?= esc($update['version']) ?>). Aplikasi Anda tidak berubah otomatis — unduh pembaruannya lalu <strong>timpa hanya berkas yang berubah</strong> di bawah ini. Data Anda (berita, pengaturan, unggahan, database) tidak terpengaruh.
+            <div class="me-auto" style="min-width:16rem;flex:1">
+                <strong>Versi baru website tersedia</strong> (<?= esc($update['version']) ?>, build <?= (int) $update['latest'] ?>; terpasang build <?= (int) $update['local'] ?>).
+                Klik <strong>Update Website</strong>: sistem mengunduh <strong>hanya berkas yang berubah</strong> dari GitHub, menyimpan cadangan berkas lama, lalu menjalankan pembaruan database.
+                Data Anda (berita, pengaturan, unggahan, database) tidak terpengaruh.
             </div>
-            <a href="<?= esc($update['url'], 'attr') ?>" target="_blank" rel="noopener" class="btn btn-info fw-semibold text-white"><i class="bi bi-github" aria-hidden="true"></i> Buka GitHub</a>
+            <form action="<?= admin_url('pembaruan-aplikasi') ?>" method="post" data-loading="Memperbarui… jangan tutup halaman"
+                  data-confirm="Perbarui website ke build <?= (int) $update['latest'] ?> sekarang? <?= count($update['files']) ?> berkas akan diunduh dari GitHub dan menimpa berkas lama (cadangan otomatis disimpan di writable/backups/). Disarankan cadangkan database lebih dulu (phpMyAdmin → Export).">
+                <?= csrf_field() ?>
+                <button type="submit" class="btn btn-primary fw-semibold"><i class="bi bi-cloud-download" aria-hidden="true"></i> Update Website</button>
+            </form>
+            <a href="<?= esc($update['url'], 'attr') ?>" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm"><i class="bi bi-github" aria-hidden="true"></i> GitHub</a>
         </div>
         <?php if (! empty($update['releases'])): ?>
             <div class="small mt-2 mb-1"><strong>Yang baru:</strong>
@@ -24,11 +31,24 @@
         <?php endif ?>
         <?php if (! empty($update['files'])): ?>
             <details class="small">
-                <summary><strong>Berkas yang perlu diperbarui (<?= count($update['files']) ?>)</strong> — cukup timpa berkas berikut, selain ini tidak perlu diubah</summary>
+                <summary><strong>Berkas yang akan diperbarui (<?= count($update['files']) ?>)</strong></summary>
                 <ul class="mt-2 mb-2 font-monospace" style="columns:2;max-width:46rem"><?php foreach ($update['files'] as $f): ?><li><?= esc($f) ?></li><?php endforeach ?></ul>
-                <p class="mb-0 text-secondary">Jangan timpa <code>.env</code>, folder <code>writable/</code>, dan <code>public/uploads/</code>. Setelah menimpa berkas, muat ulang Dashboard — bila ada pembaruan database, tombolnya muncul di sini. Rincian di menu <a href="<?= admin_url('panduan') ?>#pemasangan">Panduan</a>.</p>
+                <p class="mb-0 text-secondary">Bila pembaruan otomatis tidak bisa dijalankan (mis. hosting tidak mengizinkan PHP menulis berkas), timpa berkas di atas secara manual dari GitHub. Jangan timpa <code>.env</code>, folder <code>writable/</code>, dan <code>public/uploads/</code>. Rincian di menu <a href="<?= admin_url('panduan') ?>#pemasangan">Panduan</a>.</p>
             </details>
         <?php endif ?>
+    </div>
+<?php elseif (! empty($update['error']) && ! empty($update['repo'])): ?>
+    <p class="small text-secondary mb-3"><i class="bi bi-wifi-off" aria-hidden="true"></i> Pemeriksaan versi baru belum berhasil (<?= esc($update['error']) ?>). Akan dicoba lagi otomatis.</p>
+<?php endif ?>
+<?php if (! empty($lastUpdate)): ?>
+    <div class="alert alert-light border d-flex flex-wrap align-items-center gap-3 small" role="status">
+        <i class="bi bi-clock-history fs-5" aria-hidden="true"></i>
+        <div class="me-auto">Website diperbarui otomatis dari build <?= (int) $lastUpdate['from'] ?> ke build <?= (int) $lastUpdate['to'] ?> (<?= esc(date('d/m/Y H:i', strtotime($lastUpdate['at']))) ?>). Bila ada yang tidak berjalan semestinya, pembaruan dapat dibatalkan.</div>
+        <form action="<?= admin_url('pembaruan-aplikasi/batalkan') ?>" method="post" data-loading="Mengembalikan…"
+              data-confirm="Kembalikan berkas website ke build <?= (int) $lastUpdate['from'] ?>? Berkas dari pembaruan terakhir akan diganti dengan cadangannya.">
+            <?= csrf_field() ?>
+            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Batalkan pembaruan terakhir</button>
+        </form>
     </div>
 <?php endif ?>
 <?php if (! empty($pendingMigrations)): ?>

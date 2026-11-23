@@ -41,3 +41,5 @@ composer.phar
 *.swp
 .DS_Store
 Thumbs.db
+/writable/backups/*
+!/writable/backups/index.html

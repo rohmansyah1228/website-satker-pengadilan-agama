@@ -100,6 +100,14 @@
         });
     }
 
+    // ---------- Tombol proses lama (mis. Update Website): kunci & tampilkan status ----------
+    document.querySelectorAll('form[data-loading]').forEach((f) => f.addEventListener('submit', (e) => {
+        if (e.defaultPrevented) return; // masih menunggu konfirmasi
+        const b = f.querySelector('button[type="submit"], button:not([type])');
+        if (b) { b.disabled = true; b.innerHTML = '<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>' + f.dataset.loading; }
+        document.body.style.cursor = 'progress';
+    }));
+
     // ---------- Tampilkan/sembunyikan field bergantung pilihan ----------
     const syncToggles = () => {
         document.querySelectorAll('[data-show-when]').forEach((el) => {

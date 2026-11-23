@@ -78,6 +78,8 @@ $routes->group($admin, ['namespace' => 'App\Controllers\Admin'], static function
         $routes->get('editor/tautan', 'Editor::links');
         $routes->post('cache/bersihkan', 'Dashboard::clearCache');
         $routes->post('pembaruan-database', 'Dashboard::migrate');
+        $routes->post('pembaruan-aplikasi', 'Dashboard::selfUpdate');
+        $routes->post('pembaruan-aplikasi/batalkan', 'Dashboard::rollbackUpdate');
 
         // Modul data generik (slider, dokumen, pegawai, dst.) — lihat app/Config/AdminResources.php
         $routes->get('data/(:segment)', 'Crud::index/$1');
