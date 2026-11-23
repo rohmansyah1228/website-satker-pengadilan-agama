@@ -184,7 +184,7 @@ class Crud extends AdminController
         if ($table === 'posts') {
             return [['label' => 'Berita & Publikasi', 'url' => site_url('berita')]];
         }
-        if (in_array($table, ['sliders', 'shortcuts'], true)) {
+        if (in_array($table, ['sliders', 'shortcuts', 'greetings'], true)) {
             return [['label' => 'Beranda', 'url' => site_url('/')]];
         }
         $modules = array_keys(array_filter(Pages::MODULE_RESOURCES, fn ($k) => $k === $this->key));
@@ -359,6 +359,14 @@ class Crud extends AdminController
         }
         if ($table === 'sliders' && empty($data['image']) && empty($old['image'])) {
             return $this->form(array_merge($old, $post), $id, ['image' => 'Gambar latar wajib diunggah.']);
+        }
+        if ($table === 'greetings') {
+            if (empty($data['image']) && empty($old['image'])) {
+                return $this->form(array_merge($old, $post), $id, ['image' => 'Banner wajib diunggah.']);
+            }
+            if (empty($data['published_at'])) {
+                $data['published_at'] = date('Y-m-d'); // "terbaru" = hari ini bila dikosongkan
+            }
         }
         if (isset($r['max']) && ! empty($data['is_active'])) {
             $active = $this->db->table($table)->where('is_active', 1);

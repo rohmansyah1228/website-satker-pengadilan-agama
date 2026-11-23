@@ -165,6 +165,16 @@ class HomeBlocks
 
             case 'stats':
                 return ['stat' => $db->table('case_stats')->orderBy('year', 'DESC')->orderBy('month', 'DESC')->get(1)->getRowArray()];
+
+            case 'greetings':
+                if (! $db->tableExists('greetings')) {
+                    return ['selamat' => [], 'belasungkawa' => []];
+                }
+                $n    = max(1, min(10, (int) ($s['limit'] ?? 3)));
+                $load = static fn (string $kind) => $db->table('greetings')->where('is_active', 1)->where('kind', $kind)
+                    ->orderBy('published_at', 'DESC')->orderBy('sort')->orderBy('id', 'DESC')->get($n)->getResultArray();
+
+                return ['selamat' => $load('selamat'), 'belasungkawa' => $load('belasungkawa')];
         }
 
         return [];

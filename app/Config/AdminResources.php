@@ -101,6 +101,24 @@ class AdminResources extends BaseConfig
                 ],
             ],
 
+            'ucapan' => [
+                'table' => 'greetings', 'title' => 'Ucapan & Belasungkawa', 'singular' => 'Ucapan', 'icon' => 'bi-card-image',
+                'group' => 'Publikasi', 'roles' => ['humas'], 'order' => ['published_at', 'DESC'], 'timestamps' => true,
+                'list'  => ['image' => 'Banner', 'kind' => 'Jenis', 'title' => 'Judul', 'published_at' => 'Tanggal', 'is_active' => 'Tampil'],
+                'search' => ['title'], 'filter' => ['kind' => ['selamat' => 'Ucapan Selamat', 'belasungkawa' => 'Belasungkawa']],
+                'hint'  => 'Banner ucapan selamat (mis. hari besar) dan belasungkawa. Di Beranda tampil 2 kolom bersebelahan yang memutar banner terbaru (atur jumlahnya di Tampilan Beranda → blok "Ucapan & Belasungkawa"). Gambar otomatis dikompres ke WebP.',
+                'fields' => [
+                    'kind'         => ['Jenis', 'select', 'required|in_list[selamat,belasungkawa]', 'options' => ['selamat' => 'Ucapan Selamat', 'belasungkawa' => 'Belasungkawa']],
+                    'title'        => ['Judul / Keterangan', 'text', 'permit_empty|max_length[255]', 'help' => 'mis. "Hari Guru Nasional 2026" atau nama yang berduka. Dipakai sebagai teks alternatif bila kosong.'],
+                    'image'        => ['Banner', 'image', 'permit_empty', 'width' => 1000, 'help' => 'Poster/banner ucapan. PNG/JPG/WebP, sebaiknya rasio sekitar 1:1 atau potret.'],
+                    'image_alt'    => ['Teks Alternatif Gambar', 'text', 'permit_empty|max_length[255]'],
+                    'link_url'     => ['Tautan (opsional)', 'url', 'permit_empty|max_length[255]', 'help' => 'Bila diisi, banner dapat diklik menuju tautan ini.'],
+                    'published_at' => ['Tanggal', 'date', 'permit_empty|valid_date[Y-m-d]', 'help' => 'Menentukan urutan "terbaru". Kosongkan = otomatis hari ini saat disimpan.'],
+                    'sort'         => ['Urutan', 'number', 'permit_empty|integer'],
+                    'is_active'    => ['Tampilkan', 'checkbox', 'permit_empty'],
+                ],
+            ],
+
             // ------------------------------------------------ DOKUMEN
             'dokumen' => [
                 'table' => 'documents', 'title' => 'Arsip Dokumen', 'singular' => 'Dokumen', 'icon' => 'bi-file-earmark-pdf',
@@ -288,6 +306,11 @@ class AdminResources extends BaseConfig
                 'main'  => ['' => ['title', 'url', 'description']],
                 'side'  => ['Tampilan' => ['published_at', 'sort', 'is_active'], 'Gambar Sampul' => ['image']],
                 'intro' => 'Tempel tautan YouTube (atau Google Drive). Gambar sampul YouTube diambil otomatis; video diputar di dalam website.',
+            ],
+            'ucapan' => [
+                'main'  => ['' => ['title', 'link_url']],
+                'side'  => ['Banner' => ['image', 'image_alt'], 'Tampilan' => ['kind', 'published_at', 'sort', 'is_active']],
+                'intro' => 'Unggah banner ucapan selamat atau belasungkawa. Di Beranda tampil bergantian (carousel) pada blok "Ucapan & Belasungkawa".',
             ],
             'dokumen' => [
                 'main'  => ['' => ['title'], 'Berkas' => ['file_id', 'external_url']],

@@ -1,9 +1,22 @@
 {
-  "build": 9,
+  "build": 10,
   "version": "2026-11-23",
   "repo": "rohmansyah1228/website-satker-pengadilan-agama",
   "branch": "main",
   "releases": [
+    {
+      "build": 10,
+      "version": "2026-11-23",
+      "notes": "Fitur baru: Ucapan Selamat & Belasungkawa. Kelola banner di Publikasi -> Ucapan & Belasungkawa; tamb\nahkan blok 'Ucapan & Belasungkawa' di Tampilan Beranda untuk menampilkan 2 kolom carousel yang memutar banner terbaru.",
+      "files": [
+        "app/Config/AdminResources.php",
+        "app/Config/HomeBlocks.php",
+        "app/Controllers/Admin/Crud.php",
+        "app/Database/Migrations/2026-11-23-000015_Greetings.php",
+        "app/Libraries/HomeBlocks.php",
+        "app/Views/site/blocks/greetings.php"
+      ]
+    },
     {
       "build": 9,
       "version": "2026-11-23",

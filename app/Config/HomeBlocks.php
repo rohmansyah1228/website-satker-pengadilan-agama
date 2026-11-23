@@ -24,7 +24,7 @@ class HomeBlocks extends BaseConfig
     /** Ukuran awal (lebar kolom dari 12, tinggi baris) saat tampilan baru ditambahkan. */
     public array $sizes = [
         'slider' => [12, 1], 'shortcuts' => [12, 1], 'videos' => [12, 1], 'survey' => [12, 1], 'stats' => [12, 1],
-        'announcements' => [6, 1], 'feed' => [6, 1], 'news' => [6, 1], 'hearings' => [8, 1], 'documents' => [6, 1],
+        'announcements' => [6, 1], 'feed' => [6, 1], 'news' => [6, 1], 'hearings' => [8, 1], 'documents' => [6, 1], 'greetings' => [12, 1],
         'html' => [8, 1], 'image' => [4, 1], 'card' => [4, 1], 'search' => [4, 1], 'hours' => [4, 1],
     ];
 
@@ -118,6 +118,17 @@ class HomeBlocks extends BaseConfig
                 'top' => true, 'child' => true, 'fields' => [
                     'doc_type' => ['Jenis dokumen', 'select', 'permit_empty', 'source' => 'doc_types', 'default' => ''],
                     'limit'    => $limit(5, 20),
+                ],
+            ],
+            'greetings' => [
+                'Ucapan & Belasungkawa', 'bi-card-image', 'Dua kolom berdampingan: Ucapan Selamat & Belasungkawa, masing-masing memutar banner terbaru (carousel). Isi dikelola di Publikasi → Ucapan & Belasungkawa.',
+                'top' => true, 'child' => true, 'fields' => [
+                    'limit' => ['Banner per kolom (yang terbaru)', 'number', 'required|integer|greater_than[0]|less_than[11]', 'default' => 3, 'help' => '1–10. Mis. 3 = memutar 3 banner terbaru di tiap kolom.'],
+                    'show'  => ['Kolom yang ditampilkan', 'select', 'required|in_list[both,selamat,belasungkawa]', 'default' => 'both', 'options' => [
+                        'both'         => 'Keduanya (Selamat & Belasungkawa)',
+                        'selamat'      => 'Ucapan Selamat saja',
+                        'belasungkawa' => 'Belasungkawa saja',
+                    ]],
                 ],
             ],
             'stats' => [
