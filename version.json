@@ -1,9 +1,18 @@
 {
-  "build": 8,
+  "build": 9,
   "version": "2026-11-23",
   "repo": "rohmansyah1228/website-satker-pengadilan-agama",
   "branch": "main",
   "releases": [
+    {
+      "build": 9,
+      "version": "2026-11-23",
+      "notes": "Perbaikan: pengaturan 'Kartu per baris' pada blok Pintasan kini berlaku di kotak grid beranda (mis. 3 kartu sejajar, sisanya turun ke bawah), tidak lagi dibatasi 2 di layar sedang.",
+      "files": [
+        "app/Views/site/blocks/_child.php",
+        "app/Views/site/blocks/shortcuts.php"
+      ]
+    },
     {
       "build": 8,
       "version": "2026-11-23",

@@ -5,9 +5,11 @@ foreach ($data['shortcuts'] ?? [] as $s) {
     if ($u !== '#' && $u !== '') { $items[] = $s + ['href' => $u]; } // token pengaturan kosong → tidak ditampilkan (cegah tautan mati)
 }
 $style = $b['settings']['style'] ?? 'card';
-$cols  = (int) ($b['settings']['columns'] ?? 4);
+$cols  = max(2, min(6, (int) ($b['settings']['columns'] ?? 4)));
 $base  = $style === 'card' ? 'row-cols-1 row-cols-sm-2' : 'row-cols-2 row-cols-sm-3';
-$cls   = $nested ? $base : $base . ' row-cols-lg-' . $cols;
+// Jumlah "Kartu per baris" diterapkan mulai layar sedang (md) agar terlihat tanpa harus layar sangat lebar;
+// di dalam Baris Kolom (nested) tetap mengikuti lebar kolomnya.
+$cls   = $nested ? $base : $base . ' row-cols-md-' . min($cols, 3) . ' row-cols-lg-' . $cols;
 ?>
 <?php if (! $items): ?><p class="<?= $onDark ? 'text-white-75' : 'text-secondary' ?> small mb-0">Belum ada pintasan.</p><?php return; endif ?>
 <div class="row <?= $style === 'card' ? 'g-4' : 'g-3' ?> <?= $cls ?> justify-content-center">

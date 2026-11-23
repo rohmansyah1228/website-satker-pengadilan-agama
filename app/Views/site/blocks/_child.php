@@ -5,6 +5,9 @@
  */
 $anchor = $anchor ?? false;
 $inSide = $inSide ?? false;
+// Kotak grid beranda / sidebar bisa lebar, jadi blok di dalamnya TIDAK dianggap "nested"
+// (pengaturan "Kartu per baris" berlaku). Hanya sub-kotak di dalam "Baris Kolom" yang nested.
+$childNested = $childNested ?? $inSide;
 $more = [
     'announcements' => ['berita/kategori/pengumuman', 'Semua'],
     'news'          => [! empty($c['settings']['category']) ? 'berita/kategori/' . $c['settings']['category'] : 'berita', 'Indeks Berita'],
@@ -23,7 +26,7 @@ $id     = $anchor ? ' id="blok-' . $c['id'] . '"' : '';
         <div class="row g-4">
             <?php foreach ($c['children'] ?? [] as $cc): $w = (int) $cc['width'] ?: 12; ?>
                 <div class="col-12<?= $w <= 4 ? ' col-md-6' : '' ?> col-lg-<?= $w ?>">
-                    <?= view('site/blocks/_child', ['c' => $cc, 'level' => $c['title'] ? $level + 1 : $level, 'anchor' => false, 'inSide' => false]) ?>
+                    <?= view('site/blocks/_child', ['c' => $cc, 'level' => $c['title'] ? $level + 1 : $level, 'anchor' => false, 'inSide' => false, 'childNested' => true]) ?>
                 </div>
             <?php endforeach ?>
         </div>
@@ -37,6 +40,6 @@ $id     = $anchor ? ' id="blok-' . $c['id'] . '"' : '';
             <?php if ($more): ?><a href="<?= site_url($more[0]) ?>" class="small text-pa-primary fw-semibold text-decoration-none text-nowrap"><?= $more[1] ?> &rarr;<span class="visually-hidden"> <?= esc($c['title']) ?></span></a><?php endif ?>
         </div>
     <?php endif ?>
-    <?= view('site/blocks/' . $c['type'], ['b' => $c, 'data' => $c['data'] ?? [], 'nested' => true, 'onDark' => false, 'level' => $level, 'inSide' => $inSide]) ?>
+    <?= view('site/blocks/' . $c['type'], ['b' => $c, 'data' => $c['data'] ?? [], 'nested' => $childNested, 'onDark' => false, 'level' => $level, 'inSide' => $inSide]) ?>
 </div>
 <?php endif ?>
