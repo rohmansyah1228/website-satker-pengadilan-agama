@@ -159,6 +159,7 @@
     function remove(el) {
         if (!window.confirm('Hapus blok ' + cfg.types[el.dataset.type].label.toLowerCase() + ' ini?')) return;
         const next = el.nextElementSibling || el.previousElementSibling;
+        if (el._editor && el._editor.detach) el._editor.detach(); // lepas TinyMCE agar tidak tersisa instance 'hantu'
         el.remove();
         dirty = true;
         renumber();
@@ -180,7 +181,7 @@
         let el = null;
         let api;
         if (window.SatkerEditor) {
-            api = window.SatkerEditor.init(ta, { height: 420, onChange: () => { dirty = true; el && el._refresh(); } });
+            api = window.SatkerEditor.init(ta, { height: 420, sticky: false, onChange: () => { dirty = true; el && el._refresh(); } });
         } else {
             ta.addEventListener('input', () => { dirty = true; });
             api = { getContent: () => ta.value, focus: () => ta.focus(), text: () => ta.value.replace(/<[^>]+>/g, ' '), detach() {}, attach() {} };

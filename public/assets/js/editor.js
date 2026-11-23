@@ -82,7 +82,7 @@
                 toolbar: 'undo redo blocks bold italic underline forecolor alignleft aligncenter alignright alignjustify bullist numlist outdent indent link image media table removeformat code fullscreen',
                 height: (opts.height || 520) + 220
             },
-            toolbar_sticky: true,
+            toolbar_sticky: opts.sticky !== false,
             toolbar_sticky_offset: (document.querySelector('.admin-topbar') || { offsetHeight: 0 }).offsetHeight,
             block_formats: 'Paragraf=p; Judul 2=h2; Judul 3=h3; Judul 4=h4; Judul 5=h5; Kutipan=blockquote; Praformat=pre',
             font_family_formats: 'Inter=Inter,sans-serif; Montserrat=Montserrat,sans-serif; Arial=arial,helvetica,sans-serif; Tahoma=tahoma,arial,sans-serif; Verdana=verdana,geneva,sans-serif; Georgia=georgia,serif; Times New Roman=times new roman,times,serif; Courier New=courier new,courier,monospace',
@@ -216,6 +216,7 @@
             if (!ta.isConnected) { setTimeout(attach, 30); return; }
             window.tinymce.init(settings(ta, {
                 height: opts.height,
+                sticky: opts.sticky,
                 setup: (e) => {
                     ed = e;
                     e.on('init', () => {
