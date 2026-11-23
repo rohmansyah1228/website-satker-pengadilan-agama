@@ -1,9 +1,17 @@
 {
-  "build": 11,
+  "build": 12,
   "version": "2026-11-23",
   "repo": "rohmansyah1228/website-satker-pengadilan-agama",
   "branch": "main",
   "releases": [
+    {
+      "build": 12,
+      "version": "2026-11-23",
+      "notes": "Perbaikan: pemberitahuan versi & Update Website selalu membaca rilis terbaru dari GitHub (tidak tertahan cache GitHub sesaat setelah rilis).",
+      "files": [
+        "app/Libraries/VersionCheck.php"
+      ]
+    },
     {
       "build": 11,
       "version": "2026-11-23",

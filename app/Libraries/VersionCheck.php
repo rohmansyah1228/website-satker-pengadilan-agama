@@ -75,33 +75,22 @@ class VersionCheck
         }
         $repo   = (string) ($local['repo'] ?? '');
         $branch = (string) ($local['branch'] ?? 'main');
-        $url    = 'https://raw.githubusercontent.com/' . $repo . '/' . $branch . '/version.json';
         $res    = ['at' => time(), 'data' => null, 'error' => null];
         try {
-            UrlGuard::assertPublic($url); // hanya host publik (GitHub)
             if (! function_exists('curl_init')) {
                 throw new \RuntimeException('cURL tidak aktif');
             }
-            $ch  = curl_init($url);
-            $buf = '';
-            curl_setopt_array($ch, [
-                CURLOPT_FOLLOWLOCATION  => true,
-                CURLOPT_MAXREDIRS       => 3,
-                CURLOPT_PROTOCOLS       => CURLPROTO_HTTPS,
-                CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTPS,
-                CURLOPT_CONNECTTIMEOUT  => 4,
-                CURLOPT_TIMEOUT         => 6,
-                CURLOPT_USERAGENT       => 'WebsiteSatker-VersionCheck',
-                CURLOPT_WRITEFUNCTION   => static function ($c, $chunk) use (&$buf) {
-                    $buf .= $chunk;
-
-                    return strlen($buf) > 262144 ? 0 : strlen($chunk);
-                },
-            ]);
-            curl_exec($ch);
-            $code = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-            $err  = curl_errno($ch) ? curl_error($ch) : '';
-            curl_close($ch);
+            // commit terbaru lewat API (selalu segar); version.json dibaca pada commit itu, bukan nama cabang
+            // yang bisa tertahan cache CDN GitHub beberapa menit. Bila API gagal → pakai nama cabang.
+            $ref = $branch;
+            try {
+                [$code, $sha] = $this->get('https://api.github.com/repos/' . $repo . '/commits/' . rawurlencode($branch), ['Accept: application/vnd.github.sha'], 4096);
+                if ($code === 200 && preg_match('/^[0-9a-f]{40}$/', trim($sha))) {
+                    $ref = trim($sha);
+                }
+            } catch (\Throwable) {
+            }
+            [$code, $buf, $err] = $this->get('https://raw.githubusercontent.com/' . $repo . '/' . $ref . '/version.json', [], 262144);
             if ($code !== 200 || $buf === '') {
                 throw new \RuntimeException($err ?: ('HTTP ' . $code));
             }
@@ -116,5 +105,34 @@ class VersionCheck
         cache()->save('version_check', $res, self::TTL);
 
         return $res;
+    }
+
+    /** GET HTTPS sederhana (host publik saja). @return array{0:int,1:string,2:string} */
+    private function get(string $url, array $headers, int $max): array
+    {
+        UrlGuard::assertPublic($url);
+        $ch  = curl_init($url);
+        $buf = '';
+        curl_setopt_array($ch, [
+            CURLOPT_FOLLOWLOCATION  => true,
+            CURLOPT_MAXREDIRS       => 3,
+            CURLOPT_PROTOCOLS       => CURLPROTO_HTTPS,
+            CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTPS,
+            CURLOPT_CONNECTTIMEOUT  => 4,
+            CURLOPT_TIMEOUT         => 6,
+            CURLOPT_USERAGENT       => 'WebsiteSatker-VersionCheck',
+            CURLOPT_HTTPHEADER      => $headers,
+            CURLOPT_WRITEFUNCTION   => static function ($c, $chunk) use (&$buf, $max) {
+                $buf .= $chunk;
+
+                return strlen($buf) > $max ? 0 : strlen($chunk);
+            },
+        ]);
+        curl_exec($ch);
+        $code = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+        $err  = curl_errno($ch) ? curl_error($ch) : '';
+        curl_close($ch);
+
+        return [$code, $buf, $err];
     }
 }
