@@ -16,7 +16,7 @@ Website di hosting tidak bisa menjangkau jaringan kantor, karena itu kantor yang
 |---|---|---|
 | Jadwal sidang | Hari ini s.d. 14 hari ke depan: nomor & jenis perkara, jam, agenda, ruang (nama pihak **tidak** dikirim) | Halaman Jadwal Sidang & blok Beranda |
 | Statistik perkara | Tahun berjalan per bulan: sisa lalu, masuk, putus, sisa; per jenis perkara | Statistik Perkara & Dashboard SINOVA |
-| Panggilan ghaib | Perkara ghaib belum putus: nomor, jenis, nama Tergugat/Termohon, sidang berikutnya (alamat tidak dikirim) + **relaas (PDF) terbaru** Tergugat/Termohon | Panggilan Ghaib, tombol *Lihat Relaas (PDF)* |
+| Panggilan ghaib | Perkara ghaib belum putus (sidang berikutnya) dan yang **sudah putus 1 tahun terakhir** (tanggal putus): nomor, jenis, nama Tergugat/Termohon (alamat tidak dikirim) + **relaas (PDF) terbaru** | Panggilan Ghaib: tabel panggilan & tabel *Sudah Putus*, tombol *Lihat Relaas (PDF)* |
 | Antrian | Bebas, dari query di `config.php` (nonaktif sampai diisi) | Tersedia sebagai data JSON |
 
 ## Cara pasang

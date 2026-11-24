@@ -391,7 +391,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
             <tr><td>Arsip Dokumen</td><td>Jenis, judul, tahun, bulan, PDF atau tautan luar</td><td>Halaman sesuai jenis</td></tr>
             <tr><td>Jenis Dokumen</td><td>Nama, kode, bagian, periode, minimal tahun</td><td>Pengelompokan & cek SINOVA</td></tr>
             <tr><td>Jadwal Sidang</td><td>Tanggal, jam, nomor perkara, agenda, ruang</td><td>Jadwal Persidangan, blok Jadwal Hari Ini</td></tr>
-            <tr><td>Panggilan Ghaib</td><td>Nama pihak, nomor perkara, tanggal sidang, relaas PDF</td><td>Panggilan Ghaib, blok Pengumuman</td></tr>
+            <tr><td>Panggilan Ghaib</td><td>Nama pihak, nomor perkara, tanggal sidang, relaas PDF; isi <em>Tanggal Putus</em> bila perkara sudah diputus (pindah ke tabel Sudah Putus)</td><td>Panggilan Ghaib, blok Pengumuman</td></tr>
             <tr><td>Statistik Perkara</td><td>Tahun, bulan, sisa lalu, masuk, putus, sisa</td><td>Statistik Perkara</td></tr>
             <tr><td>Pejabat & Pegawai</td><td>Nama, jabatan, kelompok, pangkat, foto, riwayat, SIMTEPA</td><td>Profil Pejabat & Pegawai + profil per orang</td></tr>
             <tr><td>LHKPN / LHKASN</td><td>Nama, jabatan, tahun, ikhtisar PDF</td><td>LHKPN</td></tr>
@@ -448,7 +448,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
         <tbody>
             <tr><td>Jadwal sidang (hari ini s.d. 14 hari ke depan)</td><td>Halaman Jadwal Sidang (ditambah kolom jenis perkara) dan blok Beranda <em>Jadwal Sidang Hari Ini</em>. Nama pihak tidak ditampilkan.</td></tr>
             <tr><td>Statistik perkara tahun berjalan</td><td>Menu & halaman Statistik Perkara (per bulan: sisa lalu, masuk, putus, sisa) serta Dashboard SINOVA</td></tr>
-            <tr><td>Panggilan ghaib (perkara belum putus)</td><td>Menu & halaman Panggilan Ghaib serta blok Pengumuman. Perkara yang sudah putus otomatis disembunyikan. <strong>Relaas (PDF) terbaru Tergugat/Termohon ikut dikirim</strong> dari folder dokumen SIPP dan tampil sebagai tombol <em>Lihat Relaas (PDF)</em>.</td></tr>
+            <tr><td>Panggilan ghaib (belum putus &amp; sudah putus)</td><td>Menu & halaman Panggilan Ghaib serta blok Pengumuman. Perkara yang sudah putus pindah ke tabel <em>Perkara Ghaib yang Sudah Putus</em> (tampil 1 tahun sejak tanggal putus). <strong>Relaas (PDF) terbaru Tergugat/Termohon ikut dikirim</strong> dari folder dokumen SIPP dan tampil sebagai tombol <em>Lihat Relaas (PDF)</em>.</td></tr>
         </tbody>
     </table></div>
     <h4 class="h6 fw-bold mt-3">Memasang (cara termudah)</h4>

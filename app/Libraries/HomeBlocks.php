@@ -131,9 +131,14 @@ class HomeBlocks
                 }
 
             case 'announcements':
-                $ghaib = ! empty($s['show_ghaib'])
-                    ? $db->table('ghaib')->where('is_active', 1)->where('hearing_date >=', date('Y-m-d'))->orderBy('hearing_date')->get($lim)->getResultArray()
-                    : [];
+                $ghaib = [];
+                if (! empty($s['show_ghaib'])) {
+                    $gq = $db->table('ghaib')->where('is_active', 1)->where('hearing_date >=', date('Y-m-d'));
+                    if ($db->fieldExists('decided_at', 'ghaib')) {
+                        $gq->where('decided_at', null); // perkara yang sudah putus tidak dipanggil lagi
+                    }
+                    $ghaib = $gq->orderBy('hearing_date')->get($lim)->getResultArray();
+                }
                 $rest    = max(0, $lim - count($ghaib));
                 $notices = $rest ? $db->table('posts')->where('status', 'published')->where('published_at <=', $now)
                     ->whereIn('category', ['pengumuman', 'serta-merta'])->orderBy('published_at', 'DESC')

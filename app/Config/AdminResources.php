@@ -169,13 +169,14 @@ class AdminResources extends BaseConfig
             'panggilan-ghaib' => [
                 'table' => 'ghaib', 'title' => 'Panggilan Ghaib', 'singular' => 'Panggilan Ghaib', 'icon' => 'bi-megaphone',
                 'group' => 'Kepaniteraan', 'roles' => ['kepaniteraan'], 'order' => ['hearing_date', 'DESC'], 'timestamps' => true,
-                'list'  => ['party_name' => 'Nama Pihak', 'case_number' => 'Nomor Perkara', 'hearing_date' => 'Tanggal Sidang', 'file_id' => 'Relaas', 'is_active' => 'Tampil'],
+                'list'  => ['party_name' => 'Nama Pihak', 'case_number' => 'Nomor Perkara', 'hearing_date' => 'Tanggal Sidang', 'decided_at' => 'Putus', 'file_id' => 'Relaas', 'is_active' => 'Tampil'],
                 'search' => ['party_name', 'case_number'],
-                'hint'  => 'Wajib memuat nama pihak, nomor perkara, tanggal sidang, dan tautan relaas. Panggilan otomatis tidak tampil 7 hari setelah tanggal sidang.',
+                'hint'  => 'Wajib memuat nama pihak, nomor perkara, tanggal sidang, dan tautan relaas. Panggilan otomatis tidak tampil 7 hari setelah tanggal sidang. Isi Tanggal Putus bila perkara sudah diputus: baris pindah ke tabel "Sudah Putus" (tampil 1 tahun).',
                 'fields' => [
                     'party_name'   => ['Nama Pihak', 'text', 'required|max_length[150]'],
                     'case_number'  => ['Nomor Perkara', 'text', 'required|max_length[80]'],
                     'hearing_date' => ['Tanggal Sidang', 'date', 'required|valid_date[Y-m-d]'],
+                    'decided_at'   => ['Tanggal Putus', 'date', 'permit_empty|valid_date[Y-m-d]', 'help' => 'Kosongkan selama perkara belum diputus.'],
                     'file_id'      => ['Dokumen Relaas (PDF)', 'pdf', 'permit_empty'],
                     'is_active'    => ['Tampilkan', 'checkbox', 'permit_empty'],
                 ],
@@ -328,7 +329,7 @@ class AdminResources extends BaseConfig
             ],
             'panggilan-ghaib' => [
                 'main'  => ['' => ['party_name', 'case_number'], 'Relaas' => ['file_id']],
-                'side'  => ['Sidang' => ['hearing_date'], 'Tampilan' => ['is_active']],
+                'side'  => ['Sidang' => ['hearing_date', 'decided_at'], 'Tampilan' => ['is_active']],
             ],
             'statistik-perkara' => [
                 'main'  => ['Jumlah Perkara' => ['carried_over', 'received', 'decided', 'remaining']],

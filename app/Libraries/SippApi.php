@@ -14,7 +14,7 @@ use RuntimeException;
  * Data diterapkan ke modul website yang sudah ada (bila "Integrasi SIPP" aktif):
  *   jadwal_sidang     → halaman Jadwal Sidang & blok Beranda (lewat SippSource)
  *   statistik_perkara → tabel case_stats (Statistik Perkara per bulan)
- *   panggilan_ghaib   → tabel ghaib (baris bertanda source = 'sipp'); jawaban berisi "butuh_relaas"
+ *   panggilan_ghaib   → tabel ghaib (belum putus + 'putus' 1 tahun terakhir → decided_at); jawaban berisi "butuh_relaas"
  *                       = sidik (sha256) relaas yang belum dimiliki website
  *   relaas_ghaib      → satu berkas PDF relaas (base64) untuk satu perkara → ghaib.file_id
  *                       (relaas yang diunggah manual tidak pernah ditimpa)
@@ -252,15 +252,33 @@ class SippApi
         if (! is_array($d['perkara'] ?? null)) {
             return ['', []];
         }
-        $db     = db_connect();
-        $now    = date('Y-m-d H:i:s');
-        $hasSrc = $db->fieldExists('source', 'ghaib');
-        $seen   = [];
-        $relaas = []; // nomor perkara => sha256 relaas terbaru di SIPP
-        $n      = 0;
+        $db      = db_connect();
+        $now     = date('Y-m-d H:i:s');
+        $hasSrc  = $db->fieldExists('source', 'ghaib');
+        $hasPts  = $db->fieldExists('decided_at', 'ghaib');
+        $putus   = $hasPts && is_array($d['putus'] ?? null) ? $d['putus'] : []; // aplikasi kantor versi lama tidak mengirim 'putus'
+        $seen    = [];
+        $relaas  = []; // nomor perkara => sha256 relaas terbaru di SIPP
+        $n       = 0;
+        $nPutus  = 0;
+        $ymd     = static fn ($v) => preg_match('/^\d{4}-\d{2}-\d{2}/', (string) $v) ? substr((string) $v, 0, 10) : null;
+        $list    = [];
         foreach ($d['perkara'] as $p) {
+            $list[] = [$p, false];
+        }
+        foreach ($putus as $p) {
+            $list[] = [$p, true];
+        }
+        foreach ($list as [$p, $isPutus]) {
+            if (! is_array($p)) {
+                continue;
+            }
             $no = trim((string) ($p['nomor_perkara'] ?? ''));
             if ($no === '' || mb_strlen($no) > 80) {
+                continue;
+            }
+            $decided = $isPutus ? $ymd($p['tanggal_putusan'] ?? '') : null;
+            if ($isPutus && ! $decided) {
                 continue;
             }
             $seen[] = $no;
@@ -268,34 +286,45 @@ class SippApi
             if (preg_match('/^[0-9a-f]{64}$/', $sha)) {
                 $relaas[$no] = $sha;
             }
-            $date   = (string) ($p['sidang_berikutnya'] ?? '');
-            $date   = preg_match('/^\d{4}-\d{2}-\d{2}/', $date) ? substr($date, 0, 10) : null;
-            $name   = trim(preg_replace('/\s+/u', ' ', strip_tags((string) ($p['nama_pihak'] ?? ''))));
-            $old    = $db->table('ghaib')->where('case_number', $no)->orderBy('id', 'DESC')->get(1)->getRowArray();
+            // belum putus: tanggal sidang berikutnya; sudah putus: sidang terakhir (bila ada)
+            $date = $ymd($isPutus ? ($p['sidang_terakhir'] ?? '') : ($p['sidang_berikutnya'] ?? ''));
+            $name = trim(preg_replace('/\s+/u', ' ', strip_tags((string) ($p['nama_pihak'] ?? ''))));
+            $old  = $db->table('ghaib')->where('case_number', $no)->orderBy('id', 'DESC')->get(1)->getRowArray();
+            $auto = $old && $hasSrc && ($old['source'] ?? '') === 'sipp';
             if ($old) {
                 $upd = ['updated_at' => $now];
-                if ($date) {
+                if ($date && ! ($isPutus && $old['hearing_date'])) {
                     $upd['hearing_date'] = $date;
                 }
-                if ($hasSrc && ($old['source'] ?? '') === 'sipp') {
+                if ($auto) {
                     $upd['is_active'] = 1;
                     if ($name !== '') {
                         $upd['party_name'] = mb_substr($name, 0, 150);
                     }
                 }
+                if ($hasPts && $isPutus) {
+                    $upd['decided_at'] = $decided;
+                } elseif ($hasPts && $auto && array_key_exists('putus', $d)) {
+                    $upd['decided_at'] = null; // menurut SIPP belum putus (mis. putusan dibatalkan/dikoreksi)
+                }
                 $db->table('ghaib')->where('id', $old['id'])->update($upd);
-                $n++;
-            } elseif ($date) { // pengumuman ghaib perlu tanggal sidang
+            } elseif ($date || $isPutus) { // pengumuman ghaib perlu tanggal sidang
                 $ins = ['party_name' => mb_substr($name !== '' ? $name : 'Tergugat/Termohon', 0, 150), 'case_number' => $no,
                     'hearing_date' => $date, 'is_active' => 1, 'created_at' => $now, 'updated_at' => $now];
                 if ($hasSrc) {
                     $ins['source'] = 'sipp';
                 }
+                if ($hasPts && $isPutus) {
+                    $ins['decided_at'] = $decided;
+                }
                 $db->table('ghaib')->insert($ins);
-                $n++;
+            } else {
+                continue;
             }
+            $isPutus ? $nPutus++ : $n++;
         }
         if ($hasSrc) {
+            // baris otomatis yang tidak ada lagi di kiriman (mis. putus lebih dari 1 tahun) disembunyikan
             $q = $db->table('ghaib')->where('source', 'sipp')->where('is_active', 1);
             if ($seen) {
                 $q->whereNotIn('case_number', $seen);
@@ -314,7 +343,7 @@ class SippApi
             }
         }
 
-        return [$n . ' panggilan ghaib', array_values(array_unique($need))];
+        return [$n . ' panggilan ghaib' . ($putus ? ', ' . $nPutus . ' sudah putus' : ''), array_values(array_unique($need))];
     }
 
     /** Batas body POST dari php.ini (byte), 0 = tanpa batas. */

@@ -55,9 +55,19 @@ class ModuleData
                 return ['date' => $date, 'rows' => $rows];
 
             case 'ghaib':
-                return ['rows' => $db->table('ghaib g')->select('g.*, f.uuid')->join('files f', 'f.id = g.file_id', 'left')
-                    ->where('g.is_active', 1)->where('g.hearing_date >=', date('Y-m-d', strtotime('-7 days')))
-                    ->orderBy('g.hearing_date')->get()->getResultArray()];
+                $putusOk = $db->fieldExists('decided_at', 'ghaib');
+                $q = $db->table('ghaib g')->select('g.*, f.uuid')->join('files f', 'f.id = g.file_id', 'left')
+                    ->where('g.is_active', 1)->where('g.hearing_date >=', date('Y-m-d', strtotime('-7 days')));
+                if ($putusOk) {
+                    $q->where('g.decided_at', null);
+                }
+                $rows  = $q->orderBy('g.hearing_date')->get()->getResultArray();
+                // perkara ghaib yang sudah putus (1 tahun terakhir), terbaru lebih dulu
+                $putus = $putusOk ? $db->table('ghaib g')->select('g.*, f.uuid')->join('files f', 'f.id = g.file_id', 'left')
+                    ->where('g.is_active', 1)->where('g.decided_at >=', date('Y-m-d', strtotime('-1 year')))
+                    ->orderBy('g.decided_at', 'DESC')->orderBy('g.id', 'DESC')->get()->getResultArray() : [];
+
+                return ['rows' => $rows, 'putus' => $putus];
 
             case 'statistik':
                 $year  = (int) ($rq->getGet('tahun') ?: date('Y'));
@@ -114,6 +124,8 @@ class ModuleData
                 return empty($data['items']);
 
             case 'ghaib':
+                return empty($data['rows']) && empty($data['putus']);
+
             case 'lhkpn':
             case 'akses_informasi':
             case 'pengaduan':

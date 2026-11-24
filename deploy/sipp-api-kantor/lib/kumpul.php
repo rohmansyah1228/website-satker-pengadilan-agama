@@ -171,7 +171,7 @@ function kumpul_statistik_perkara($cfg, $dbOk) {
 }
 
 /* ======================================================================
- * 3. PANGGILAN GHAIB (belum putus) - untuk pengumuman di website
+ * 3. PANGGILAN GHAIB - belum putus (pengumuman panggilan) + sudah putus 1 tahun terakhir
  * ==================================================================== */
 function kumpul_panggilan_ghaib($cfg, $dbOk) {
     if (!$dbOk) return kumpul_hasil(false, '', null, 0, 'SIPP internal tidak terhubung');
@@ -196,12 +196,27 @@ function kumpul_panggilan_ghaib($cfg, $dbOk) {
         ORDER BY a.tanggal_pendaftaran ASC, a.perkara_id ASC");
     if ($rows === false) return kumpul_hasil(false, '', null, 0, db_error());
 
+    // perkara ghaib yang SUDAH PUTUS dalam 1 tahun terakhir (tabel "Sudah Putus" di website)
+    $rowsPutus = db_rows("SELECT a.perkara_id, a.nomor_perkara, a.jenis_perkara_text, a.tanggal_pendaftaran, c.tanggal_putusan,
+               (SELECT GROUP_CONCAT(h.nama ORDER BY h.urutan SEPARATOR ', ') FROM perkara_pihak2 h
+                 WHERE h.perkara_id = a.perkara_id AND $filterGhaib)       AS nama_ghaib,
+               (SELECT MAX(i.tanggal_sidang) FROM perkara_jadwal_sidang i
+                 WHERE i.perkara_id = a.perkara_id AND i.tanggal_sidang <= c.tanggal_putusan) AS sidang_terakhir
+        FROM perkara a
+        JOIN perkara_putusan c ON c.perkara_id = a.perkara_id
+        WHERE c.tanggal_putusan IS NOT NULL
+          AND c.tanggal_putusan >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
+          AND EXISTS (SELECT 1 FROM perkara_pihak2 h WHERE h.perkara_id = a.perkara_id AND $filterGhaib)
+        ORDER BY c.tanggal_putusan DESC, a.perkara_id DESC");
+    if ($rowsPutus === false) return kumpul_hasil(false, '', null, 0, db_error());
+
     // relaas terbaru Tergugat/Termohon (berkas PDF dari folder dokumen SIPP)
     $relaas = array();
     $catatan = '';
     if (!empty($cfg['ghaib_kirim_relaas']) && count($rows) > 0) {
         $daftar = array();
         foreach ($rows as $r) $daftar[(int)$r['perkara_id']] = $r['nomor_perkara'];
+        foreach ($rowsPutus as $r) $daftar[(int)$r['perkara_id']] = $r['nomor_perkara'];
         if (relaas_folder($cfg) == '') $catatan = 'folder dokumen SIPP tidak ditemukan, relaas tidak dikirim (isi "Folder dokumen SIPP" di Pengaturan lanjutan)';
         else $relaas = relaas_terbaru($cfg, $daftar);
     }
@@ -225,11 +240,30 @@ function kumpul_panggilan_ghaib($cfg, $dbOk) {
         }
         $data[] = $item;
     }
+    $dataPutus = array();
+    foreach ($rowsPutus as $r) {
+        if (empty($r['tanggal_putusan']) || substr($r['tanggal_putusan'], 0, 10) == '0000-00-00') continue;
+        $item = array(
+            'nomor_perkara'   => $r['nomor_perkara'],
+            'jenis_perkara'   => $r['jenis_perkara_text'],
+            'tanggal_daftar'  => $r['tanggal_pendaftaran'],
+            'tanggal_putusan' => substr($r['tanggal_putusan'], 0, 10),
+            'sidang_terakhir' => $r['sidang_terakhir'],
+        );
+        if ($cfg['ghaib_kirim_nama']) $item['nama_pihak'] = $r['nama_ghaib'];
+        if (isset($relaas[(int)$r['perkara_id']])) {
+            $rl = $relaas[(int)$r['perkara_id']];
+            $info = relaas_info($r['nomor_perkara'], $rl[0], $rl[1], $maksByte);
+            if ($info) { $item['relaas'] = $info; $adaRelaas++; if (!empty($info['terlalu_besar'])) $besar++; }
+        }
+        $dataPutus[] = $item;
+    }
     if (!empty($cfg['ghaib_kirim_relaas']) && $catatan == '') {
         $catatan = $adaRelaas . ' perkara punya relaas';
         if ($besar > 0) $catatan .= ', ' . $besar . ' relaas tidak dikirim karena lebih dari ' . round($maksByte / 1048576, 1) . ' MB';
     }
-    return kumpul_hasil(true, 'sipp_internal', array('perkara' => $data), count($data), $catatan != '' ? 'OK; ' . $catatan : 'OK');
+    $catatan = count($dataPutus) . ' sudah putus' . ($catatan != '' ? ', ' . $catatan : '');
+    return kumpul_hasil(true, 'sipp_internal', array('perkara' => $data, 'putus' => $dataPutus), count($data), 'OK; ' . $catatan);
 }
 
 /* ======================================================================
