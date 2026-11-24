@@ -22,12 +22,12 @@ $addr     = implode(', ', array_filter([setting('address_street'), setting('addr
                 <?php if (setting('hearing_hours')): ?><p class="text-white-50 small mb-0 mt-2"><strong class="text-white-75">Waktu sidang:</strong><br><?= nl2br(esc(setting('hearing_hours'))) ?></p><?php endif ?>
             </div>
             <div class="col-md-6 col-lg-4">
-                <h2 class="font-display fw-bold fs-6 text-pa-secondary mb-3">Tautan Ekosistem Peradilan</h2>
-                <ul class="list-unstyled small d-grid gap-2">
-                    <li><a href="https://www.mahkamahagung.go.id" target="_blank" rel="noopener noreferrer" class="text-white-50 text-decoration-none">Mahkamah Agung RI</a></li>
-                    <li><a href="https://badilag.mahkamahagung.go.id" target="_blank" rel="noopener noreferrer" class="text-white-50 text-decoration-none">Ditjen Badan Peradilan Agama</a></li>
-                    <li><a href="https://jdih.mahkamahagung.go.id" target="_blank" rel="noopener noreferrer" class="text-white-50 text-decoration-none">JDIH Mahkamah Agung RI</a></li>
-                    <li><a href="<?= esc(setting('siwas_url', 'https://siwas.mahkamahagung.go.id'), 'attr') ?>" target="_blank" rel="noopener noreferrer" class="text-white-50 text-decoration-none">SIWAS Mahkamah Agung RI</a></li>
+                <h2 class="font-display fw-bold fs-6 text-pa-secondary mb-3"><?= esc(setting('footer_links_title') ?: 'Tautan Ekosistem Peradilan') ?></h2>
+                <?php $flinks = footer_links(); // lebih dari 6 tautan → dua kolom agar kaki halaman tidak terlalu panjang ?>
+                <ul class="list-unstyled small mb-0"<?= count($flinks) > 6 ? ' style="column-count:2;column-gap:1.5rem"' : '' ?>>
+                    <?php foreach ($flinks as [$fname, $furl]): ?>
+                    <li class="mb-2" style="break-inside:avoid"><a href="<?= esc($furl, 'attr') ?>" target="_blank" rel="noopener noreferrer" class="text-white-50 text-decoration-none"><?= esc($fname) ?></a></li>
+                    <?php endforeach ?>
                 </ul>
             </div>
             <div class="col-md-6 col-lg-3">

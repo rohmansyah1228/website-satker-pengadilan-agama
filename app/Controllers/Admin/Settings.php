@@ -46,6 +46,8 @@ class Settings extends AdminController
                 'direktori_url' => ['URL Direktori Putusan Satker', 'url', 'Tautan langsung ke direktori putusan satker Anda di putusan3.mahkamahagung.go.id'],
                 'siwas_url'     => ['URL SIWAS', 'url', ''],
                 'ppid_form_url' => ['URL Formulir Permohonan Informasi', 'url', ''],
+                'footer_links_title' => ['Judul tautan di kaki halaman', 'text', 'Bawaan: Tautan Ekosistem Peradilan'],
+                'footer_links'  => ['Tautan di kaki halaman', 'textarea', 'Satu tautan per baris dengan format: Nama | https://alamat. Urutan baris = urutan tampil. Hapus baris untuk menghilangkan tautan; kosongkan semua untuk kembali ke tautan bawaan.'],
                 'cctv_url'      => ['URL Akses CCTV Online', 'url', 'Tautan display CCTV satker di cctv.badilag.net. Tombol CCTV tampil di kiri atas semua halaman.'],
                 'cctv_image'    => ['Ikon/GIF tombol CCTV (opsional)', 'image', 'Kosongkan untuk memakai ikon kamera beranimasi bawaan. PNG/GIF/WebP, sebaiknya persegi.'],
                 'survey_url'    => ['URL Website Survei (tombol “Isi Survei Pelayanan”)', 'url', 'Mis. https://survei.badilag.net/s/… — tampil sebagai tombol di Beranda & halaman Survei.'],
@@ -108,6 +110,7 @@ class Settings extends AdminController
         }
         if ($feed) {
             $values['feed_since'] = (string) $f->sinceYear(); // tampilkan nilai yang berlaku walau belum pernah disimpan
+            $values['footer_links'] = trim((string) ($values['footer_links'] ?? '')) !== '' ? $values['footer_links'] : footer_links_default();
             foreach (\App\Libraries\AnnouncementFeed::DEFAULT as $k => [, $url]) {
                 $values['feed_' . $k . '_url'] ??= $url;
             }
@@ -199,6 +202,18 @@ class Settings extends AdminController
                     }
                 }
                 continue;
+            }
+            if ($key === 'footer_links') {
+                $bad = [];
+                parse_footer_links($v, $bad);
+                if ($bad) {
+                    $errors[] = "{$label}: " . implode('; ', $bad) . '.';
+                    continue;
+                }
+                $v = trim(preg_replace('/\R/', "\n", $v));
+                if ($v === trim(footer_links_default())) {
+                    $v = ''; // sama dengan bawaan: tetap ikut perubahan URL SIWAS
+                }
             }
             if ($type === 'url' && $v !== '' && ! filter_var($v, FILTER_VALIDATE_URL)) {
                 $errors[] = "{$label}: format URL tidak valid (awali dengan https://).";

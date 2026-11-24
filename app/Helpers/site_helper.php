@@ -235,3 +235,51 @@ if (! function_exists('survey_category')) {
         return strtolower($kind) === 'ipak' ? str_replace('Baik', 'Bersih', $label) : $label;
     }
 }
+
+if (! function_exists('footer_links_default')) {
+    /** Teks bawaan "Tautan Ekosistem Peradilan" (satu tautan per baris: Nama | URL). */
+    function footer_links_default(): string
+    {
+        return "Mahkamah Agung RI | https://www.mahkamahagung.go.id\n"
+            . "Ditjen Badan Peradilan Agama | https://badilag.mahkamahagung.go.id\n"
+            . "JDIH Mahkamah Agung RI | https://jdih.mahkamahagung.go.id\n"
+            . 'SIWAS Mahkamah Agung RI | ' . (setting('siwas_url') ?: 'https://siwas.mahkamahagung.go.id');
+    }
+}
+
+if (! function_exists('parse_footer_links')) {
+    /**
+     * Uraikan teks tautan (satu per baris "Nama | URL"). Baris tidak sah diabaikan, atau dicatat di $errors.
+     * @return list<array{0:string,1:string}>
+     */
+    function parse_footer_links(string $text, ?array &$errors = null): array
+    {
+        $out = [];
+        foreach (preg_split('/\R/', $text) as $i => $line) {
+            $line = trim($line);
+            if ($line === '') {
+                continue;
+            }
+            $parts = array_map('trim', explode('|', $line, 2));
+            $url   = $parts[1] ?? '';
+            if ($parts[0] === '' || ! preg_match('#^https?://#i', $url) || ! filter_var($url, FILTER_VALIDATE_URL)) {
+                $errors[] = 'baris ' . ($i + 1) . ' (' . mb_substr($line, 0, 60) . ') harus berformat Nama | https://alamat';
+                continue;
+            }
+            $out[] = [mb_substr($parts[0], 0, 80), $url];
+        }
+
+        return $out;
+    }
+}
+
+if (! function_exists('footer_links')) {
+    /** Tautan Ekosistem Peradilan di kaki halaman (bawaan bila belum pernah diatur). */
+    function footer_links(): array
+    {
+        $t = (string) setting('footer_links', '');
+
+        return parse_footer_links(trim($t) !== '' ? $t : footer_links_default());
+    }
+}
+

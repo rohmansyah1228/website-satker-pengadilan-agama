@@ -428,7 +428,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
         <tbody>
             <tr><td>Identitas Satker</td><td>Nama satker, sub-judul, tingkat (PA/PTA), kode satker, <strong>logo</strong> (juga ikon tab browser), deskripsi situs</td></tr>
             <tr><td>Alamat & Kontak</td><td>Alamat, telepon, <strong>WhatsApp PTSP</strong> & pesan awal, email, <strong>jam pelayanan, istirahat, sidang</strong>, peta, foto gedung, media sosial</td></tr>
-            <tr><td>Tautan Layanan</td><td>SIPP, e-Court, Direktori Putusan, SIWAS, PPID, <strong>CCTV Online</strong> + ikon/GIF, website survei, jadwal dari SIPP</td></tr>
+            <tr><td>Tautan Layanan</td><td>SIPP, e-Court, Direktori Putusan, SIWAS, PPID, <strong>Tautan di kaki halaman</strong> (judul &amp; daftar tautan, satu per baris <code>Nama | https://alamat</code>), <strong>CCTV Online</strong> + ikon/GIF, website survei</td></tr>
             <tr><td>Nilai Survei</td><td>IKM, IPKP, IPAK, periode</td></tr>
             <tr><td>Popup Pembuka</td><td>Aktif, lokasi, frekuensi, ukuran, gambar, judul, teks, tombol</td></tr>
             <tr><td>Integrasi SIPP</td><td>Kunci SIPP API kantor, data yang diisi otomatis (jadwal, statistik, panggilan ghaib), status kiriman terakhir</td></tr>
@@ -578,6 +578,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
             ['Dashboard kantor menulis "Tidak ada perubahan, tidak dikirim"', 'Itu normal: data sama dengan kiriman terakhir. Klik <strong>Kirim ulang semua</strong> bila ingin mengirim paksa.'],
             ['GIF ditolak "mengandung kode yang tidak diperbolehkan"', 'Perbarui website (Update Website). GIF sah tidak lagi ditolak; yang ditolak hanya GIF yang disisipi kode program.'],
             ['Pengiriman SIPP berhenti saat komputer/browser ditutup', 'Mode Otomatis butuh tab yang terbuka. Jadwalkan <code>kirim.php</code> dengan Task Scheduler/cron (lihat <a href="#integrasi-sipp">Integrasi SIPP</a>).'],
+            ['Menambah tautan di kaki halaman (Tautan Ekosistem Peradilan)', '<em>Pengaturan → Tautan Layanan → Tautan di kaki halaman</em>: tambahkan baris baru <code>Nama | https://alamat</code>, lalu Simpan. Urutan baris = urutan tampil; lebih dari 6 tautan otomatis tampil dua kolom.'],
             ['Kartu Pintasan hanya 2 per baris', 'Atur <em>Kartu per baris</em> di tampilan Pintasan Layanan, perlebar kotak tampilannya, lalu tekan Ctrl+F5.'],
         ];
         foreach ($faq as $i => [$q, $a]): ?>
