@@ -64,6 +64,9 @@ class SippApi
     public function verify(string $body, string $apiKey, string $timestamp, string $signature): array
     {
         $cfg = config('Sipp');
+        if (! db_connect()->tableExists('sipp_data')) {
+            throw new RuntimeException('Database website belum diperbarui: buka Panel Admin website → Dashboard → klik "Jalankan pembaruan", lalu kirim ulang.', 503);
+        }
         [$key, $secret] = self::credentials();
         if ($key === '' || $secret === '') {
             throw new RuntimeException('Penerima belum dikonfigurasi: tempel kunci di Pengaturan → Integrasi SIPP.', 503);
