@@ -11,6 +11,7 @@
             <button type="button" class="btn btn-outline-dark btn-sm text-start fw-semibold" data-a11y="contrast"><i class="bi bi-circle-half me-2" aria-hidden="true"></i>Mode Kontras Tinggi</button>
             <button type="button" class="btn btn-outline-success btn-sm text-start fw-semibold" data-a11y="voice" aria-pressed="true"><i class="bi bi-megaphone-fill me-2" aria-hidden="true"></i><span id="voiceLabel">Suara Panduan: Aktif</span></button>
             <button type="button" class="btn btn-pa-secondary btn-sm text-start fw-bold" data-a11y="speak"><i class="bi bi-volume-up-fill me-2" aria-hidden="true"></i><span id="srLabel">Bacakan Isi Halaman</span></button>
+            <p class="small text-secondary mb-0" id="selectHint"><i class="bi bi-cursor-text me-1" aria-hidden="true"></i>Blok (sorot) teks untuk mendengarkannya.</p>
             <button type="button" class="btn btn-link btn-sm text-secondary text-decoration-none" data-a11y="reset">Reset Tampilan Standar</button>
             <p class="visually-hidden" role="status" id="a11yStatus"></p>
         </div>

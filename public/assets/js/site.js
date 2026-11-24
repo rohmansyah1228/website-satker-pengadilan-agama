@@ -49,6 +49,8 @@
         if (voiceLabel) voiceLabel.textContent = 'Suara Panduan: ' + (voiceOn ? 'Aktif' : 'Nonaktif');
         if (voiceBtn) voiceBtn.setAttribute('aria-pressed', voiceOn ? 'true' : 'false');
         if (!canSpeak && voiceBtn) voiceBtn.hidden = true;
+        const hint = document.getElementById('selectHint');
+        if (hint) hint.hidden = !voiceOn;
     };
     syncVoice();
     let idVoice = null;
@@ -136,6 +138,44 @@
         if (!el || !el.matches(':focus-visible')) return;
         playWelcome() || say(labelOf(el) || (el.labels && el.labels[0] ? el.labels[0].innerText : ''));
     });
+
+    // ---------- Blok (sorot) teks → langsung dibacakan (bila Suara Panduan aktif) ----------
+    // teks panjang dipecah per kalimat: Chrome menghentikan satu ucapan yang terlalu panjang
+    const sayLong = (text) => {
+        const parts = [];
+        text.split(/(?<=[.!?;:])\s+/).forEach((s) => {
+            while (s.length > 220) {
+                const cut = s.lastIndexOf(' ', 220) > 80 ? s.lastIndexOf(' ', 220) : 220;
+                parts.push(s.slice(0, cut)); s = s.slice(cut).trim();
+            }
+            if (s) parts.push(s);
+        });
+        parts.forEach((p, i) => say(p, null, i > 0));
+    };
+    let lastSel = '';
+    let selTimer = null;
+    const readSelection = () => {
+        if (!voiceOn || !window.getSelection) return;
+        const s = window.getSelection();
+        if (!s || s.isCollapsed || !s.rangeCount) { lastSel = ''; return; }
+        const n = s.anchorNode && (s.anchorNode.nodeType === 1 ? s.anchorNode : s.anchorNode.parentElement);
+        if (n && n.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"], .a11y-widget, [data-no-speak]')) return;
+        const text = String(s).replace(/\s+/g, ' ').trim();
+        if (text.length < 2 || text === lastSel) return;
+        lastSel = text;
+        if (!welcomed) { welcomed = true; session.set('a11y-welcomed', '1'); } // jangan potong dengan sambutan
+        if (speaking) stopSpeech();
+        sayLong(text.slice(0, 5000));
+    };
+    if (canSpeak) {
+        document.addEventListener('selectionchange', () => {
+            const s = window.getSelection && window.getSelection();
+            if (!s || s.isCollapsed) lastSel = ''; // blok yang sama boleh dibacakan lagi setelah dilepas
+            clearTimeout(selTimer);
+            selTimer = setTimeout(readSelection, 700); // tunggu sampai selesai memblok (layar sentuh/keyboard)
+        });
+        document.addEventListener('pointerup', () => { clearTimeout(selTimer); selTimer = setTimeout(readSelection, 150); });
+    }
 
     const actions = {
         'font-up': () => { fontSize = Math.min(24, fontSize + 2); applyFont(); store.set('a11y-font', fontSize); announce('Ukuran teks ' + fontSize + ' piksel'); },

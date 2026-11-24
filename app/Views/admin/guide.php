@@ -482,6 +482,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
         <li>Sambutan <em>"Selamat datang di website <?= $site ?>"</em> sekali per kunjungan.</li>
         <li>Setiap klik dibacakan, mis. klik <em>Jadwal Persidangan</em> → "Jadwal Persidangan".</li>
         <li>Klik menu langsung membuka halaman, lalu nama halaman diumumkan. Pengguna Tab juga dibacakan.</li>
+        <li><strong>Blok (sorot) teks</strong> apa pun di halaman, misalnya visi, misi, atau isi berita, maka teks itu langsung dibacakan. Bisa dengan mouse, keyboard (Shift + panah), atau tekan lama di HP.</li>
     </ol>
     <?= $img('11-disabilitas.jpg', 'Panel Sarana Disabilitas.') ?>
     <?= $tip('Chrome/Edge/Safari baru mengizinkan suara setelah klik pertama — sambutan biasanya terdengar saat pengunjung menutup popup pembuka.') ?>
