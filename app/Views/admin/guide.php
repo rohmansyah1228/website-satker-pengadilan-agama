@@ -199,6 +199,18 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
         <li>Atur kolom: <strong>Teks</strong> atau <strong>Tombol tautan</strong> (label tombol, cara buka, tampil/tidak tombol Buka di tab baru).</li>
         <li><strong>+ Baris</strong>, <strong>+ Kolom</strong>, atau <strong>Tempel dari Excel</strong> untuk banyak baris sekaligus.</li>
     </ol>
+    <h3 id="arsip-bulanan">Blok Arsip Bulanan (laporan per bulan dalam satu tahun)</h3>
+    <p>Cocok untuk laporan bulanan seperti <em>Realisasi/Serapan Anggaran DIPA 01 &amp; 04</em>, laporan keuangan, atau LIPA: setiap bulan tampil sebagai kartu, yang sudah diisi tautannya bisa diklik, yang belum tertulis <em>Menunggu Publikasi</em>. Di bagian atas tampil tahun dan jumlah bulan yang sudah terpublikasi.</p>
+    <ol>
+        <li>Pada <em>Konten Tambahan Halaman</em> klik <strong>Arsip Bulanan</strong>.</li>
+        <li>Isi <strong>Tahun</strong>. Label boleh dikosongkan (tampil <em>Arsip Terjadwal 2026</em>).</li>
+        <li>Isi nama baris, mis. <strong>SERAPAN 01</strong>, lalu tautan dokumen (Google Drive) di kotak bulannya. Klik <strong>+ Tambah baris</strong> untuk SERAPAN 04 dan seterusnya.</li>
+        <li>Banyak tautan sekaligus: salin satu kolom tautan dari Excel (Januari–Desember), lalu tempel di kotak <em>Januari</em>; tautan terisi berurutan ke bulan berikutnya.</li>
+        <li>Untuk tahun berikutnya, klik <strong>Gandakan</strong> pada blok, ganti tahunnya, lalu kosongkan tautannya.</li>
+    </ol>
+    <?= $img('05-arsip-bulanan.jpg', 'Blok Arsip Bulanan di halaman publik: bulan yang terisi bisa diklik, yang belum tertulis Menunggu Publikasi.') ?>
+    <?= $img('05-arsip-bulanan-editor.jpg', 'Mengisi blok Arsip Bulanan di editor halaman.') ?>
+    <?= $tip('Bulan yang terisi ikut dihitung Dashboard SINOVA sebagai laporan bulan tersebut, jadi tidak perlu lagi menulis nama bulan di judul tabel.') ?>
     <h3>Blok Gambar & Sematan</h3>
     <p><strong>Gambar:</strong> ukuran (penuh/75%/50%/33%), perataan, teks alternatif (wajib), keterangan, tautan. <strong>Sematan:</strong> Google Drive/Docs/Sheets/Slides/Form, YouTube, PDF, Google Maps, atau situs lain — atur judul & tinggi, klik <strong>Pratinjau</strong>.</p>
     <?= $tip('Halaman bermodul data menampilkan kotak <strong>Data …</strong> di atas formulir: datanya sama dengan menu samping, cukup diisi sekali. Halaman Survei juga punya kotak <strong>Nilai Survei</strong> (IKM, IPKP, IPAK, periode, tautan website survei).') ?>

@@ -295,6 +295,23 @@ class Compliance
                     }
                     $texts[] = ($b['caption'] ?? '') . ' ' . ($b['alt'] ?? '');
                     break;
+                case 'monthly':
+                    $ev['tables']++;
+                    $year    = (int) ($b['year'] ?? 0);
+                    $texts[] = trim(($b['heading'] ?? '') . ' ' . $year);
+                    foreach ((array) ($b['rows'] ?? []) as $r) {
+                        $texts[] = (string) ($r['label'] ?? '');
+                        foreach (array_values((array) ($r['links'] ?? [])) as $i => $u) {
+                            if ((string) $u === '') {
+                                continue;
+                            }
+                            $ev['links']++;
+                            $ev['rows']++;
+                            $ev['urls'][]   = (string) $u;
+                            $ev['months'][] = $year . '-' . ($i + 1); // bulan terisi dihitung untuk laporan bulanan
+                        }
+                    }
+                    break;
                 case 'embed':
                     $ev['embeds']++;
                     $ev['urls'][] = (string) ($b['url'] ?? '');

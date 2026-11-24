@@ -11,6 +11,7 @@ use RuntimeException;
  *           — tautan Google Drive/Docs dibuka sebagai pratinjau di popup
  *   image — gambar (diunggah, dikonversi WebP) + keterangan
  *   embed — menyematkan halaman lain (Google Drive, Docs, YouTube, PDF, situs lain) dalam iframe
+ *   monthly — arsip bulanan satu tahun: beberapa baris (mis. SERAPAN 01, SERAPAN 04) × 12 bulan, tiap bulan satu tautan
  */
 class PageBlocks
 {
@@ -19,7 +20,11 @@ class PageBlocks
         'table' => ['label' => 'Tabel', 'icon' => 'bi-table'],
         'image' => ['label' => 'Gambar', 'icon' => 'bi-image'],
         'embed' => ['label' => 'Sematkan Halaman / Google Drive', 'icon' => 'bi-window-stack'],
+        'monthly' => ['label' => 'Arsip Bulanan', 'icon' => 'bi-calendar3'],
     ];
+
+    public const MONTHS = [1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    public const MAX_MONTHLY_ROWS = 20;
 
     public const MAX_BLOCKS = 60;
     public const MAX_COLS   = 12;
@@ -164,6 +169,40 @@ class PageBlocks
                         'height'  => max(200, min(2000, (int) ($b['height'] ?? 0) ?: 640)),
                     ];
                     break;
+
+                case 'monthly':
+                    $year = (int) ($b['year'] ?? 0);
+                    if ($year < 2000 || $year > 2100) {
+                        $year = (int) date('Y');
+                    }
+                    $rows = [];
+                    foreach (array_slice((array) ($b['rows'] ?? []), 0, self::MAX_MONTHLY_ROWS) as $r) {
+                        $label = $this->str($r['label'] ?? '', 120);
+                        $links = [];
+                        $src   = array_values((array) ($r['links'] ?? []));
+                        for ($m = 0; $m < 12; $m++) {
+                            $v = $this->str($src[$m] ?? '', 2000);
+                            if ($v !== '' && self::cleanUrl($v) === null) {
+                                $errors[] = "{$n} (arsip bulanan), " . ($label ?: 'baris') . ' ' . self::MONTHS[$m + 1] . ': tautan “' . mb_strimwidth($v, 0, 60, '…') . '” tidak valid. Gunakan alamat lengkap, mis. https://drive.google.com/…';
+                            }
+                            $links[] = $v !== '' ? (self::cleanUrl($v) ?? '') : '';
+                        }
+                        if ($label !== '' || implode('', $links) !== '') {
+                            $rows[] = ['label' => $label, 'links' => $links];
+                        }
+                    }
+                    if (! $rows) {
+                        $errors[] = "{$n} (arsip bulanan): isi minimal satu baris (mis. SERAPAN 01) atau hapus blok ini.";
+                        break;
+                    }
+                    $out[] = [
+                        'type'    => 'monthly',
+                        'year'    => $year,
+                        'heading' => $this->str($b['heading'] ?? '', 200),
+                        'open'    => isset(self::OPEN_MODES[$b['open'] ?? '']) ? $b['open'] : 'popup',
+                        'rows'    => $rows,
+                    ];
+                    break;
             }
         }
 
@@ -198,6 +237,18 @@ class PageBlocks
                 $parts[] = '<p>' . esc($b['caption'] ?: $b['alt']) . '</p>';
             } elseif ($b['type'] === 'embed' && $b['heading'] !== '') {
                 $parts[] = '<h2>' . esc($b['heading']) . '</h2>';
+            } elseif ($b['type'] === 'monthly') {
+                $lines = ['<h2>' . esc(($b['heading'] ?: 'Arsip') . ' ' . $b['year']) . '</h2>'];
+                foreach ($b['rows'] as $r) {
+                    $done = [];
+                    foreach ($r['links'] as $i => $u) {
+                        if ($u !== '') {
+                            $done[] = self::MONTHS[$i + 1] . ' ' . $b['year'];
+                        }
+                    }
+                    $lines[] = '<p>' . esc($r['label']) . ($done ? ' — ' . esc(implode(', ', $done)) : '') . '</p>';
+                }
+                $parts[] = implode("\n", $lines);
             }
         }
 

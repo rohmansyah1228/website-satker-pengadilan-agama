@@ -590,3 +590,28 @@ body.high-contrast .float-cctv, body.high-contrast .float-wa { background: #000 
     .navbar-brand .brand-logo { width: 44px; height: 44px; }
     .navbar-nav .nav-link { padding-left: .35rem !important; padding-right: .35rem !important; font-size: .86rem; }
 }
+
+/* ---------- Blok Arsip Bulanan (tahun × baris × 12 bulan) ---------- */
+.monthly-archive { border: 1px solid #d9b44a; border-radius: .9rem; overflow: hidden; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.05); }
+.monthly-archive__head { display: flex; justify-content: space-between; align-items: center; gap: .75rem; flex-wrap: wrap; padding: 1rem 1.25rem; color: #fff;
+    background: linear-gradient(110deg, var(--pa-primary) 0%, var(--pa-primary-dark) 100%); border-bottom: 3px solid var(--pa-secondary, #ff9900); }
+.monthly-archive__year { font-family: var(--font-display, inherit); font-weight: 800; font-size: 1.6rem; line-height: 1; color: #f3c64b; }
+.monthly-archive__badge { font-size: .8rem; font-weight: 700; padding: .3rem .75rem; border-radius: 2rem; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.35); }
+.monthly-archive__count { font-size: .85rem; font-weight: 700; }
+.monthly-archive__body { padding: .5rem 1.25rem 1.25rem; }
+.monthly-archive__row { font-family: var(--font-display, inherit); font-size: 1rem; font-weight: 800; letter-spacing: .02em; text-transform: uppercase; color: var(--pa-primary);
+    margin: 1rem 0 .75rem; padding-bottom: .5rem; border-bottom: 2px solid var(--pa-primary-light); }
+/* kolom mengikuti lebar kotak (maks. 4 per baris), bukan lebar layar: tetap rapi di halaman bermenu samping */
+.monthly-archive__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(max(150px, calc(25% - .65rem)), 1fr)); gap: .65rem; margin: 0; }
+.monthly-card__state { white-space: nowrap; }
+@media (max-width: 575.98px) { .monthly-archive__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .monthly-card__state { white-space: normal; } .monthly-archive__head { padding: .85rem 1rem; } .monthly-archive__body { padding: .25rem 1rem 1rem; } }
+.monthly-card { display: flex; flex-direction: column; gap: .15rem; height: 100%; padding: .7rem .8rem; border-radius: .6rem; text-decoration: none; }
+.monthly-card__name { font-weight: 700; color: #2b3440; }
+.monthly-card__state { font-size: .78rem; color: #5c6670; }
+.monthly-card.is-empty { background: #f7f9fb; border: 1px dashed #c8d3de; }
+.monthly-card.is-done { background: var(--pa-primary-light); border: 1px solid #9fd0bd; transition: transform .15s, box-shadow .15s, background-color .15s; }
+.monthly-card.is-done .monthly-card__state { color: var(--pa-primary); font-weight: 600; }
+.monthly-card.is-done:hover, .monthly-card.is-done:focus-visible { background: #d4ebe3; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(5,110,79,.15); }
+.monthly-card.is-done:focus-visible { outline: 3px solid var(--pa-secondary, #ff9900); outline-offset: 2px; }
+.high-contrast .monthly-card.is-empty { border-color: #000; background: #fff; }
+.high-contrast .monthly-card.is-done { border: 2px solid #000; }

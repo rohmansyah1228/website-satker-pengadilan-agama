@@ -479,8 +479,91 @@
         return el;
     }
 
+    // ------------------------------------------------------------ ARSIP BULANAN (tahun × baris × 12 bulan)
+    const MONTHS = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    function monthlyBlock(d) {
+        const blank = () => ({ label: '', links: Array(12).fill('') });
+        const st = {
+            year: parseInt(d.year, 10) || new Date().getFullYear(),
+            heading: d.heading || '',
+            open: d.open || 'popup',
+            rows: (d.rows && d.rows.length ? d.rows : [blank()]).map((r) => ({ label: r.label || '', links: Array.from({ length: 12 }, (_, i) => ((r.links || [])[i] || '')) }))
+        };
+        const year = h('input', { type: 'number', class: 'form-control form-control-sm', min: 2000, max: 2100, value: st.year });
+        const heading = h('input', { type: 'text', class: 'form-control form-control-sm', maxlength: 200, value: st.heading });
+        const open = select({ popup: 'Tampilkan di halaman ini (popup)', tab: 'Buka di tab baru', same: 'Pindah ke halaman tujuan' }, st.open);
+        const rowsBox = h('div', { class: 'pb-monthly-rows' });
+        const count = h('span', { class: 'badge text-bg-light border' });
+        const setPh = () => { heading.placeholder = 'Kosongkan = "Arsip Terjadwal ' + st.year + '"'; };
+        const markUrl = (inp) => { const v = inp.value.trim(); inp.classList.toggle('is-invalid', v !== '' && !isUrl(v)); inp.classList.toggle('is-valid', v !== '' && isUrl(v)); };
+        const updCount = () => {
+            let n = 0;
+            st.rows.forEach((r) => r.links.forEach((u) => { if (u.trim()) n++; }));
+            count.textContent = n + ' / ' + (st.rows.length * 12) + ' bulan terisi';
+        };
+        function render(focusRow) {
+            rowsBox.replaceChildren(...st.rows.map((r, ri) => {
+                const lab = h('input', { type: 'text', class: 'form-control form-control-sm fw-semibold', maxlength: 120, value: r.label, placeholder: 'Nama baris, mis. SERAPAN 01', 'aria-label': 'Nama baris ' + (ri + 1) });
+                lab.addEventListener('input', () => { r.label = lab.value; dirty = true; el._refresh(); });
+                const grid = h('div', { class: 'row g-2' }, MONTHS.map((mn, mi) => {
+                    const inp = h('input', { type: 'text', inputmode: 'url', class: 'form-control form-control-sm font-monospace', value: r.links[mi], placeholder: 'https://…', spellcheck: 'false' });
+                    inp.id = 'pbm' + (fieldSeq++);
+                    inp.addEventListener('input', () => { r.links[mi] = inp.value.trim(); markUrl(inp); dirty = true; updCount(); });
+                    // tempel beberapa tautan sekaligus (satu per baris / kolom Excel) → diisi mulai bulan ini
+                    inp.addEventListener('paste', (e) => {
+                        const t = (e.clipboardData || window.clipboardData).getData('text');
+                        const parts = t.split(/[\r\n\t]+/).map((x) => x.trim()).filter(Boolean);
+                        if (parts.length < 2) return;
+                        e.preventDefault();
+                        parts.slice(0, 12 - mi).forEach((x, k) => { r.links[mi + k] = x; });
+                        dirty = true;
+                        render();
+                        say(Math.min(parts.length, 12 - mi) + ' tautan ditempel mulai ' + mn);
+                    });
+                    markUrl(inp);
+                    return h('div', { class: 'col-6 col-md-4 col-xl-3' }, h('label', { class: 'form-label small mb-0', for: inp.id, text: mn }), inp);
+                }));
+                const swap = (a, b2) => { if (b2 < 0 || b2 >= st.rows.length) return; [st.rows[a], st.rows[b2]] = [st.rows[b2], st.rows[a]]; dirty = true; render(); };
+                const tools = h('div', { class: 'd-flex gap-1 flex-shrink-0' },
+                    iconBtn('bi-arrow-up', 'Naikkan baris', () => swap(ri, ri - 1)),
+                    iconBtn('bi-arrow-down', 'Turunkan baris', () => swap(ri, ri + 1)),
+                    iconBtn('bi-trash', 'Hapus baris', () => {
+                        if (!window.confirm('Hapus baris ' + (r.label || (ri + 1)) + '?')) return;
+                        st.rows.splice(ri, 1);
+                        if (!st.rows.length) st.rows.push(blank());
+                        dirty = true; render(); el._refresh();
+                    }, 'btn-outline-danger'));
+                const box = h('div', { class: 'pb-monthly-row border rounded p-2 mb-2 bg-light-subtle' }, h('div', { class: 'd-flex gap-2 mb-2' }, lab, tools), grid);
+                if (focusRow === ri) setTimeout(() => lab.focus(), 0);
+                return box;
+            }));
+            updCount();
+        }
+        year.addEventListener('input', () => { st.year = parseInt(year.value, 10) || new Date().getFullYear(); setPh(); dirty = true; el._refresh(); });
+        heading.addEventListener('input', () => { st.heading = heading.value; dirty = true; el._refresh(); });
+        open.addEventListener('change', () => { st.open = open.value; dirty = true; });
+        const addRow = h('button', { type: 'button', class: 'btn btn-sm btn-outline-success', onclick: () => { st.rows.push(blank()); dirty = true; render(st.rows.length - 1); el._refresh(); } }, icon('bi-plus-lg'), ' Tambah baris');
+        const body = h('div', {},
+            h('div', { class: 'row g-2' },
+                h('div', { class: 'col-6 col-md-2' }, field('Tahun', year)),
+                h('div', { class: 'col-12 col-md-6 order-md-0' }, field('Label (opsional)', heading)),
+                h('div', { class: 'col-6 col-md-4' }, field('Saat bulan diklik', open))),
+            h('div', { class: 'd-flex justify-content-between align-items-center mb-1' }, h('span', { class: 'small fw-semibold', text: 'Baris & tautan dokumen per bulan' }), count),
+            rowsBox,
+            h('div', { class: 'd-flex flex-wrap align-items-center gap-2' }, addRow,
+                h('span', { class: 'form-text m-0', text: 'Bulan yang tautannya kosong tampil "Menunggu Publikasi". Tip: salin 12 tautan dari Excel (satu kolom) lalu tempel di kotak Januari.' })));
+        setPh();
+        render();
+        const el = shell('monthly', body, {
+            get: () => ({ type: 'monthly', year: st.year, heading: st.heading, open: st.open, rows: st.rows }),
+            summary: () => (st.heading || 'Arsip Terjadwal') + ' ' + st.year + (st.rows.some((r) => r.label) ? ' · ' + st.rows.map((r) => r.label).filter(Boolean).join(', ') : '')
+        });
+        el._focus = () => { const f = rowsBox.querySelector('input'); f && f.focus(); };
+        return el;
+    }
+
     // ------------------------------------------------------------ umum
-    const makers = { text: textBlock, table: tableBlock, image: imageBlock, embed: embedBlock };
+    const makers = { text: textBlock, table: tableBlock, image: imageBlock, embed: embedBlock, monthly: monthlyBlock };
     function add(type, data, after, top) {
         const el = makers[type](data || {});
         if (after) after.after(el); else if (top) list.prepend(el); else list.append(el);
