@@ -52,7 +52,13 @@ class Settings extends AdminController
                 'feed_badilag_url' => ['Sumber Pengumuman Badilag (otomatis)', 'url', 'Pengumuman Badilag tampil otomatis di halaman Pengumuman Badilag & MA dan blok Beranda. Kosongkan untuk mematikan. Bawaan: https://badilag.mahkamahagung.go.id/pengumuman-elektronik'],
                 'feed_ma_url'      => ['Sumber Pengumuman Mahkamah Agung (otomatis)', 'url', 'Bawaan: https://www.mahkamahagung.go.id/id/pengumuman. Kosongkan untuk mematikan.'],
                 'feed_since'       => ['Arsip pengumuman Badilag & MA mulai tahun', 'select', 'Pengumuman lama diambil bertahap mundur sampai tahun ini. Pengumuman yang sudah ada tidak diambil ulang.', array_combine($y = array_map('strval', range((int) date('Y'), 2012)), $y)],
-                'sipp_sync'     => ['Ambil Jadwal Sidang dari Database SIPP', 'select', 'Butuh koneksi database grup "sipp" di .env dan query di app/Config/Sipp.php.', ['0' => 'Tidak (isi manual)', '1' => 'Ya']],
+            ]],
+            'sipp' => ['Integrasi SIPP', [
+                'sipp_api_aktif'     => ['Pakai data kiriman SIPP API kantor', 'select', 'Jadwal Sidang (halaman & Beranda), Statistik Perkara, dan Panggilan Ghaib diisi otomatis dari data yang dikirim aplikasi SIPP API di server kantor. Input manual tetap dipakai sebagai cadangan.', ['0' => 'Tidak', '1' => 'Ya']],
+                'sipp_api_tempel'    => ['Tempel kunci dari dashboard SIPP API kantor', 'textarea', 'Di dashboard SIPP API kantor: Pengaturan → Website satker → klik Salin, lalu tempel seluruh teksnya di sini dan Simpan. Kosongkan bila tidak ingin mengganti kunci. Kunci yang tersimpan tidak ditampilkan lagi.'],
+                'sipp_api_statistik' => ['Isi Statistik Perkara otomatis', 'select', 'Data per bulan tahun berjalan dari SIPP menimpa isian Statistik Perkara bulan yang sama.', ['1' => 'Ya', '0' => 'Tidak']],
+                'sipp_api_ghaib'     => ['Isi Panggilan Ghaib otomatis', 'select', 'Perkara ghaib yang belum putus beserta tanggal sidang berikutnya ditambahkan ke Panggilan Ghaib. Relaas (PDF) tetap diunggah manual di menu Panggilan Ghaib.', ['1' => 'Ya', '0' => 'Tidak']],
+                'sipp_sync'          => ['Cara lain: baca langsung database SIPP', 'select', 'Hanya bila website satu jaringan dengan server SIPP (bukan hosting). Butuh koneksi database grup "sipp" di .env dan query di app/Config/Sipp.php.', ['0' => 'Tidak (disarankan untuk hosting)', '1' => 'Ya']],
             ]],
             'survei' => ['Nilai Survei', [
                 'ikm'           => ['Indeks Kepuasan Masyarakat (IKM)', 'text', ''],
@@ -90,6 +96,15 @@ class Settings extends AdminController
         }
 
         $values = service('siteSettings')->all();
+        $sipp   = null;
+        if ($tab === 'sipp') {
+            $this->authorize([], true);
+            [$key, $secret, $from] = \App\Libraries\SippApi::credentials();
+            $sipp = ['url' => site_url('api/sipp/terima'), 'from' => $from, 'hasKey' => $key !== '' && $secret !== '',
+                'keyHint' => $key !== '' ? '…' . substr($key, -4) : '', 'status' => (new \App\Libraries\SippApi())->status()];
+            unset($values['sipp_api_key'], $values['sipp_api_secret']);
+            $values += ['sipp_api_aktif' => '0', 'sipp_api_statistik' => '1', 'sipp_api_ghaib' => '1', 'sipp_sync' => '0']; // nilai bawaan yang berlaku
+        }
         if ($feed) {
             $values['feed_since'] = (string) $f->sinceYear(); // tampilkan nilai yang berlaku walau belum pernah disimpan
             foreach (\App\Libraries\AnnouncementFeed::DEFAULT as $k => [, $url]) {
@@ -97,7 +112,7 @@ class Settings extends AdminController
             }
         }
 
-        return $this->view('settings', ['title' => 'Pengaturan', 'groups' => self::groups(), 'values' => $values, 'tab' => $tab, 'feed' => $feed]);
+        return $this->view('settings', ['title' => 'Pengaturan', 'groups' => self::groups(), 'values' => $values, 'tab' => $tab, 'feed' => $feed, 'sipp' => $sipp]);
     }
 
     /** Ambil pengumuman Badilag & MA yang belum ada sekarang (tanpa menunggu 1 jam), termasuk isi awal arsip lama. */
@@ -130,7 +145,7 @@ class Settings extends AdminController
         if (! isset($groups[$tab])) {
             return redirect()->back();
         }
-        if ($tab === 'keamanan') {
+        if ($tab === 'keamanan' || $tab === 'sipp') {
             $this->authorize([], true);
         }
         $values = [];
@@ -152,6 +167,17 @@ class Settings extends AdminController
                 continue;
             }
             $v = trim((string) $this->request->getPost($key));
+            if ($key === 'sipp_api_tempel') { // kunci SIPP API: dipisah, disimpan, tidak pernah ditampilkan lagi
+                if ($v !== '') {
+                    $keys = \App\Libraries\SippApi::parseKeys($v);
+                    if ($keys) {
+                        [$values['sipp_api_key'], $values['sipp_api_secret']] = $keys;
+                    } else {
+                        $errors[] = "{$label}: teks tidak dikenali. Salin ulang dari dashboard SIPP API kantor (tombol Salin).";
+                    }
+                }
+                continue;
+            }
             if ($type === 'url' && $v !== '' && ! filter_var($v, FILTER_VALIDATE_URL)) {
                 $errors[] = "{$label}: format URL tidak valid (awali dengan https://).";
                 continue;

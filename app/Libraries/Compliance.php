@@ -130,6 +130,13 @@ class Compliance
                 if ($table === 'hearings' && setting('sipp_sync') === '1') {
                     return ['ok', 'Diambil dari database SIPP.'];
                 }
+                if ($table === 'hearings' && SippApi::enabled() && ($st = (new SippApi())->status()['jadwal_sidang'] ?? null)) {
+                    $age = time() - (int) strtotime((string) $st['diterima_pada']);
+
+                    return $age <= 3 * 86400
+                        ? ['ok', 'Dikirim otomatis dari SIPP (terakhir ' . date('d-m-Y H:i', (int) strtotime((string) $st['diterima_pada'])) . ').']
+                        : ['kurang', 'Kiriman jadwal dari SIPP API kantor terakhir ' . date('d-m-Y H:i', (int) strtotime((string) $st['diterima_pada'])) . ' — periksa aplikasi SIPP API di server kantor.'];
+                }
                 if ($table === 'lhkpn' && ($n || $ev['data'])) {
                     $yrs = array_map('intval', array_column($db->table('lhkpn')->select('year')->distinct()->get()->getResultArray(), 'year'));
                     $yrs = array_unique(array_merge($yrs, $ev['data'] ? $ev['years'] : []));

@@ -3,7 +3,7 @@
 <h1 class="h3 font-display fw-bold text-pa-primary mb-3">Pengaturan Situs</h1>
 <nav aria-label="Kelompok pengaturan">
     <ul class="nav nav-tabs mb-0">
-        <?php foreach ($groups as $k => [$label]): if ($k === 'keamanan' && ! can([], true)) continue; ?>
+        <?php foreach ($groups as $k => [$label]): if (in_array($k, ['keamanan', 'sipp'], true) && ! can([], true)) continue; ?>
             <li class="nav-item"><a class="nav-link<?= $tab === $k ? ' active' : '' ?>"<?= $tab === $k ? ' aria-current="page"' : '' ?> href="<?= admin_url('pengaturan?tab=' . $k) ?>"><?= esc($label) ?></a></li>
         <?php endforeach ?>
     </ul>
@@ -11,6 +11,15 @@
 <?php if (isset($groups[$tab])): [$label, $fields] = $groups[$tab]; ?>
 <form action="<?= admin_url('pengaturan') ?>" method="post" enctype="multipart/form-data" class="card p-4 border-top-0 rounded-top-0" novalidate>
     <?= csrf_field() ?><input type="hidden" name="_tab" value="<?= esc($tab, 'attr') ?>">
+    <?php if ($tab === 'sipp' && ! empty($sipp)): ?>
+        <div class="alert alert-light border small">
+            <p class="mb-2"><i class="bi bi-diagram-3 text-pa-primary" aria-hidden="true"></i> Aplikasi <strong>SIPP API</strong> di server kantor membaca database SIPP lalu <strong>mengirim</strong> jadwal sidang, statistik perkara, dan panggilan ghaib ke website ini secara terjadwal. Isi <em>Alamat website satker</em> di dashboard kantor dengan alamat utama website ini; alamat penerimanya:</p>
+            <code class="d-inline-block user-select-all mb-2"><?= esc($sipp['url']) ?></code>
+            <p class="mb-0">Kunci: <?= $sipp['hasKey']
+                ? '<span class="badge text-bg-success">tersimpan</span> ' . esc($sipp['keyHint']) . ($sipp['from'] === 'env' ? ' (dari berkas .env)' : '')
+                : '<span class="badge text-bg-warning">belum diisi</span> tempel teks dari tombol Salin di dashboard kantor.' ?></p>
+        </div>
+    <?php endif ?>
     <?php if ($tab === 'identitas'): ?><div class="alert alert-light border small"><i class="bi bi-palette text-pa-primary" aria-hidden="true"></i> Warna resmi Peradilan Agama (<code>#056e4f</code> & <code>#ff9900</code>) dikunci sesuai SK Bab III huruf B.1.</div><?php endif ?>
     <div class="row">
         <?php foreach ($fields as $key => $def): [$lbl, $type, $help] = $def;
@@ -23,6 +32,25 @@
     </div>
     <div><button class="btn btn-pa-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> Simpan Pengaturan</button></div>
 </form>
+<?php if ($tab === 'sipp' && ! empty($sipp)): ?>
+<div class="card p-4 mt-3">
+    <h2 class="h6 fw-bold mb-2"><i class="bi bi-inbox text-pa-primary" aria-hidden="true"></i> Kiriman terakhir dari SIPP API kantor</h2>
+    <?php $names = ['jadwal_sidang' => 'Jadwal Sidang', 'statistik_perkara' => 'Statistik Perkara', 'panggilan_ghaib' => 'Panggilan Ghaib', 'antrian' => 'Antrian']; ?>
+    <div class="table-responsive"><table class="table table-sm align-middle small mb-2">
+        <thead><tr><th scope="col">Data</th><th scope="col">Diterima</th><th scope="col">Jumlah</th><th scope="col">Sumber</th><th scope="col">JSON</th></tr></thead>
+        <tbody>
+        <?php foreach ($names as $k => $n): $r = $sipp['status'][$k] ?? null; $old = $r && (time() - strtotime((string) $r['diterima_pada'])) > 86400; ?>
+            <tr><td><?= esc($n) ?></td>
+                <td><?= $r ? '<span class="' . ($old ? 'text-danger' : 'text-success') . '">' . esc(date('d-m-Y H:i', strtotime((string) $r['diterima_pada']))) . '</span>' . ($old ? ' <span class="text-danger">(lebih dari 1 hari)</span>' : '') : '<span class="text-secondary">belum pernah</span>' ?></td>
+                <td><?= $r ? number_format((int) $r['jumlah'], 0, ',', '.') : '–' ?></td>
+                <td><?= $r ? esc(['sipp_internal' => 'SIPP kantor', 'sipp_publik' => 'SIPP publik (cadangan)'][$r['sumber']] ?? $r['sumber']) : '–' ?></td>
+                <td><?= $r ? '<a href="' . site_url('api/sipp/' . $k) . '" target="_blank" rel="noopener">lihat</a>' : '–' ?></td></tr>
+        <?php endforeach ?>
+        </tbody>
+    </table></div>
+    <p class="small text-secondary mb-0">Belum ada kiriman? Di dashboard SIPP API kantor klik <strong>Tes koneksi website</strong> lalu <strong>Kirim Semua Data Sekarang</strong>. Bila muncul "Timestamp tidak valid", samakan jam server kantor.</p>
+</div>
+<?php endif ?>
 <?php if ($tab === 'tautan' && ! empty($feed)): $st = $feed['status']; ?>
 <div class="card p-4 mt-3">
     <h2 class="h6 fw-bold mb-2"><i class="bi bi-broadcast text-pa-primary" aria-hidden="true"></i> Arsip Pengumuman Badilag &amp; MA</h2>

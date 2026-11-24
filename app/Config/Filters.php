@@ -78,6 +78,9 @@ class Filters extends BaseFilters
     public array $globals = [
         'before' => [
             'invalidchars',
+            // CSRF untuk semua POST/PUT/PATCH/DELETE (GET tidak diperiksa); kecuali penerima SIPP API
+            // yang diamankan dengan API key + tanda tangan HMAC.
+            'csrf'    => ['except' => ['api/sipp/terima']],
             'install' => ['except' => ['pasang', 'pasang/*', 'assets/*']],
         ],
         'after' => [
@@ -100,9 +103,7 @@ class Filters extends BaseFilters
      *
      * @var array<string, list<string>>
      */
-    public array $methods = [
-        'POST' => ['csrf'],
-    ];
+    public array $methods = [];
 
     /**
      * List of filter aliases that should run on any

@@ -3,7 +3,9 @@
 namespace App\Libraries;
 
 /**
- * Sumber jadwal sidang.
+ * Sumber jadwal sidang (urutan prioritas).
+ * - SIPP API Kantor: kiriman terakhir dari server kantor, bila Integrasi SIPP aktif dan
+ *   kiriman mencakup tanggal yang diminta (Pengaturan → Integrasi SIPP).
  * - Default: tabel `hearings` yang diisi operator lewat panel admin.
  * - Opsional: baca langsung dari database SIPP (pengaturan "Ambil jadwal dari SIPP").
  *   Koneksi didefinisikan sebagai grup `sipp` di .env (database.sipp.*), gunakan
@@ -13,6 +15,16 @@ class SippSource
 {
     public function hearings(string $date): array
     {
+        if (SippApi::enabled()) {
+            try {
+                $rows = (new SippApi())->hearingsFor($date);
+                if ($rows !== null) {
+                    return $rows;
+                }
+            } catch (\Throwable $e) {
+                log_message('error', 'SIPP API: ' . $e->getMessage());
+            }
+        }
         if (setting('sipp_sync') === '1') {
             try {
                 $cfg = config('Sipp');

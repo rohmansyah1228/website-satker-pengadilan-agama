@@ -421,6 +421,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
             <tr><td>Tautan Layanan</td><td>SIPP, e-Court, Direktori Putusan, SIWAS, PPID, <strong>CCTV Online</strong> + ikon/GIF, website survei, jadwal dari SIPP</td></tr>
             <tr><td>Nilai Survei</td><td>IKM, IPKP, IPAK, periode</td></tr>
             <tr><td>Popup Pembuka</td><td>Aktif, lokasi, frekuensi, ukuran, gambar, judul, teks, tombol</td></tr>
+            <tr><td>Integrasi SIPP</td><td>Kunci SIPP API kantor, data yang diisi otomatis (jadwal, statistik, panggilan ghaib), status kiriman terakhir</td></tr>
             <tr><td>Keamanan</td><td>Wajibkan MFA; buka/kunci halaman &amp; menu wajib SK</td></tr>
         </tbody>
     </table></div>
@@ -440,6 +441,23 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
     <?= $img('10-pengaturan-popup.jpg', 'Tab Popup Pembuka.') ?>
     <?= $tip('Popup: ukuran Sedang (720 px) dan frekuensi <em>Sekali per kunjungan</em> disarankan. Popup tampil lagi bila gambar/judul diganti. Bila logo diganti, hapus berkas <code>public/favicon.ico</code> agar ikon tab lama tidak dipakai.') ?>
     <?php if (can([])): ?><?= $go('pengaturan', 'Buka Pengaturan') ?><?php endif ?>
+    <h3 id="integrasi-sipp">Integrasi SIPP (data otomatis dari server kantor)</h3>
+    <p>Website di hosting tidak bisa membaca database SIPP di jaringan kantor. Karena itu aplikasi <strong>SIPP API</strong> dipasang di server kantor: aplikasi ini membaca database SIPP (hanya membaca) lalu <strong>mengirim</strong> data ke website secara terjadwal. Data yang diterima langsung mengisi modul website:</p>
+    <div class="table-responsive"><table class="table table-sm align-middle">
+        <thead><tr><th>Data dari SIPP</th><th>Tampil di</th></tr></thead>
+        <tbody>
+            <tr><td>Jadwal sidang (hari ini s.d. 14 hari ke depan)</td><td>Halaman Jadwal Sidang (ditambah kolom jenis perkara) dan blok Beranda <em>Jadwal Sidang Hari Ini</em>. Nama pihak tidak ditampilkan.</td></tr>
+            <tr><td>Statistik perkara tahun berjalan</td><td>Menu & halaman Statistik Perkara (per bulan: sisa lalu, masuk, putus, sisa) serta Dashboard SINOVA</td></tr>
+            <tr><td>Panggilan ghaib (perkara belum putus)</td><td>Menu & halaman Panggilan Ghaib serta blok Pengumuman. Perkara yang sudah putus otomatis disembunyikan. <strong>Relaas (PDF) tetap diunggah manual.</strong></td></tr>
+        </tbody>
+    </table></div>
+    <ol>
+        <li>Di dashboard SIPP API kantor: <em>Pengaturan → Website satker</em>, isi alamat utama website ini, klik <strong>Simpan</strong>, lalu <strong>Salin</strong>.</li>
+        <li>Di website: <em>Sistem → Pengaturan → Integrasi SIPP</em> (Super Admin). Pilih <strong>Pakai data kiriman SIPP API kantor: Ya</strong>, tempel teks yang disalin, lalu <strong>Simpan Pengaturan</strong>. Kunci yang tersimpan tidak ditampilkan lagi.</li>
+        <li>Kembali ke dashboard kantor: klik <strong>Tes koneksi website</strong>, lalu <strong>Kirim Semua Data Sekarang</strong>, dan aktifkan pengiriman otomatis.</li>
+        <li>Periksa tabel <strong>Kiriman terakhir</strong> di tab Integrasi SIPP: setiap data menampilkan waktu diterima dan jumlahnya.</li>
+    </ol>
+    <?= $tip('Setiap kiriman diperiksa dengan kunci API dan tanda tangan digital; kiriman yang kuncinya salah, isinya diubah, atau berumur lebih dari 10 menit ditolak. Bila dashboard kantor menampilkan <em>Timestamp tidak valid</em>, samakan jam server kantor. Bila jadwal dari SIPP tidak tersedia untuk suatu tanggal, website memakai jadwal yang diisi manual.') ?>
 </section>
 
 <section id="pengunjung" class="guide-sec card">
@@ -521,6 +539,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
             ['Tombol Update Website tidak muncul', 'Tombol hanya untuk Super Admin dan hanya bila ada versi baru. Klik <strong>Bersihkan Cache</strong> di Dashboard untuk memeriksa ulang. Website yang dipasang sebelum fitur ini ada perlu diperbarui manual sekali.'],
             ['Banner ucapan tidak tampil di Beranda', 'Pastikan banner berstatus Tampilkan, jenisnya sesuai dengan pilihan <em>Kolom yang ditampilkan</em> di tampilan Beranda, dan termasuk yang terbaru sesuai <em>Banner per kolom</em>.'],
             ['Impor WordPress: "Kategori tidak ditemukan" atau jalur data ditutup', 'Gunakan tombol <strong>Ambil daftar kategori</strong> agar alamat kategori tepat. Bila REST API ditutup, minta pengelola website lama membukanya sementara.'],
+            ['Data SIPP tidak muncul di website', 'Buka <em>Pengaturan → Integrasi SIPP</em>: pastikan <strong>Pakai data kiriman SIPP API kantor</strong> = Ya, kunci berstatus tersimpan, dan tabel Kiriman terakhir terisi. Bila belum ada kiriman, klik Kirim Semua Data Sekarang di dashboard kantor dan baca pesan galatnya.'],
             ['Kartu Pintasan hanya 2 per baris', 'Atur <em>Kartu per baris</em> di tampilan Pintasan Layanan, perlebar kotak tampilannya, lalu tekan Ctrl+F5.'],
         ];
         foreach ($faq as $i => [$q, $a]): ?>

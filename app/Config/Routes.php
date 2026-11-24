@@ -10,6 +10,10 @@ $admin = trim(config('App')->adminPath ?: 'panel-satker', '/');
 // Pemasangan lewat browser (tertutup otomatis setelah terpasang)
 $routes->match(['GET', 'POST'], 'pasang', 'Install::index');
 
+// SIPP API Kantor: server kantor mengirim jadwal sidang, statistik, panggilan ghaib (API key + HMAC, tanpa CSRF)
+$routes->post('api/sipp/terima', 'Api\Sipp::terima');
+$routes->get('api/sipp/(:segment)', 'Api\Sipp::ambil/$1');
+
 // ===================== PANEL ADMIN =====================
 $routes->group($admin, ['namespace' => 'App\Controllers\Admin'], static function ($routes) {
     $routes->get('login', 'Auth::login');
