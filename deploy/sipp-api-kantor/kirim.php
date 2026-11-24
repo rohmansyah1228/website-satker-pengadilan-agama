@@ -5,6 +5,8 @@
  * Dari command line (cron / Task Scheduler):
  *   php kirim.php                 -> kirim semua jenis yang aktif
  *   php kirim.php jadwal_sidang   -> kirim satu jenis saja
+ *   php kirim.php --paksa         -> kirim walaupun data tidak berubah
+ * Hanya data yang berubah/baru yang dikirim; data yang sama dikirim ulang tiap 'kirim_ulang_jam' jam.
  *
  * Dari browser (opsional, jika token_web diisi di config.php):
  *   http://server/sipp-api-kantor/kirim.php?token=XXXX[&jenis=jadwal_sidang]
@@ -13,8 +15,12 @@ require dirname(__FILE__) . '/lib/init.php';
 
 $cli = (php_sapi_name() == 'cli');
 $jenis = '';
+$paksa = false;
 if ($cli) {
-    $jenis = isset($argv[1]) ? $argv[1] : '';
+    $arg = array_slice($argv, 1);
+    $i = array_search('--paksa', $arg);
+    if ($i !== false) { $paksa = true; unset($arg[$i]); $arg = array_values($arg); }
+    $jenis = isset($arg[0]) ? $arg[0] : '';
 } else {
     header('Content-Type: text/plain; charset=utf-8');
     $token = isset($_GET['token']) ? $_GET['token'] : '';
@@ -24,6 +30,7 @@ if ($cli) {
         exit;
     }
     $jenis = isset($_GET['jenis']) ? $_GET['jenis'] : '';
+    $paksa = !empty($_GET['paksa']);
 }
 if ($jenis != '' && !array_key_exists($jenis, daftar_jenis())) {
     echo "Jenis tidak dikenal: $jenis\n";
@@ -36,7 +43,7 @@ if (count($err) > 0) {
     exit(1);
 }
 
-$hasil = jalankan_pengiriman($CONFIG, $jenis);
+$hasil = jalankan_pengiriman($CONFIG, $jenis, $paksa);
 $gagal = 0;
 foreach ($hasil as $j => $info) {
     echo str_pad($j, 20) . ($info['ok'] ? 'OK    ' : 'GAGAL ') . str_pad($info['jumlah'], 6) . $info['pesan'] . "\n";

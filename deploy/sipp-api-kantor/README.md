@@ -41,6 +41,17 @@ Langkah sama, ditambah: di dashboard kantor menu **Pengaturan → Website satker
 **Simpan** (kunci dibuat otomatis) lalu **Salin**. Tempel teksnya di website: **Pengaturan → Integrasi SIPP →
 Tempel kunci dari dashboard SIPP API kantor**, Simpan.
 
+### Hanya data yang berubah yang dikirim
+Setiap putaran, aplikasi menghitung sidik isi tiap jenis data dan membandingkannya dengan kiriman terakhir yang
+berhasil. Jenis yang **tidak berubah tidak dikirim** (dashboard menulis *Tidak ada perubahan*); jenis yang berubah,
+bertambah, atau berkurang (mis. perkara sudah putus, jadwal ditunda) dikirim. Relaas PDF hanya dikirim bila website
+belum memilikinya.
+
+- Data yang sama tetap dikirim ulang setiap `kirim_ulang_jam` jam (bawaan 6) sebagai tanda aplikasi kantor masih
+  berjalan; website menandai kiriman yang berumur lebih dari 24 jam.
+- Kirim walaupun tidak berubah: tombol **Kirim ulang semua** / tombol **Kirim** per jenis di dashboard, atau
+  `php kirim.php --paksa`.
+
 ### Pengiriman otomatis
 - **Cara mudah:** menu **Mode Otomatis**, pilih interval, klik **Mulai**, dan biarkan tab itu terbuka di komputer
   kantor yang selalu menyala.

@@ -457,6 +457,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
         <li>Di server kantor tempat SIPP berada: ekstrak zip, salin folder <code>sipp-api-kantor</code> ke web root (mis. <code>C:\xampp\htdocs\</code> atau <code>/var/www/html/</code>).</li>
         <li>Buka <code>http://IP-SERVER/sipp-api-kantor/</code>, buat password dashboard. Koneksi database SIPP diambil otomatis dari aplikasi SIPP di server yang sama; bila tidak ditemukan, isi di menu Pengaturan lalu <strong>Tes koneksi database</strong>.</li>
         <li>Klik <strong>Kirim Semua Data Sekarang</strong>, lalu nyalakan <strong>Mode Otomatis</strong> (atau jadwalkan <code>php kirim.php</code> lewat cron / Task Scheduler).</li>
+        <li>Aplikasi kantor <strong>hanya mengirim data yang berubah atau baru</strong>. Data yang tidak berubah tetap dikirim ulang setiap 6 jam sebagai tanda aplikasi masih berjalan; tombol <em>Kirim ulang semua</em> di dashboard kantor mengirim semuanya sekarang.</li>
         <li>Kembali ke website: tabel <strong>Kiriman terakhir</strong> di tab Integrasi SIPP menampilkan waktu diterima dan jumlah data.</li>
     </ol>
     <p class="small">Sudah memasang aplikasi kantor sebelumnya? Di dashboard kantor buka <em>Pengaturan → Website satker</em>, klik <strong>Salin</strong>, lalu tempel teksnya di kotak <strong>Tempel kunci</strong> pada tab Integrasi SIPP dan Simpan.</p>

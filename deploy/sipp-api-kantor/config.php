@@ -43,6 +43,9 @@ $CONFIG = array(
         'antrian'           => false,  // aktifkan setelah 'antrian_sql' diisi
     ),
 
+    // Data yang tidak berubah tidak dikirim; tetap dikirim ulang setiap N jam sebagai tanda aplikasi masih berjalan
+    'kirim_ulang_jam'         => 6,
+
     // Jadwal sidang: berapa hari ke depan (termasuk hari ini)
     'jadwal_hari_ke_depan'    => 14,
     // Jadwal sidang: kirim nama para pihak? (perkara cerai sebaiknya TIDAK)

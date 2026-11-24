@@ -73,7 +73,7 @@ if (isset($_GET['ajax'])) {
         foreach (jalankan_pengiriman($CONFIG, '') as $j => $info) {
             $r = pesan_ramah($info['pesan']);
             $hasil[] = array('nama' => $namaJenis[$j][0], 'ok' => $info['ok'], 'jumlah' => $info['jumlah'],
-                             'pesan' => $info['ok'] ? 'Terkirim' : $r['judul'] . ($r['saran'] ? ' ' . $r['saran'] : ''));
+                             'pesan' => $info['ok'] ? (!empty($info['tidak_berubah']) ? 'Tidak ada perubahan' : 'Terkirim') : $r['judul'] . ($r['saran'] ? ' ' . $r['saran'] : ''));
         }
     }
     echo json_aman(array('ok' => true, 'login' => true, 'waktu' => date('H:i:s'), 'hasil' => $hasil));
@@ -95,10 +95,11 @@ if ($login && $csrfOk && isset($_POST['aksi'])) {
         exit;
     }
 
-    if ($aksi == 'kirim') {
+    if ($aksi == 'kirim' || $aksi == 'kirim_paksa') {
         $err = cek_konfigurasi($CONFIG);
         if (count($err) > 0) $notif[] = array('gagal', 'Belum bisa mengirim: ' . implode(' ', $err) . ' Lengkapi dulu di menu Pengaturan.');
-        else $hasilKirim = jalankan_pengiriman($CONFIG, $jenis);
+        // tombol "Kirim" per jenis & "Kirim ulang semua" = kirim walaupun tidak berubah
+        else $hasilKirim = jalankan_pengiriman($CONFIG, $jenis, $aksi == 'kirim_paksa' || $jenis != '');
     } elseif ($aksi == 'lihat' && $jenis != '') {
         $dbOk = pastikan_db($CONFIG);
         $f = daftar_jenis();
@@ -290,6 +291,8 @@ $alamatWeb = preg_replace('#/api/sipp/terima$#', '', $CONFIG['website']['url']);
     <form method="post" style="margin-bottom:16px">
       <input type="hidden" name="csrf" value="<?php echo e($csrf); ?>">
       <button class="btn besar" name="aksi" value="kirim">&#8679; Kirim Semua Data Sekarang</button>
+      <button class="btn kecil abu" name="aksi" value="kirim_paksa" title="Kirim semua data walaupun tidak ada perubahan">Kirim ulang semua</button>
+      <div class="bantuan">Hanya data yang berubah atau baru yang dikirim. Data yang sama tetap dikirim ulang setiap <?php echo (int)$CONFIG['kirim_ulang_jam']; ?> jam sebagai tanda aplikasi ini masih berjalan.</div>
     </form>
     <div class="grid">
       <?php foreach ($namaJenis as $j => $nj) {
@@ -302,7 +305,8 @@ $alamatWeb = preg_replace('#/api/sipp/terima$#', '', $CONFIG['website']['url']);
         <?php } elseif (!$s) { ?>
           <p><i>Belum pernah dikirim</i></p>
         <?php } elseif ($s['ok']) { ?>
-          <p><b style="color:#155724">Berhasil</b> &middot; <?php echo e($s['jumlah']); ?> data<br>Terakhir: <?php echo e($s['waktu']); ?></p>
+          <p><b style="color:#155724">Berhasil</b> &middot; <?php echo e($s['jumlah']); ?> data<br>Terakhir diperiksa: <?php echo e($s['waktu']); ?><?php
+             if (isset($s['terakhir_sukses']) && $s['terakhir_sukses'] != $s['waktu']) echo '<br>Terakhir terkirim: ' . e($s['terakhir_sukses']) . ' <small>(sesudahnya tidak ada perubahan)</small>'; ?></p>
         <?php } else { $r = pesan_ramah($s['pesan']); ?>
           <p><b style="color:#721c24">Gagal:</b> <?php echo e($r['judul']); ?></p>
           <?php if ($r['saran']) echo '<p>&#128161; ' . e($r['saran']) . '</p>'; ?>
@@ -325,7 +329,9 @@ $alamatWeb = preg_replace('#/api/sipp/terima$#', '', $CONFIG['website']['url']);
     <?php foreach ($hasilKirim as $j => $info) { $r = pesan_ramah($info['pesan']); ?>
       <div class="notif <?php echo $info['ok'] ? 'sukses' : 'gagal'; ?>">
         <b><?php echo e($namaJenis[$j][0]); ?>:</b>
-        <?php if ($info['ok']) { echo 'Berhasil, ' . e($info['jumlah']) . ' data terkirim.';
+        <?php if ($info['ok'] && !empty($info['tidak_berubah'])) { echo 'Tidak ada perubahan sejak kiriman terakhir (' . e($info['terakhir_sukses']) . '), tidak dikirim.'; }
+              elseif ($info['ok']) { echo 'Berhasil, ' . e($info['jumlah']) . ' data terkirim.';
+                 if (preg_match('/(\d+ relaas terkirim[^;]*)/', $info['pesan'], $m)) echo ' ' . e(ucfirst($m[1])) . '.';
                  if (strpos($info['pesan'], 'cadangan') !== false) echo ' (Database SIPP tidak terhubung, memakai data cadangan dari sipp-publik.)'; }
               else { echo e($r['judul']); if ($r['saran']) echo '<br>&#128161; ' . e($r['saran']); } ?>
       </div>
