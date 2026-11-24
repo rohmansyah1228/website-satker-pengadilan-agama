@@ -1,9 +1,28 @@
 {
-  "build": 17,
+  "build": 18,
   "version": "2026-11-24",
   "repo": "rohmansyah1228/website-satker-pengadilan-agama",
   "branch": "main",
   "releases": [
+    {
+      "build": 18,
+      "version": "2026-11-24",
+      "notes": "Blok halaman baru Arsip Bulanan: laporan per bulan dalam satu tahun (mis. SERAPAN 01 & 04) tampil sebagai kartu Januari–Desember dengan status Menunggu Publikasi / Lihat Dokumen, dihitung Dashboard SINOVA. SIPP API Kantor: isian Folder aplikasi SIPP di Pengaturan bagian 1 untuk dokumen relaas (unduh ulang paket kantor dari Pengaturan → Integrasi SIPP).",
+      "files": [
+        "app/Libraries/Compliance.php",
+        "app/Libraries/PageBlocks.php",
+        "app/Views/admin/guide.php",
+        "app/Views/site/page_blocks/monthly.php",
+        "deploy/sipp-api-kantor/README.md",
+        "deploy/sipp-api-kantor/index.php",
+        "deploy/sipp-api-kantor/lib/kumpul.php",
+        "deploy/sipp-api-kantor/lib/relaas.php",
+        "public/assets/css/site.css",
+        "public/assets/img/panduan/05-arsip-bulanan-editor.jpg",
+        "public/assets/img/panduan/05-arsip-bulanan.jpg",
+        "public/assets/js/page-builder.js"
+      ]
+    },
     {
       "build": 17,
       "version": "2026-11-24",
