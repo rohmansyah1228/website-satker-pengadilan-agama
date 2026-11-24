@@ -369,9 +369,17 @@ $alamatWeb = preg_replace('#/api/sipp/terima$#', '', $CONFIG['website']['url']);
     <div id="logOtomatis"></div>
     <details>
       <summary>Ingin berjalan otomatis tanpa membuka halaman? (untuk teknisi)</summary>
-      <p>Jadwalkan perintah ini di server (cron Linux / Task Scheduler Windows), misalnya tiap 15 menit:</p>
+      <p>Jadwalkan perintah ini di server (cron Linux / Task Scheduler Windows), misalnya tiap 5 menit:</p>
       <pre>php <?php echo e(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'kirim.php'); ?></pre>
-      <p>Contoh cron: <code>*/15 * * * * php <?php echo e(dirname(__FILE__) . '/kirim.php'); ?> &gt;/dev/null 2&gt;&amp;1</code></p>
+      <p>Contoh cron: <code>*/5 * * * * php <?php echo e(dirname(__FILE__) . '/kirim.php'); ?> &gt;/dev/null 2&gt;&amp;1</code></p>
+      <?php // php.exe untuk perintah terjadwal (di web server PHP_BINARY bisa berisi httpd.exe)
+        $phpExe = 'C:\\xampp\\php\\php.exe';
+        if (defined('PHP_BINARY') && PHP_BINARY != '' && preg_match('/php[0-9.]*(\.exe)?$/i', PHP_BINARY)) $phpExe = PHP_BINARY;
+        elseif (defined('PHP_BINDIR') && is_file(PHP_BINDIR . '/php.exe')) $phpExe = PHP_BINDIR . '/php.exe';
+        elseif (defined('PHP_BINDIR') && is_file(PHP_BINDIR . '/php')) $phpExe = PHP_BINDIR . '/php'; ?>
+      <p>Windows (jalankan di Command Prompt <b>sebagai Administrator</b>, sekali saja; tetap berjalan walau tidak ada yang login):</p>
+      <pre>schtasks /Create /TN "SIPP API Kantor" /SC MINUTE /MO 5 /RU SYSTEM /F /TR "\"<?php echo e(str_replace('/', '\\', $phpExe)); ?>\" \"<?php echo e(str_replace('/', '\\', dirname(__FILE__) . '/kirim.php')); ?>\""</pre>
+      <p>Karena hanya data yang berubah yang dikirim, jadwal tiap 5 menit tidak membebani koneksi.</p>
     </details>
   </div>
   <script>

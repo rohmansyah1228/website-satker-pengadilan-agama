@@ -6,7 +6,7 @@
         ? '<a href="' . site_url('berkas/' . $r['uuid']) . '" class="btn btn-sm btn-pa-primary" target="_blank" rel="noopener">Lihat Relaas (PDF)<span class="visually-hidden"> perkara ' . esc($r['case_number']) . '</span></a>'
         : '-';
 }; ?>
-<?php if ($putus): ?><h3 class="h5 fw-bold mt-2 mb-3">Panggilan Ghaib</h3><?php endif ?>
+<?php if ($putus): ?><h3 class="h5 fw-bold mt-2 mb-3">Panggilan Sidang (Perkara Belum Putus)</h3><?php endif ?>
 <div class="table-responsive">
     <table class="table table-bordered align-middle">
         <caption class="visually-hidden">Daftar panggilan ghaib perkara yang belum diputus</caption>

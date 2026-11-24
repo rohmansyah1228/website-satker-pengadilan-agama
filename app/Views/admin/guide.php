@@ -401,10 +401,20 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
         </tbody>
     </table></div>
     <?= $img('09-arsip-dokumen.jpg', 'Daftar Arsip Dokumen dengan pencarian dan saringan jenis.') ?>
+    <h3 id="panggilan-ghaib">Panggilan Ghaib</h3>
+    <p>Halaman Panggilan Ghaib menampilkan dua tabel:</p>
+    <ol>
+        <li><strong>Panggilan Sidang (Perkara Belum Putus)</strong>: nama pihak, nomor perkara, tanggal sidang, dan tombol <em>Lihat Relaas (PDF)</em>. Baris otomatis tidak tampil 7 hari setelah tanggal sidang.</li>
+        <li><strong>Perkara Ghaib yang Sudah Putus</strong>: perkara yang sudah diputus, dengan tanggal putus dan relaasnya, tampil selama 1 tahun sejak tanggal putus. Tabel ini hanya muncul bila ada isinya.</li>
+    </ol>
+    <?= $img('13-panggilan-ghaib.jpg', 'Halaman Panggilan Ghaib: tabel panggilan sidang dan tabel perkara yang sudah putus.') ?>
+    <p>Mengisi manual: <em>Kepaniteraan → Panggilan Ghaib → Tambah</em>. Isi nama pihak, nomor perkara, tanggal sidang, dan unggah relaas PDF. Bila perkara sudah diputus, isi <strong>Tanggal Putus</strong>; barisnya pindah ke tabel Sudah Putus dan tidak lagi tampil di blok Pengumuman Beranda.</p>
+    <?= $img('13-ghaib-admin.jpg', 'Form Panggilan Ghaib dengan isian Tanggal Putus.') ?>
+    <?= $tip('Bila Integrasi SIPP aktif, perkara ghaib (belum putus maupun sudah putus) beserta relaasnya terisi otomatis dari SIPP. Lihat <a href="#integrasi-sipp">Integrasi SIPP</a>. Relaas yang Anda unggah manual tidak pernah ditimpa.') ?>
     <ul>
-        <li>PDF maks. <strong>20 MB</strong>, gambar maks. 8 MB. Berkas lebih besar: pakai <strong>Tautan Luar</strong> Google Drive.</li>
+        <li>PDF maks. <strong>20 MB</strong>, gambar JPG/PNG/WebP maks. 8 MB, GIF bergerak maks. 100 MB. Berkas lebih besar: pakai <strong>Tautan Luar</strong> Google Drive.</li>
         <li>Laporan bulanan wajib diisi <strong>Bulan</strong>; dokumen 5 tahunan diisi setiap tahun.</li>
-        <li>Jadwal sidang bisa diambil dari database SIPP (Pengaturan → Tautan Layanan).</li>
+        <li>Jadwal sidang, statistik perkara, dan panggilan ghaib bisa terisi otomatis dari SIPP (<a href="#integrasi-sipp">Integrasi SIPP</a>).</li>
         <li>Pengaduan/hukuman disiplin memakai <strong>inisial</strong>.</li>
     </ul>
     <?= $go('data/dokumen', 'Buka Arsip Dokumen') ?>
@@ -451,6 +461,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
             <tr><td>Panggilan ghaib (belum putus &amp; sudah putus)</td><td>Menu & halaman Panggilan Ghaib serta blok Pengumuman. Perkara yang sudah putus pindah ke tabel <em>Perkara Ghaib yang Sudah Putus</em> (tampil 1 tahun sejak tanggal putus). <strong>Relaas (PDF) terbaru Tergugat/Termohon ikut dikirim</strong> dari folder dokumen SIPP dan tampil sebagai tombol <em>Lihat Relaas (PDF)</em>.</td></tr>
         </tbody>
     </table></div>
+    <?= $img('14-integrasi-sipp.jpg', 'Tab Integrasi SIPP: unduh aplikasi kantor, pilihan data otomatis, dan tabel Kiriman terakhir.') ?>
     <h4 class="h6 fw-bold mt-3">Memasang (cara termudah)</h4>
     <ol>
         <li>Website: <em>Sistem → Pengaturan → Integrasi SIPP</em> (Super Admin) → klik <strong>Unduh SIPP API Kantor</strong>. Paket zip yang terunduh <strong>sudah berisi alamat &amp; kunci website ini</strong>, dan Integrasi SIPP otomatis diaktifkan.</li>
@@ -460,6 +471,14 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
         <li>Aplikasi kantor <strong>hanya mengirim data yang berubah atau baru</strong>. Data yang tidak berubah tetap dikirim ulang setiap 6 jam sebagai tanda aplikasi masih berjalan; tombol <em>Kirim ulang semua</em> di dashboard kantor mengirim semuanya sekarang.</li>
         <li>Kembali ke website: tabel <strong>Kiriman terakhir</strong> di tab Integrasi SIPP menampilkan waktu diterima dan jumlah data.</li>
     </ol>
+    <?= $img('14-sipp-kantor.jpg', 'Dashboard SIPP API Kantor: hanya data yang berubah yang dikirim.') ?>
+    <h4 class="h6 fw-bold mt-3">Pengiriman otomatis tanpa membuka browser (disarankan)</h4>
+    <p>Menu <em>Mode Otomatis</em> hanya berjalan selama tab browsernya terbuka. Agar pengiriman tetap berjalan walau tidak ada yang login, jadwalkan <code>kirim.php</code> di server kantor. Perintah lengkapnya (sudah berisi lokasi PHP dan aplikasi di server itu) ada di <em>Mode Otomatis → Ingin berjalan otomatis tanpa membuka halaman?</em></p>
+    <ul>
+        <li><strong>Windows</strong>: buka Command Prompt <em>sebagai Administrator</em>, tempel perintah <code>schtasks /Create /TN "SIPP API Kantor" /SC MINUTE /MO 5 …</code> sekali saja. Tugas berjalan tiap 5 menit, juga setelah server dinyalakan ulang.</li>
+        <li><strong>Linux</strong>: tambahkan baris cron <code>*/5 * * * * php /var/www/html/sipp-api-kantor/kirim.php</code>.</li>
+        <li>Server kantor tidak memerlukan IP publik: kantor yang mengirim ke website, bukan website yang mengambil.</li>
+    </ul>
     <p class="small">Sudah memasang aplikasi kantor sebelumnya? Di dashboard kantor buka <em>Pengaturan → Website satker</em>, klik <strong>Salin</strong>, lalu tempel teksnya di kotak <strong>Tempel kunci</strong> pada tab Integrasi SIPP dan Simpan.</p>
     <h4 class="h6 fw-bold mt-3">Relaas panggilan ghaib otomatis</h4>
     <ul>
@@ -555,6 +574,10 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
             ['Banner ucapan tidak tampil di Beranda', 'Pastikan banner berstatus Tampilkan, jenisnya sesuai dengan pilihan <em>Kolom yang ditampilkan</em> di tampilan Beranda, dan termasuk yang terbaru sesuai <em>Banner per kolom</em>.'],
             ['Impor WordPress: "Kategori tidak ditemukan" atau jalur data ditutup', 'Gunakan tombol <strong>Ambil daftar kategori</strong> agar alamat kategori tepat. Bila REST API ditutup, minta pengelola website lama membukanya sementara.'],
             ['Data SIPP tidak muncul di website', 'Buka <em>Pengaturan → Integrasi SIPP</em>: pastikan <strong>Pakai data kiriman SIPP API kantor</strong> = Ya, kunci berstatus tersimpan, dan tabel Kiriman terakhir terisi. Bila belum ada kiriman, klik Kirim Semua Data Sekarang di dashboard kantor dan baca pesan galatnya.'],
+            ['Kolom Dokumen Relaas Panggilan Ghaib masih "-"', 'Relaas dikirim otomatis bila berkasnya sudah diunggah di SIPP. Pastikan Dashboard → <strong>Jalankan pembaruan</strong> sudah diklik, aplikasi kantor versi terbaru, dan dashboard kantor tidak menulis <em>folder dokumen SIPP tidak ditemukan</em>. Relaas di atas batas hosting dilewati (lihat pesan di dashboard kantor).'],
+            ['Dashboard kantor menulis "Tidak ada perubahan, tidak dikirim"', 'Itu normal: data sama dengan kiriman terakhir. Klik <strong>Kirim ulang semua</strong> bila ingin mengirim paksa.'],
+            ['GIF ditolak "mengandung kode yang tidak diperbolehkan"', 'Perbarui website (Update Website). GIF sah tidak lagi ditolak; yang ditolak hanya GIF yang disisipi kode program.'],
+            ['Pengiriman SIPP berhenti saat komputer/browser ditutup', 'Mode Otomatis butuh tab yang terbuka. Jadwalkan <code>kirim.php</code> dengan Task Scheduler/cron (lihat <a href="#integrasi-sipp">Integrasi SIPP</a>).'],
             ['Kartu Pintasan hanya 2 per baris', 'Atur <em>Kartu per baris</em> di tampilan Pintasan Layanan, perlebar kotak tampilannya, lalu tekan Ctrl+F5.'],
         ];
         foreach ($faq as $i => [$q, $a]): ?>

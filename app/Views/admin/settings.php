@@ -28,7 +28,7 @@
                     <ol class="small mb-0 mt-1">
                         <li>Ekstrak, salin folder <code>sipp-api-kantor</code> ke web root server kantor (mis. <code>C:\xampp\htdocs\</code>).</li>
                         <li>Buka <code>http://IP-SERVER/sipp-api-kantor/</code>, buat password dashboard.</li>
-                        <li>Klik <strong>Kirim Semua Data Sekarang</strong>, lalu aktifkan <strong>Mode Otomatis</strong>. Data yang diterima tampil di tabel <em>Kiriman terakhir</em> di bawah.</li>
+                        <li>Klik <strong>Kirim Semua Data Sekarang</strong>, lalu jadwalkan pengiriman otomatis (Task Scheduler / cron, atau menu <strong>Mode Otomatis</strong>). Hanya data yang berubah yang dikirim. Data yang diterima tampil di tabel <em>Kiriman terakhir</em> di bawah.</li>
                     </ol>
                 </div>
                 <a href="<?= admin_url('pengaturan/sipp-kantor') ?>" class="btn btn-pa-primary" download data-reload-after="2500"><i class="bi bi-download" aria-hidden="true"></i> Unduh SIPP API Kantor</a>

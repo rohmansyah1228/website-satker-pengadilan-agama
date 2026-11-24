@@ -55,7 +55,10 @@ belum memilikinya.
 ### Pengiriman otomatis
 - **Cara mudah:** menu **Mode Otomatis**, pilih interval, klik **Mulai**, dan biarkan tab itu terbuka di komputer
   kantor yang selalu menyala.
-- **Cara teknisi:** jadwalkan `php kirim.php` lewat cron / Task Scheduler (perintah lengkap ada di halaman Mode Otomatis).
+- **Cara disarankan (tanpa browser):** jadwalkan `php kirim.php` tiap 5 menit. Perintah lengkap ada di halaman
+  Mode Otomatis. Windows (Command Prompt sebagai Administrator, sekali saja):
+  `schtasks /Create /TN "SIPP API Kantor" /SC MINUTE /MO 5 /RU SYSTEM /F /TR "\"C:\xampp\php\php.exe\" \"C:\xampp\htdocs\sipp-api-kantor\kirim.php\""`.
+  Linux: `*/5 * * * * php /var/www/html/sipp-api-kantor/kirim.php`. Server kantor tidak perlu IP publik.
 
 **Menyimpan pengaturan secara permanen:** jika folder `data/` bisa ditulis, pengaturan langsung tersimpan di sana.
 Jika tidak, muncul kotak **"Satu langkah lagi"** dengan tombol **Unduh config.php**. Salin file itu ke folder aplikasi
