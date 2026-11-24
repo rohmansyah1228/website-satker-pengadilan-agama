@@ -53,7 +53,7 @@ $showWhen  = ! empty($f['show_when']) ? ' data-show-when="' . esc($f['show_when'
                     </div>
                 <?php endif ?>
                 <input type="file" id="<?= $id ?>" name="<?= $inputName ?>" accept="image/jpeg,image/png,image/webp,image/gif" class="form-control<?= $invalid ?>"<?= $aria ?>>
-                <div class="form-text">JPG/PNG/WebP (maks. 8 MB, dikompres ke WebP) atau GIF bergerak (maks. 2 MB).</div>
+                <div class="form-text">JPG/PNG/WebP (maks. 8 MB, dikompres ke WebP) atau GIF bergerak (maks. <?= \App\Libraries\Uploader::MAX_GIF_MB ?> MB, disimpan apa adanya).</div>
             <?php break; case 'pdf': ?>
                 <?php if ($value && ($url = file_url((int) $value))): ?>
                     <div class="d-flex align-items-center gap-3 mb-2">

@@ -15,6 +15,11 @@ class Uploader
     public const MAX_PDF_MB   = 20;
     public const MAX_IMAGE_MB = 8;
 
+    /** GIF bergerak disimpan apa adanya (tidak dikompres), jadi batasnya terpisah */
+    public const MAX_GIF_MB = 100;
+
+    public const MAX_GIF_PX = 8000;
+
     private array $cache = [];
 
     public function find(int $id): ?array
@@ -149,8 +154,8 @@ class Uploader
         if (! $file->isValid()) {
             throw new RuntimeException('Unggahan gagal: ' . $file->getErrorString());
         }
-        if ($file->getSize() > self::MAX_IMAGE_MB * 1048576) {
-            throw new RuntimeException('Ukuran gambar maksimal ' . self::MAX_IMAGE_MB . ' MB.');
+        if ($file->getSize() > max(self::MAX_IMAGE_MB, self::MAX_GIF_MB) * 1048576) {
+            throw new RuntimeException('Ukuran gambar maksimal ' . self::MAX_IMAGE_MB . ' MB (GIF ' . self::MAX_GIF_MB . ' MB).');
         }
 
         return $this->storeImagePath($file->getTempName(), $maxWidth);
@@ -159,14 +164,21 @@ class Uploader
     /** Simpan gambar dari berkas sementara di server (unggahan atau unduhan impor). */
     public function storeImagePath(string $tmp, int $maxWidth = 1600): string
     {
-        if (! is_file($tmp) || filesize($tmp) > self::MAX_IMAGE_MB * 1048576) {
-            throw new RuntimeException('Ukuran gambar maksimal ' . self::MAX_IMAGE_MB . ' MB.');
+        if (! is_file($tmp) || filesize($tmp) > max(self::MAX_IMAGE_MB, self::MAX_GIF_MB) * 1048576) {
+            throw new RuntimeException('Ukuran gambar maksimal ' . self::MAX_IMAGE_MB . ' MB (GIF ' . self::MAX_GIF_MB . ' MB).');
         }
         $info = @getimagesize($tmp);
-        // GIF disimpan apa adanya agar animasinya tetap jalan (mis. ikon CCTV); dibatasi 2 MB & 1600 px
+        // GIF disimpan apa adanya agar animasinya tetap jalan (mis. ikon CCTV, banner bergerak)
         if ($info && $info[2] === IMAGETYPE_GIF) {
-            if (filesize($tmp) > 2 * 1048576 || $info[0] > 1600 || $info[1] > 1600) {
-                throw new RuntimeException('GIF maksimal 2 MB dan 1600 × 1600 piksel.');
+            if (filesize($tmp) > self::MAX_GIF_MB * 1048576 || $info[0] > self::MAX_GIF_PX || $info[1] > self::MAX_GIF_PX) {
+                throw new RuntimeException('GIF maksimal ' . self::MAX_GIF_MB . ' MB dan ' . self::MAX_GIF_PX . ' × ' . self::MAX_GIF_PX . ' piksel.');
+            }
+            // GIF besar dibaca utuh untuk diperiksa: pastikan memori PHP cukup (tidak pernah diturunkan)
+            $need = (int) (filesize($tmp) * 2 + 64 * 1048576);
+            $lim  = trim((string) ini_get('memory_limit'));
+            $unit = ['g' => 1073741824, 'm' => 1048576, 'k' => 1024][strtolower(substr($lim, -1))] ?? 1;
+            if ((int) $lim > 0 && (int) $lim * $unit < $need) {
+                @ini_set('memory_limit', (string) ceil($need / 1048576) . 'M');
             }
             // tolak GIF yang disisipi kode (polyglot webshell). Yang diperiksa hanya bagian yang bisa memuat teks
             // (blok komentar/aplikasi/teks & data setelah akhir gambar), bukan data piksel terkompresi yang acak
@@ -187,6 +199,9 @@ class Uploader
             }
 
             return $rel;
+        }
+        if (filesize($tmp) > self::MAX_IMAGE_MB * 1048576) {
+            throw new RuntimeException('Gambar JPG/PNG/WebP maksimal ' . self::MAX_IMAGE_MB . ' MB.');
         }
         $map  = [IMAGETYPE_JPEG => 'imagecreatefromjpeg', IMAGETYPE_PNG => 'imagecreatefrompng', IMAGETYPE_WEBP => 'imagecreatefromwebp'];
         if (! $info || ! isset($map[$info[2]])) {

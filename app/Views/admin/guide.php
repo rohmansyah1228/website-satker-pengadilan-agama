@@ -329,7 +329,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
         <tbody>
             <tr><td>Judul & Keterangan</td><td>Teks pada kartu</td></tr>
             <tr><td>Tautan</td><td>Alamat tujuan; bisa token <code>{sipp_url}</code> <code>{ecourt_url}</code> <code>{direktori_url}</code> <code>{siwas_url}</code> <code>{survey_url}</code> dari Pengaturan</td></tr>
-            <tr><td>Gambar (opsional)</td><td>Logo/banner, menggantikan ikon; GIF bergerak didukung (maks. 2 MB)</td></tr>
+            <tr><td>Gambar (opsional)</td><td>Logo/banner, menggantikan ikon; GIF bergerak didukung (maks. 100 MB)</td></tr>
             <tr><td>Ikon</td><td>Klik <strong>Pilih ikon</strong>, cari dari 2.050 ikon (boleh bahasa Indonesia: <em>dokumen, uang, jadwal</em>)</td></tr>
             <tr><td>Kelompok</td><td>Kosong = Pintasan Layanan Utama; atau mis. <em>Zona Integritas</em>, <em>Aplikasi Pendukung</em></td></tr>
         </tbody>
@@ -544,7 +544,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
             ['Update Website gagal: "Server tidak mengizinkan menulis berkas"', 'Minta penyedia hosting memberi izin tulis pada folder website untuk PHP, atau perbarui berkas secara manual.'],
             ['Kriteria SINOVA tetap "Belum ada"', 'Baca kolom Catatan; tulis tahun/bulan di judul tabel, isi tautan, hapus [LENGKAPI].'],
             ['Tombol pintasan/CCTV/WhatsApp/survei tidak muncul', 'Tautan atau nomornya belum diisi di Pengaturan.'],
-            ['Gambar tidak bisa diunggah', 'Gunakan JPG/PNG/WebP maks. 8 MB atau GIF maks. 2 MB.'],
+            ['Gambar tidak bisa diunggah', 'Gunakan JPG/PNG/WebP maks. 8 MB atau GIF maks. 100 MB. GIF besar juga dibatasi upload_max_filesize & post_max_size PHP server (mis. 128M).'],
             ['PDF tidak bisa diunggah', 'Maks. 20 MB; berkas lebih besar pakai tautan Google Drive.'],
             ['Video tidak bersampul', 'Pastikan tautan YouTube lengkap; untuk Google Drive unggah gambar sampul.'],
             ['Sambutan suara tidak terdengar', 'Browser baru mengizinkan suara setelah klik pertama; cek Suara Panduan aktif & volume.'],
