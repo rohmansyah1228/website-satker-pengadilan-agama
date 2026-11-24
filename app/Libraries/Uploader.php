@@ -79,6 +79,70 @@ class Uploader
         return (int) db_connect()->insertID();
     }
 
+    /**
+     * Uraikan struktur GIF dan kembalikan gabungan bagian yang bisa memuat teks: header, isi semua blok ekstensi
+     * (komentar, aplikasi, teks, kontrol grafis) dan data apa pun setelah penanda akhir (0x3B).
+     * Data piksel (LZW) dilewati. null = struktur tidak sah.
+     */
+    public static function gifTextParts(string $b): ?string
+    {
+        $len = strlen($b);
+        if ($len < 13 || (substr($b, 0, 6) !== 'GIF87a' && substr($b, 0, 6) !== 'GIF89a')) {
+            return null;
+        }
+        $out   = substr($b, 0, 13);
+        $flags = ord($b[10]);
+        $pos   = 13 + (($flags & 0x80) ? 3 * (2 << ($flags & 0x07)) : 0); // tabel warna global
+        // lompati rangkaian sub-blok; $keep = simpan isinya untuk diperiksa
+        $subBlocks = static function (bool $keep) use ($b, $len, &$pos, &$out): bool {
+            while ($pos < $len) {
+                $n = ord($b[$pos++]);
+                if ($n === 0) {
+                    return true;
+                }
+                if ($pos + $n > $len) {
+                    return false;
+                }
+                if ($keep) {
+                    $out .= substr($b, $pos, $n);
+                }
+                $pos += $n;
+            }
+
+            return false;
+        };
+        while ($pos < $len) {
+            $c = ord($b[$pos++]);
+            if ($c === 0x3B) { // akhir gambar: sisa berkas (seharusnya kosong) ikut diperiksa
+                return $out . "\n" . substr($b, $pos);
+            }
+            if ($c === 0x21) { // blok ekstensi
+                if ($pos >= $len) {
+                    return null;
+                }
+                $pos++;
+                $out .= "\n";
+                if (! $subBlocks(true)) {
+                    return null;
+                }
+            } elseif ($c === 0x2C) { // deskriptor gambar + tabel warna lokal + data LZW
+                if ($pos + 9 > $len) {
+                    return null;
+                }
+                $f = ord($b[$pos + 8]);
+                $pos += 9 + (($f & 0x80) ? 3 * (2 << ($f & 0x07)) : 0);
+                $pos++; // ukuran kode LZW minimum
+                if (! $subBlocks(false)) {
+                    return null;
+                }
+            } else {
+                return null;
+            }
+        }
+
+        return $out; // berakhir rapi tanpa penanda akhir (masih ditampilkan peramban)
+    }
+
     /** @return string path relatif dari public/, mis. uploads/images/2026/abc.webp */
     public function storeImage(UploadedFile $file, int $maxWidth = 1600): string
     {
@@ -104,9 +168,14 @@ class Uploader
             if (filesize($tmp) > 2 * 1048576 || $info[0] > 1600 || $info[1] > 1600) {
                 throw new RuntimeException('GIF maksimal 2 MB dan 1600 × 1600 piksel.');
             }
-            // tolak GIF yang disisipi kode (polyglot webshell): PHP/skrip di dalam berkas gambar
-            $scan = (string) @file_get_contents($tmp, false, null, 0, 1048576);
-            if (preg_match('/<\?php|<\?=|<script\b|<%/i', $scan)) {
+            // tolak GIF yang disisipi kode (polyglot webshell). Yang diperiksa hanya bagian yang bisa memuat teks
+            // (blok komentar/aplikasi/teks & data setelah akhir gambar), bukan data piksel terkompresi yang acak
+            // sehingga bisa "kebetulan" berisi <% atau <? (salah tolak pada GIF yang sah).
+            $scan = self::gifTextParts((string) @file_get_contents($tmp));
+            if ($scan === null) {
+                throw new RuntimeException('Berkas GIF rusak atau tidak lengkap. Simpan ulang GIF lalu unggah kembali.');
+            }
+            if (preg_match('/<\?php|<\?=|<\?\s|<script\b|<%|<html\b|<iframe\b|javascript:/i', $scan)) {
                 throw new RuntimeException('Berkas GIF mengandung kode yang tidak diperbolehkan.');
             }
             $rel = 'uploads/images/' . date('Y') . '/' . bin2hex(random_bytes(12)) . '.gif';
