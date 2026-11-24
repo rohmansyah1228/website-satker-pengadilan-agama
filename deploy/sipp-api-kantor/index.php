@@ -149,6 +149,7 @@ if ($login && $csrfOk && isset($_POST['aksi'])) {
         if (simpan_pengaturan($p)) {
             $CONFIG = gabung_array($CONFIG, $p);
             $PENGATURAN_TERSIMPAN = $p;
+            unset($GLOBALS['RELAAS_INFO'], $GLOBALS['RELAAS_DIR']); // folder SIPP mungkin baru diubah
             if ($aksi == 'simpan') $notif[] = array('sukses', 'Pengaturan tersimpan.');
         } else {
             $notif[] = array('gagal', 'Pengaturan GAGAL disimpan (' . simpan_keterangan() . '). ' . db_error());
@@ -470,6 +471,17 @@ $alamatWeb = preg_replace('#/api/sipp/terima$#', '', $CONFIG['website']['url']);
     <label class="f">Nama database SIPP</label>
     <input type="text" name="db_name" value="<?php echo e($CONFIG['sipp_db']['name']); ?>">
     <?php if ($otomatis) echo '</details>'; ?>
+    <label class="f">Folder aplikasi SIPP <small>(untuk mengambil dokumen relaas)</small></label>
+    <?php $rf = relaas_folder_info($CONFIG); ?>
+    <input type="text" name="relaas_dir" value="<?php echo e(isset($CONFIG['relaas_dir']) ? $CONFIG['relaas_dir'] : ''); ?>" placeholder="mis. C:\xampp\htdocs\sipp  (kosongkan agar dicari otomatis)">
+    <?php if ($rf['isian_salah']) { ?>
+      <div class="notif gagal" style="margin-top:6px">&#9888; Folder yang diisi tidak ditemukan atau tidak berisi dokumen SIPP (resources/file/doc). Periksa penulisannya.<?php if ($rf['dir'] != '') echo ' Sementara dipakai folder yang ditemukan otomatis: <code>' . e($rf['dir']) . '</code>'; ?></div>
+    <?php } elseif ($rf['dir'] != '') { ?>
+      <div class="bantuan" style="color:#155724">&#9989; Dokumen SIPP <?php echo $rf['asal'] == 'otomatis' ? 'ditemukan otomatis' : 'ditemukan'; ?>: <code><?php echo e($rf['dir']); ?></code></div>
+    <?php } else { ?>
+      <div class="bantuan" style="color:#856404">&#9888; Folder dokumen SIPP belum ditemukan otomatis. Isi lokasi folder aplikasi SIPP, mis. <code>C:\xampp\htdocs\sipp</code>.</div>
+    <?php } ?>
+    <div class="bantuan">Folder tempat aplikasi SIPP dipasang di server ini (berisi <code>resources/file/doc</code>). Boleh juga diisi langsung folder dokumennya.</div>
     <p><button class="btn abu" name="aksi" value="uji_db">Tes koneksi database</button></p>
   </div>
 
@@ -511,7 +523,7 @@ $alamatWeb = preg_replace('#/api/sipp/terima$#', '', $CONFIG['website']['url']);
       Tampilkan alamat terakhir Tergugat/Termohon di pengumuman panggilan ghaib</label>
     <label class="cek"><input type="checkbox" name="ghaib_relaas" value="1" <?php echo !empty($CONFIG['ghaib_kirim_relaas']) ? 'checked' : ''; ?>>
       Kirim dokumen relaas (PDF) panggilan ghaib <small>Relaas terbaru Tergugat/Termohon diambil dari folder dokumen SIPP<?php
-        $rd = relaas_folder($CONFIG); echo $rd != '' ? ' (' . e($rd) . ')' : ' &mdash; folder belum ditemukan, isi di Pengaturan lanjutan'; ?>.</small></label>
+        $rd = relaas_folder($CONFIG); echo $rd != '' ? ' (' . e($rd) . ')' : ' &mdash; folder SIPP belum ditemukan, isi "Folder aplikasi SIPP" di bagian 1'; ?>.</small></label>
   </div>
 
   <div class="kartu">
@@ -528,9 +540,6 @@ $alamatWeb = preg_replace('#/api/sipp/terima$#', '', $CONFIG['website']['url']);
       <label class="f">API cadangan jadwal sidang (sipp-publik)</label>
       <input type="text" name="cadangan" value="<?php echo e($CONFIG['cadangan_api_jadwal']); ?>">
       <div class="bantuan">Dipakai jika database SIPP tidak bisa dihubungi. Kosongkan untuk menonaktifkan.</div>
-      <label class="f">Folder dokumen SIPP (untuk relaas)</label>
-      <input type="text" name="relaas_dir" value="<?php echo e(isset($CONFIG['relaas_dir']) ? $CONFIG['relaas_dir'] : ''); ?>" placeholder="Kosongkan agar dicari otomatis, mis. C:/xampp/htdocs/sipp/resources/file/doc">
-      <div class="bantuan">Folder berisi subfolder TAHUN/BULAN tempat SIPP menyimpan dokumen (resources/file/doc).</div>
     </details>
   </div>
 

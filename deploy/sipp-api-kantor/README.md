@@ -72,8 +72,9 @@ Relaas dicari dengan cara yang sama seperti halaman Monitoring Panggilan Ghaib d
    pihak di `perkara_pihak2` (Tergugat/Termohon), dan hanya yang berkasnya ada di disk;
 2. bila tabel/kolom itu tidak ada: langsung di folder dengan pola `PA.Tlb_2026_Pdt.G_0671_relaas_*.pdf`.
 
-Folder dokumen SIPP (`.../sipp/resources/file/doc`) dicari otomatis; bila tidak ketemu isi di
-**Pengaturan → Pengaturan lanjutan → Folder dokumen SIPP**. Alurnya:
+Folder dokumen SIPP (`.../sipp/resources/file/doc`) dicari otomatis; bila tidak ketemu, isi
+**Pengaturan → 1. Database SIPP → Folder aplikasi SIPP** (mis. `C:\xampp\htdocs\sipp`). Di bawah isian itu tampil
+folder dokumen yang dipakai, atau peringatan bila folder salah. Alurnya:
 
 ```
 kantor ──panggilan_ghaib (+ sidik sha256 relaas)──▶ website

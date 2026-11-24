@@ -10,25 +10,71 @@
 
 $GLOBALS['RELAAS_BERKAS'] = array(); // sha256 => array(path, nomor, nama, tanggal) untuk tahap kirim
 
+/** Folder berisi subfolder TAHUN/BULAN dokumen SIPP? */
+function relaas_folder_sah($d) {
+    if ($d == '' || !@is_dir($d)) return false;
+    if (preg_match('#/file/doc/?$#i', $d)) return true;
+    $isi = @scandir($d);
+    if ($isi) foreach ($isi as $x) if (preg_match('/^(19|20)\d\d$/', $x) && is_dir($d . '/' . $x)) return true;
+    return false;
+}
+
+/**
+ * Isian "Folder aplikasi SIPP" → folder dokumennya. Boleh diisi folder aplikasi SIPP
+ * (C:/xampp/htdocs/sipp) maupun langsung folder dokumennya (.../sipp/resources/file/doc).
+ */
+function relaas_dari_isian($isian) {
+    $d = rtrim(str_replace('\\', '/', trim((string)$isian)), '/');
+    if ($d == '') return '';
+    foreach (array($d . '/resources/file/doc', $d . '/file/doc', $d . '/doc', $d) as $k) {
+        if (relaas_folder_sah($k)) return $k . '/';
+    }
+    return '';
+}
+
+/**
+ * Info folder dokumen SIPP: array('dir' => '.../resources/file/doc/' atau '', 'asal' => 'pengaturan'|'otomatis'|'',
+ * 'isian_salah' => bool). Hasil di-cache per permintaan.
+ */
+function relaas_folder_info($cfg) {
+    if (isset($GLOBALS['RELAAS_INFO'])) return $GLOBALS['RELAAS_INFO'];
+    $info = array('dir' => '', 'asal' => '', 'isian_salah' => false);
+    $isian = isset($cfg['relaas_dir']) ? trim($cfg['relaas_dir']) : '';
+    if ($isian != '') {
+        $info['dir'] = relaas_dari_isian($isian);
+        if ($info['dir'] != '') $info['asal'] = 'pengaturan'; else $info['isian_salah'] = true;
+    }
+    if ($info['dir'] == '') {
+        $base = dirname(dirname(__FILE__)); // folder sipp-api-kantor
+        $akar = array();
+        // folder aplikasi SIPP yang ditemukan saat menyambung database otomatis
+        $f = !empty($GLOBALS['DB_SUMBER_FILE']) ? $GLOBALS['DB_SUMBER_FILE'] : '';
+        if ($f == '' && function_exists('dir_sementara') && is_file(dir_sementara() . '/lokasi_sipp.txt')) $f = trim(@file_get_contents(dir_sementara() . '/lokasi_sipp.txt'));
+        $f = str_replace('\\', '/', $f);
+        if ($f != '' && ($pos = strpos($f, '/application/')) !== false) $akar[] = substr($f, 0, $pos);
+        $akar[] = dirname($base) . '/sipp';
+        $akar[] = dirname(dirname($base)) . '/sipp';
+        if (!empty($_SERVER['DOCUMENT_ROOT'])) $akar[] = $_SERVER['DOCUMENT_ROOT'] . '/sipp';
+        $akar[] = 'C:/xampp/htdocs/sipp';
+        $akar[] = 'D:/xampp/htdocs/sipp';
+        $akar[] = '/var/www/html/sipp';
+        $akar[] = '/opt/lampp/htdocs/sipp';
+        // folder lain di web root yang namanya mengandung "sipp" (mis. SIPP, sipp_tuba)
+        $isi = @scandir(dirname($base));
+        if ($isi) foreach ($isi as $x) if ($x != '.' && $x != '..' && stripos($x, 'sipp') !== false && stripos($x, 'api') === false) $akar[] = dirname($base) . '/' . $x;
+        foreach ($akar as $a) {
+            $d = relaas_dari_isian($a);
+            if ($d != '') { $info['dir'] = $d; $info['asal'] = 'otomatis'; break; }
+        }
+    }
+    $GLOBALS['RELAAS_INFO'] = $info;
+    return $info;
+}
+
 /** Folder dokumen SIPP di disk (resources/file/doc), atau '' bila tidak ditemukan. */
 function relaas_folder($cfg) {
-    if (isset($GLOBALS['RELAAS_DIR'])) return $GLOBALS['RELAAS_DIR'];
-    $base = dirname(dirname(__FILE__)); // folder sipp-api-kantor
-    $kandidat = array();
-    if (!empty($cfg['relaas_dir'])) $kandidat[] = $cfg['relaas_dir'];
-    $kandidat[] = dirname($base) . '/sipp/resources/file/doc';
-    $kandidat[] = dirname(dirname($base)) . '/sipp/resources/file/doc';
-    if (!empty($_SERVER['DOCUMENT_ROOT'])) $kandidat[] = $_SERVER['DOCUMENT_ROOT'] . '/sipp/resources/file/doc';
-    $kandidat[] = 'C:/xampp/htdocs/sipp/resources/file/doc';
-    $kandidat[] = 'D:/xampp/htdocs/sipp/resources/file/doc';
-    $kandidat[] = '/var/www/html/sipp/resources/file/doc';
-    $kandidat[] = '/opt/lampp/htdocs/sipp/resources/file/doc';
-    $dir = '';
-    foreach ($kandidat as $k) {
-        if ($k != '' && @is_dir($k)) { $dir = rtrim(str_replace('\\', '/', $k), '/') . '/'; break; }
-    }
-    $GLOBALS['RELAAS_DIR'] = $dir;
-    return $dir;
+    $i = relaas_folder_info($cfg);
+    return $i['dir'];
 }
 
 /** Isi kolom doc_relaas (path atau nama berkas) → path berkas di disk, atau ''. */

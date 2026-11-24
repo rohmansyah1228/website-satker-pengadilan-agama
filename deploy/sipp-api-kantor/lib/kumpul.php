@@ -217,7 +217,7 @@ function kumpul_panggilan_ghaib($cfg, $dbOk) {
         $daftar = array();
         foreach ($rows as $r) $daftar[(int)$r['perkara_id']] = $r['nomor_perkara'];
         foreach ($rowsPutus as $r) $daftar[(int)$r['perkara_id']] = $r['nomor_perkara'];
-        if (relaas_folder($cfg) == '') $catatan = 'folder dokumen SIPP tidak ditemukan, relaas tidak dikirim (isi "Folder dokumen SIPP" di Pengaturan lanjutan)';
+        if (relaas_folder($cfg) == '') $catatan = 'folder dokumen SIPP tidak ditemukan, relaas tidak dikirim (isi "Folder aplikasi SIPP" di Pengaturan bagian 1)';
         else $relaas = relaas_terbaru($cfg, $daftar);
     }
     $maksByte = max(1, (int)(isset($cfg['relaas_maks_mb']) ? $cfg['relaas_maks_mb'] : 20)) * 1048576;
