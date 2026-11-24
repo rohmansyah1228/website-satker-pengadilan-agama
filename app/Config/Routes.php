@@ -56,6 +56,7 @@ $routes->group($admin, ['namespace' => 'App\Controllers\Admin'], static function
         $routes->get('pengaturan', 'Settings::index');
         $routes->post('pengaturan', 'Settings::save');
         $routes->post('pengaturan/pengumuman-segarkan', 'Settings::refreshFeed');
+        $routes->get('pengaturan/sipp-kantor', 'Settings::downloadSippKantor');
 
         $routes->get('pengguna', 'Users::index');
         $routes->get('pengguna/baru', 'Users::create');

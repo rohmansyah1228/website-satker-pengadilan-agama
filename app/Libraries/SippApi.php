@@ -277,4 +277,67 @@ class SippApi
 
         return $n . ' panggilan ghaib';
     }
+
+    // ------------------------------------------------------------------ paket aplikasi kantor
+
+    /** Pastikan website punya kunci (dibuat bila belum ada). @return array{0:string,1:string,2:string} */
+    public static function ensureKeys(): array
+    {
+        [$key, $secret, $from] = self::credentials();
+        if (strlen($key) >= 16 && strlen($secret) >= 32) {
+            return [$key, $secret, $from];
+        }
+        $key    = bin2hex(random_bytes(16));
+        $secret = bin2hex(random_bytes(32));
+        service('siteSettings')->set(['sipp_api_key' => $key, 'sipp_api_secret' => $secret]);
+
+        return [$key, $secret, 'pengaturan'];
+    }
+
+    /**
+     * Buat zip aplikasi SIPP API Kantor (deploy/sipp-api-kantor) yang config.php-nya sudah berisi
+     * alamat penerima & kunci website ini. Mengembalikan path berkas zip sementara.
+     */
+    public function buildKantorZip(): string
+    {
+        $src = ROOTPATH . 'deploy' . DIRECTORY_SEPARATOR . 'sipp-api-kantor';
+        if (! is_file($src . DIRECTORY_SEPARATOR . 'config.php')) {
+            throw new RuntimeException('Berkas aplikasi SIPP API Kantor (deploy/sipp-api-kantor) tidak ditemukan. Perbarui website.');
+        }
+        if (! class_exists(\ZipArchive::class)) {
+            throw new RuntimeException('Ekstensi PHP zip belum aktif (php.ini: extension=zip).');
+        }
+        [$key, $secret] = self::ensureKeys();
+        $preset = [
+            'website' => ['url' => site_url('api/sipp/terima'), 'api_key' => $key, 'secret' => $secret, 'verify_ssl' => true, 'timeout' => 30],
+        ];
+        $sipp = rtrim((string) setting('sipp_url', ''), '/');
+        if ($sipp !== '' && preg_match('#^https?://#i', $sipp)) {
+            $preset['cadangan_api_jadwal'] = $sipp . '/api/jadwal_sidang';
+        }
+        // format sama dengan "Unduh config.php" di dashboard kantor (dibaca lib/init.php sebagai $CONFIG_DASHBOARD)
+        $config = rtrim((string) file_get_contents($src . DIRECTORY_SEPARATOR . 'config.php')) . "\n\n"
+            . '/* === PENGATURAN DARI DASHBOARD (dibuat otomatis ' . date('Y-m-d H:i') . ' oleh website ' . parse_url(base_url(), PHP_URL_HOST) . ", jangan diubah manual) === */\n"
+            . '$CONFIG_DASHBOARD = ' . var_export($preset, true) . ";\n";
+
+        $tmp = tempnam(WRITEPATH . 'cache', 'sippk');
+        $zip = new \ZipArchive();
+        if ($zip->open($tmp, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+            throw new RuntimeException('Gagal membuat berkas zip.');
+        }
+        $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($src, \FilesystemIterator::SKIP_DOTS));
+        foreach ($it as $f) {
+            /** @var \SplFileInfo $f */
+            $rel = str_replace(DIRECTORY_SEPARATOR, '/', substr($f->getPathname(), strlen($src) + 1));
+            // jangan ikut mengemas data/log yang mungkin ada di server ini
+            if (preg_match('#^(data|logs)/(?!index\.html$|\.htaccess$)#', $rel)) {
+                continue;
+            }
+            $name = 'sipp-api-kantor/' . $rel;
+            $rel === 'config.php' ? $zip->addFromString($name, $config) : $zip->addFile($f->getPathname(), $name);
+        }
+        $zip->close();
+
+        return $tmp;
+    }
 }

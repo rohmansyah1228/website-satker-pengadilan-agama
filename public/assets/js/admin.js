@@ -100,6 +100,11 @@
         });
     }
 
+    // ---------- Unduhan yang mengubah keadaan (mis. paket SIPP API Kantor): muat ulang agar status terbaru tampil ----------
+    document.querySelectorAll('a[data-reload-after]').forEach((a) => a.addEventListener('click', () => {
+        setTimeout(() => location.reload(), parseInt(a.dataset.reloadAfter, 10) || 2000);
+    }));
+
     // ---------- Tombol proses lama (mis. Update Website): kunci & tampilkan status ----------
     document.querySelectorAll('form[data-loading]').forEach((f) => f.addEventListener('submit', (e) => {
         if (e.defaultPrevented) return; // masih menunggu konfirmasi

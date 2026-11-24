@@ -17,7 +17,23 @@
             <code class="d-inline-block user-select-all mb-2"><?= esc($sipp['url']) ?></code>
             <p class="mb-0">Kunci: <?= $sipp['hasKey']
                 ? '<span class="badge text-bg-success">tersimpan</span> ' . esc($sipp['keyHint']) . ($sipp['from'] === 'env' ? ' (dari berkas .env)' : '')
-                : '<span class="badge text-bg-warning">belum diisi</span> tempel teks dari tombol Salin di dashboard kantor.' ?></p>
+                : '<span class="badge text-bg-warning">belum ada</span> dibuat otomatis saat mengunduh aplikasi di bawah, atau tempel teks dari tombol Salin di dashboard kantor.' ?></p>
+        </div>
+        <div class="border rounded-3 p-3 mb-3 bg-white">
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                <i class="bi bi-file-earmark-zip fs-2 text-pa-primary" aria-hidden="true"></i>
+                <div class="me-auto" style="flex:1;min-width:16rem">
+                    <strong>Aplikasi SIPP API Kantor</strong> — dipasang di server kantor tempat SIPP berada (PHP 5.2–8.x).
+                    Paket unduhan <strong>sudah berisi alamat &amp; kunci website ini</strong> (dan mengaktifkan Integrasi SIPP), jadi tidak perlu menyalin kunci:
+                    <ol class="small mb-0 mt-1">
+                        <li>Ekstrak, salin folder <code>sipp-api-kantor</code> ke web root server kantor (mis. <code>C:\xampp\htdocs\</code>).</li>
+                        <li>Buka <code>http://IP-SERVER/sipp-api-kantor/</code>, buat password dashboard.</li>
+                        <li>Klik <strong>Kirim Semua Data Sekarang</strong>, lalu aktifkan <strong>Mode Otomatis</strong>. Data yang diterima tampil di tabel <em>Kiriman terakhir</em> di bawah.</li>
+                    </ol>
+                </div>
+                <a href="<?= admin_url('pengaturan/sipp-kantor') ?>" class="btn btn-pa-primary" download data-reload-after="2500"><i class="bi bi-download" aria-hidden="true"></i> Unduh SIPP API Kantor</a>
+            </div>
+            <p class="small text-danger mb-0 mt-2"><i class="bi bi-shield-lock" aria-hidden="true"></i> Paket berisi kunci rahasia website: simpan hanya di server kantor, jangan dibagikan. Bila bocor, tempel kunci baru dari dashboard kantor di bawah.</p>
         </div>
     <?php endif ?>
     <?php if ($tab === 'identitas'): ?><div class="alert alert-light border small"><i class="bi bi-palette text-pa-primary" aria-hidden="true"></i> Warna resmi Peradilan Agama (<code>#056e4f</code> & <code>#ff9900</code>) dikunci sesuai SK Bab III huruf B.1.</div><?php endif ?>

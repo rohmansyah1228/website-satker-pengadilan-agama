@@ -137,6 +137,27 @@ class Settings extends AdminController
         return $d['errors'] ? $r->with('error', esc(implode(' · ', $msg))) : $r->with('success', esc(implode(' · ', $msg)));
     }
 
+    /** Unduh aplikasi SIPP API Kantor yang sudah berisi alamat & kunci website ini (Super Admin). */
+    public function downloadSippKantor()
+    {
+        $this->authorize([], true);
+        try {
+            $tmp = (new \App\Libraries\SippApi())->buildKantorZip();
+        } catch (\Throwable $e) {
+            return redirect()->to(admin_url('pengaturan?tab=sipp'))->with('error', esc($e->getMessage()));
+        }
+        $data = (string) file_get_contents($tmp);
+        @unlink($tmp);
+        if (setting('sipp_api_aktif') !== '1') { // aman: selama belum ada kiriman, website tetap memakai data manual
+            service('siteSettings')->set(['sipp_api_aktif' => '1']);
+        }
+        $this->log('unduh', 'Aplikasi SIPP API Kantor (berisi kunci integrasi)');
+        $host = preg_replace('/[^a-z0-9.-]+/i', '-', (string) parse_url(base_url(), PHP_URL_HOST));
+
+        return $this->response->download('sipp-api-kantor-' . $host . '.zip', $data)
+            ->setHeader('Cache-Control', 'no-store, max-age=0');
+    }
+
     public function save()
     {
         $this->authorize([]);

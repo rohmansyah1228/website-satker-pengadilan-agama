@@ -451,12 +451,16 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
             <tr><td>Panggilan ghaib (perkara belum putus)</td><td>Menu & halaman Panggilan Ghaib serta blok Pengumuman. Perkara yang sudah putus otomatis disembunyikan. <strong>Relaas (PDF) tetap diunggah manual.</strong></td></tr>
         </tbody>
     </table></div>
+    <h4 class="h6 fw-bold mt-3">Memasang (cara termudah)</h4>
     <ol>
-        <li>Di dashboard SIPP API kantor: <em>Pengaturan → Website satker</em>, isi alamat utama website ini, klik <strong>Simpan</strong>, lalu <strong>Salin</strong>.</li>
-        <li>Di website: <em>Sistem → Pengaturan → Integrasi SIPP</em> (Super Admin). Pilih <strong>Pakai data kiriman SIPP API kantor: Ya</strong>, tempel teks yang disalin, lalu <strong>Simpan Pengaturan</strong>. Kunci yang tersimpan tidak ditampilkan lagi.</li>
-        <li>Kembali ke dashboard kantor: klik <strong>Tes koneksi website</strong>, lalu <strong>Kirim Semua Data Sekarang</strong>, dan aktifkan pengiriman otomatis.</li>
-        <li>Periksa tabel <strong>Kiriman terakhir</strong> di tab Integrasi SIPP: setiap data menampilkan waktu diterima dan jumlahnya.</li>
+        <li>Website: <em>Sistem → Pengaturan → Integrasi SIPP</em> (Super Admin) → klik <strong>Unduh SIPP API Kantor</strong>. Paket zip yang terunduh <strong>sudah berisi alamat &amp; kunci website ini</strong>, dan Integrasi SIPP otomatis diaktifkan.</li>
+        <li>Di server kantor tempat SIPP berada: ekstrak zip, salin folder <code>sipp-api-kantor</code> ke web root (mis. <code>C:\xampp\htdocs\</code> atau <code>/var/www/html/</code>).</li>
+        <li>Buka <code>http://IP-SERVER/sipp-api-kantor/</code>, buat password dashboard. Koneksi database SIPP diambil otomatis dari aplikasi SIPP di server yang sama; bila tidak ditemukan, isi di menu Pengaturan lalu <strong>Tes koneksi database</strong>.</li>
+        <li>Klik <strong>Kirim Semua Data Sekarang</strong>, lalu nyalakan <strong>Mode Otomatis</strong> (atau jadwalkan <code>php kirim.php</code> lewat cron / Task Scheduler).</li>
+        <li>Kembali ke website: tabel <strong>Kiriman terakhir</strong> di tab Integrasi SIPP menampilkan waktu diterima dan jumlah data.</li>
     </ol>
+    <p class="small">Sudah memasang aplikasi kantor sebelumnya? Di dashboard kantor buka <em>Pengaturan → Website satker</em>, klik <strong>Salin</strong>, lalu tempel teksnya di kotak <strong>Tempel kunci</strong> pada tab Integrasi SIPP dan Simpan.</p>
+    <?= $tip('Paket unduhan berisi <strong>kunci rahasia</strong> website: simpan hanya di server kantor dan jangan dibagikan. Bila bocor, buat kunci baru di dashboard kantor lalu tempel di tab Integrasi SIPP — kunci lama otomatis tidak berlaku.', 'warn') ?>
     <?= $tip('Setiap kiriman diperiksa dengan kunci API dan tanda tangan digital; kiriman yang kuncinya salah, isinya diubah, atau berumur lebih dari 10 menit ditolak. Bila dashboard kantor menampilkan <em>Timestamp tidak valid</em>, samakan jam server kantor. Bila jadwal dari SIPP tidak tersedia untuk suatu tanggal, website memakai jadwal yang diisi manual.') ?>
 </section>
 
