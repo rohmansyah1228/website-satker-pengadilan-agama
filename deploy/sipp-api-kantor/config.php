@@ -53,6 +53,14 @@ $CONFIG = array(
     // Panggilan ghaib: kirim alamat terakhir Tergugat/Termohon?
     'ghaib_kirim_alamat' => false,
 
+    // Panggilan ghaib: kirim berkas relaas (PDF) terbaru Tergugat/Termohon dari SIPP?
+    'ghaib_kirim_relaas' => true,
+    // Folder dokumen SIPP di disk. Kosongkan ('') agar dicari otomatis
+    // (mis. C:/xampp/htdocs/sipp/resources/file/doc atau /var/www/html/sipp/resources/file/doc)
+    'relaas_dir'         => '',
+    // Ukuran relaas maksimal yang dikirim (MB). Sesuaikan dengan batas unggah hosting website.
+    'relaas_maks_mb'     => 5,
+
     // Antrian: query SQL bebas ke database SIPP yang menghasilkan data antrian hari ini.
     // Contoh: "SELECT nomor_antrian, ruangan, status FROM antrian_sidang WHERE tanggal = CURDATE()"
     'antrian_sql' => '',

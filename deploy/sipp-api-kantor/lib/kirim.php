@@ -83,6 +83,14 @@ function jalankan_pengiriman($cfg, $hanyaJenis) {
             $info['pesan'] = $res['ok'] ? ('Terkirim (' . $res['pesan'] . ')' . ($hasil['pesan'] != 'OK' ? '; ' . $hasil['pesan'] : ''))
                                         : ('Gagal kirim: ' . $res['pesan']);
             if ($res['ok']) $info['terakhir_sukses'] = $info['waktu'];
+            // website menjawab sidik relaas yang belum dimilikinya → kirim berkasnya
+            if ($res['ok'] && $jenis == 'panggilan_ghaib' && !empty($cfg['ghaib_kirim_relaas'])) {
+                $j = json_decode($res['isi'], true);
+                if (is_array($j) && isset($j['butuh_relaas']) && count($j['butuh_relaas']) > 0) {
+                    $rl = kirim_relaas($cfg, $j['butuh_relaas'], isset($j['maks_relaas_byte']) ? (int)$j['maks_relaas_byte'] : 0);
+                    if ($rl['pesan'] != '') $info['pesan'] .= '; ' . $rl['pesan'];
+                }
+            }
         }
         $lama = baca_status();
         if (!$info['ok'] && isset($lama[$jenis]['terakhir_sukses'])) $info['terakhir_sukses'] = $lama[$jenis]['terakhir_sukses'];

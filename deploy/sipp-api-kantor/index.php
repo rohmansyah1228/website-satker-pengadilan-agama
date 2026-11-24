@@ -133,6 +133,8 @@ if ($login && $csrfOk && isset($_POST['aksi'])) {
         $p['jadwal_kirim_nama_pihak'] = !empty($P['jadwal_nama']);
         $p['ghaib_kirim_nama']        = !empty($P['ghaib_nama']);
         $p['ghaib_kirim_alamat']      = !empty($P['ghaib_alamat']);
+        $p['ghaib_kirim_relaas']      = !empty($P['ghaib_relaas']);
+        $p['relaas_dir']              = trim(str_replace('\\', '/', isset($P['relaas_dir']) ? $P['relaas_dir'] : ''));
         $p['antrian_sql']             = trim($P['antrian_sql']);
         $p['cadangan_api_jadwal']     = trim($P['cadangan']);
         if (isset($P['pass_baru']) && $P['pass_baru'] !== '') {
@@ -493,6 +495,9 @@ $alamatWeb = preg_replace('#/api/sipp/terima$#', '', $CONFIG['website']['url']);
       Tampilkan nama Tergugat/Termohon di pengumuman panggilan ghaib</label>
     <label class="cek"><input type="checkbox" name="ghaib_alamat" value="1" <?php echo !empty($CONFIG['ghaib_kirim_alamat']) ? 'checked' : ''; ?>>
       Tampilkan alamat terakhir Tergugat/Termohon di pengumuman panggilan ghaib</label>
+    <label class="cek"><input type="checkbox" name="ghaib_relaas" value="1" <?php echo !empty($CONFIG['ghaib_kirim_relaas']) ? 'checked' : ''; ?>>
+      Kirim dokumen relaas (PDF) panggilan ghaib <small>Relaas terbaru Tergugat/Termohon diambil dari folder dokumen SIPP<?php
+        $rd = relaas_folder($CONFIG); echo $rd != '' ? ' (' . e($rd) . ')' : ' &mdash; folder belum ditemukan, isi di Pengaturan lanjutan'; ?>.</small></label>
   </div>
 
   <div class="kartu">
@@ -509,6 +514,9 @@ $alamatWeb = preg_replace('#/api/sipp/terima$#', '', $CONFIG['website']['url']);
       <label class="f">API cadangan jadwal sidang (sipp-publik)</label>
       <input type="text" name="cadangan" value="<?php echo e($CONFIG['cadangan_api_jadwal']); ?>">
       <div class="bantuan">Dipakai jika database SIPP tidak bisa dihubungi. Kosongkan untuk menonaktifkan.</div>
+      <label class="f">Folder dokumen SIPP (untuk relaas)</label>
+      <input type="text" name="relaas_dir" value="<?php echo e(isset($CONFIG['relaas_dir']) ? $CONFIG['relaas_dir'] : ''); ?>" placeholder="Kosongkan agar dicari otomatis, mis. C:/xampp/htdocs/sipp/resources/file/doc">
+      <div class="bantuan">Folder berisi subfolder TAHUN/BULAN tempat SIPP menyimpan dokumen (resources/file/doc).</div>
     </details>
   </div>
 

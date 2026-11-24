@@ -448,7 +448,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
         <tbody>
             <tr><td>Jadwal sidang (hari ini s.d. 14 hari ke depan)</td><td>Halaman Jadwal Sidang (ditambah kolom jenis perkara) dan blok Beranda <em>Jadwal Sidang Hari Ini</em>. Nama pihak tidak ditampilkan.</td></tr>
             <tr><td>Statistik perkara tahun berjalan</td><td>Menu & halaman Statistik Perkara (per bulan: sisa lalu, masuk, putus, sisa) serta Dashboard SINOVA</td></tr>
-            <tr><td>Panggilan ghaib (perkara belum putus)</td><td>Menu & halaman Panggilan Ghaib serta blok Pengumuman. Perkara yang sudah putus otomatis disembunyikan. <strong>Relaas (PDF) tetap diunggah manual.</strong></td></tr>
+            <tr><td>Panggilan ghaib (perkara belum putus)</td><td>Menu & halaman Panggilan Ghaib serta blok Pengumuman. Perkara yang sudah putus otomatis disembunyikan. <strong>Relaas (PDF) terbaru Tergugat/Termohon ikut dikirim</strong> dari folder dokumen SIPP dan tampil sebagai tombol <em>Lihat Relaas (PDF)</em>.</td></tr>
         </tbody>
     </table></div>
     <h4 class="h6 fw-bold mt-3">Memasang (cara termudah)</h4>
@@ -460,6 +460,15 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
         <li>Kembali ke website: tabel <strong>Kiriman terakhir</strong> di tab Integrasi SIPP menampilkan waktu diterima dan jumlah data.</li>
     </ol>
     <p class="small">Sudah memasang aplikasi kantor sebelumnya? Di dashboard kantor buka <em>Pengaturan → Website satker</em>, klik <strong>Salin</strong>, lalu tempel teksnya di kotak <strong>Tempel kunci</strong> pada tab Integrasi SIPP dan Simpan.</p>
+    <h4 class="h6 fw-bold mt-3">Relaas panggilan ghaib otomatis</h4>
+    <ul>
+        <li>Aplikasi kantor mencari relaas Tergugat/Termohon seperti halaman Monitoring Panggilan Ghaib SIMERAK: tabel <code>perkara_pelaksanaan_relaas</code>, berkasnya di folder <code>sipp/resources/file/doc/TAHUN/BULAN/</code>. Yang dikirim hanya <strong>relaas terbaru</strong> yang berkasnya sudah diunggah di SIPP.</li>
+        <li>Berkas dikirim sekali saja; bila di SIPP muncul relaas baru, relaas di website otomatis diganti.</li>
+        <li><strong>Relaas yang diunggah manual di menu Panggilan Ghaib tidak pernah ditimpa.</strong> Untuk kembali ke relaas otomatis, hapus berkas manualnya.</li>
+        <li>Mematikan: tab Integrasi SIPP → <em>Relaas (PDF) ikut dikirim otomatis</em> = Tidak, atau di dashboard kantor hilangkan centang <em>Kirim dokumen relaas</em>.</li>
+        <li>Batas ukuran relaas 5 MB (diatur di dashboard kantor). Bila dashboard kantor menulis <em>lebih besar dari batas hosting</em>, naikkan <code>post_max_size</code> PHP hosting (mis. 16M) atau unggah relaas itu manual.</li>
+        <li>Folder dokumen SIPP dicari otomatis. Bila dashboard kantor menulis <em>folder dokumen SIPP tidak ditemukan</em>, isi di Pengaturan → <em>Pengaturan lanjutan</em> → <strong>Folder dokumen SIPP</strong> (mis. <code>C:/xampp/htdocs/sipp/resources/file/doc</code>).</li>
+    </ul>
     <?= $tip('Paket unduhan berisi <strong>kunci rahasia</strong> website: simpan hanya di server kantor dan jangan dibagikan. Bila bocor, buat kunci baru di dashboard kantor lalu tempel di tab Integrasi SIPP — kunci lama otomatis tidak berlaku.', 'warn') ?>
     <?= $tip('Setiap kiriman diperiksa dengan kunci API dan tanda tangan digital; kiriman yang kuncinya salah, isinya diubah, atau berumur lebih dari 10 menit ditolak. Bila dashboard kantor menampilkan <em>Timestamp tidak valid</em>, samakan jam server kantor. Bila jadwal dari SIPP tidak tersedia untuk suatu tanggal, website memakai jadwal yang diisi manual.') ?>
 </section>

@@ -57,7 +57,8 @@ class Settings extends AdminController
                 'sipp_api_aktif'     => ['Pakai data kiriman SIPP API kantor', 'select', 'Jadwal Sidang (halaman & Beranda), Statistik Perkara, dan Panggilan Ghaib diisi otomatis dari data yang dikirim aplikasi SIPP API di server kantor. Input manual tetap dipakai sebagai cadangan.', ['0' => 'Tidak', '1' => 'Ya']],
                 'sipp_api_tempel'    => ['Tempel kunci dari dashboard SIPP API kantor', 'textarea', 'Di dashboard SIPP API kantor: Pengaturan → Website satker → klik Salin, lalu tempel seluruh teksnya di sini dan Simpan. Kosongkan bila tidak ingin mengganti kunci. Kunci yang tersimpan tidak ditampilkan lagi.'],
                 'sipp_api_statistik' => ['Isi Statistik Perkara otomatis', 'select', 'Data per bulan tahun berjalan dari SIPP menimpa isian Statistik Perkara bulan yang sama.', ['1' => 'Ya', '0' => 'Tidak']],
-                'sipp_api_ghaib'     => ['Isi Panggilan Ghaib otomatis', 'select', 'Perkara ghaib yang belum putus beserta tanggal sidang berikutnya ditambahkan ke Panggilan Ghaib. Relaas (PDF) tetap diunggah manual di menu Panggilan Ghaib.', ['1' => 'Ya', '0' => 'Tidak']],
+                'sipp_api_ghaib'     => ['Isi Panggilan Ghaib otomatis', 'select', 'Perkara ghaib yang belum putus beserta tanggal sidang berikutnya ditambahkan ke Panggilan Ghaib.', ['1' => 'Ya', '0' => 'Tidak']],
+                'sipp_api_relaas'    => ['Relaas (PDF) ikut dikirim otomatis', 'select', 'Relaas terbaru Tergugat/Termohon di SIPP dipasang ke Panggilan Ghaib. Relaas yang diunggah manual tidak pernah ditimpa.', ['1' => 'Ya', '0' => 'Tidak']],
                 'sipp_sync'          => ['Cara lain: baca langsung database SIPP', 'select', 'Hanya bila website satu jaringan dengan server SIPP (bukan hosting). Butuh koneksi database grup "sipp" di .env dan query di app/Config/Sipp.php.', ['0' => 'Tidak (disarankan untuk hosting)', '1' => 'Ya']],
             ]],
             'survei' => ['Nilai Survei', [
@@ -103,7 +104,7 @@ class Settings extends AdminController
             $sipp = ['url' => site_url('api/sipp/terima'), 'from' => $from, 'hasKey' => $key !== '' && $secret !== '',
                 'keyHint' => $key !== '' ? '…' . substr($key, -4) : '', 'status' => (new \App\Libraries\SippApi())->status()];
             unset($values['sipp_api_key'], $values['sipp_api_secret']);
-            $values += ['sipp_api_aktif' => '0', 'sipp_api_statistik' => '1', 'sipp_api_ghaib' => '1', 'sipp_sync' => '0']; // nilai bawaan yang berlaku
+            $values += ['sipp_api_aktif' => '0', 'sipp_api_statistik' => '1', 'sipp_api_ghaib' => '1', 'sipp_api_relaas' => '1', 'sipp_sync' => '0']; // nilai bawaan yang berlaku
         }
         if ($feed) {
             $values['feed_since'] = (string) $f->sinceYear(); // tampilkan nilai yang berlaku walau belum pernah disimpan

@@ -16,7 +16,7 @@ Website di hosting tidak bisa menjangkau jaringan kantor, karena itu kantor yang
 |---|---|---|
 | Jadwal sidang | Hari ini s.d. 14 hari ke depan: nomor & jenis perkara, jam, agenda, ruang (nama pihak **tidak** dikirim) | Halaman Jadwal Sidang & blok Beranda |
 | Statistik perkara | Tahun berjalan per bulan: sisa lalu, masuk, putus, sisa; per jenis perkara | Statistik Perkara & Dashboard SINOVA |
-| Panggilan ghaib | Perkara ghaib belum putus: nomor, jenis, nama Tergugat/Termohon, sidang berikutnya (alamat tidak dikirim) | Panggilan Ghaib (relaas tetap diunggah manual) |
+| Panggilan ghaib | Perkara ghaib belum putus: nomor, jenis, nama Tergugat/Termohon, sidang berikutnya (alamat tidak dikirim) + **relaas (PDF) terbaru** Tergugat/Termohon | Panggilan Ghaib, tombol *Lihat Relaas (PDF)* |
 | Antrian | Bebas, dari query di `config.php` (nonaktif sampai diisi) | Tersedia sebagai data JSON |
 
 ## Cara pasang
@@ -49,6 +49,29 @@ Tempel kunci dari dashboard SIPP API kantor**, Simpan.
 **Menyimpan pengaturan secara permanen:** jika folder `data/` bisa ditulis, pengaturan langsung tersimpan di sana.
 Jika tidak, muncul kotak **"Satu langkah lagi"** dengan tombol **Unduh config.php**. Salin file itu ke folder aplikasi
 (timpa yang lama). Ulangi setiap kali pengaturan diubah.
+
+## Relaas panggilan ghaib
+
+Relaas dicari dengan cara yang sama seperti halaman Monitoring Panggilan Ghaib di SIMERAK:
+
+1. tabel `perkara_pelaksanaan_relaas` (kolom `doc_relaas*` dan tanggal dideteksi otomatis), hanya relaas untuk
+   pihak di `perkara_pihak2` (Tergugat/Termohon), dan hanya yang berkasnya ada di disk;
+2. bila tabel/kolom itu tidak ada: langsung di folder dengan pola `PA.Tlb_2026_Pdt.G_0671_relaas_*.pdf`.
+
+Folder dokumen SIPP (`.../sipp/resources/file/doc`) dicari otomatis; bila tidak ketemu isi di
+**Pengaturan → Pengaturan lanjutan → Folder dokumen SIPP**. Alurnya:
+
+```
+kantor ──panggilan_ghaib (+ sidik sha256 relaas)──▶ website
+kantor ◀──"butuh_relaas": [sidik yang belum dimiliki], "maks_relaas_byte"── website
+kantor ──relaas_ghaib (PDF base64, bertanda tangan)──▶ website → Panggilan Ghaib
+```
+
+- Berkas hanya dikirim bila website belum memilikinya (maks. 30 per putaran), jadi tidak membebani koneksi.
+- Website memeriksa sidik sha256 dan tanda PDF sebelum menyimpan, dan **tidak pernah menimpa relaas yang diunggah
+  manual** oleh admin.
+- Batas ukuran: `relaas_maks_mb` (bawaan 5 MB), juga dibatasi `post_max_size` PHP hosting.
+- Matikan dengan menghilangkan centang **Kirim dokumen relaas** di Pengaturan.
 
 ## Keamanan
 

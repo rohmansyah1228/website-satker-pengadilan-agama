@@ -33,8 +33,11 @@ class Sipp extends BaseConfig
     /** Ukuran kiriman maksimal (byte) */
     public int $maksUkuran = 5242880;
 
-    /** Jenis data yang diterima */
-    public array $jenis = ['jadwal_sidang', 'statistik_perkara', 'panggilan_ghaib', 'antrian'];
+    /** Ukuran kiriman berkas relaas maksimal (byte; PDF base64 ≈ 4/3 ukuran asli) */
+    public int $maksUkuranRelaas = 11534336;
+
+    /** Jenis data yang diterima (relaas_ghaib = berkas PDF relaas, tidak disimpan di sipp_data) */
+    public array $jenis = ['jadwal_sidang', 'statistik_perkara', 'panggilan_ghaib', 'antrian', 'relaas_ghaib'];
 
     public string $hearingsQuery = <<<'SQL'
         SELECT  DATE_FORMAT(j.jam_sidang, '%H:%i') AS hearing_time,

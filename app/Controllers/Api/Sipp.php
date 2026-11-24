@@ -16,6 +16,12 @@ class Sipp extends BaseController
     public function terima(): ResponseInterface
     {
         $api = new SippApi();
+        // kiriman yang melebihi post_max_size dipotong PHP: beri pesan jelas, bukan "tanda tangan tidak valid"
+        $len = (int) $this->request->getServer('CONTENT_LENGTH');
+        $max = SippApi::phpPostMax();
+        if ($max > 0 && $len > $max) {
+            return $this->fail(413, 'Kiriman terlalu besar untuk batas PHP hosting (post_max_size ' . ini_get('post_max_size') . ').');
+        }
         try {
             $paket = $api->verify(
                 (string) $this->request->getBody(),
@@ -25,7 +31,7 @@ class Sipp extends BaseController
             );
             $r = $api->store($paket);
         } catch (\RuntimeException $e) {
-            $code = in_array($e->getCode(), [400, 401, 409, 422, 503], true) ? $e->getCode() : 500;
+            $code = in_array($e->getCode(), [400, 401, 409, 413, 422, 503], true) ? $e->getCode() : 500;
             if ($code === 401) {
                 log_message('warning', 'SIPP API: kiriman ditolak ({msg}) dari {ip}', ['msg' => $e->getMessage(), 'ip' => $this->request->getIPAddress()]);
             }
@@ -38,12 +44,13 @@ class Sipp extends BaseController
         }
 
         return $this->response->setJSON(['status' => 'ok', 'jenis' => $r['jenis'], 'jumlah' => $r['jumlah'],
-            'diterapkan' => $r['diterapkan'], 'waktu' => date('Y-m-d H:i:s')]);
+            'diterapkan' => $r['diterapkan'], 'waktu' => date('Y-m-d H:i:s')]
+            + (isset($r['butuh_relaas']) ? ['butuh_relaas' => $r['butuh_relaas'], 'maks_relaas_byte' => SippApi::maxRelaasBytes()] : []));
     }
 
     public function ambil(string $jenis = ''): ResponseInterface
     {
-        if (! in_array($jenis, config('Sipp')->jenis, true)) {
+        if ($jenis === 'relaas_ghaib' || ! in_array($jenis, config('Sipp')->jenis, true)) {
             return $this->fail(404, 'Data tidak ditemukan.');
         }
         $d = (new SippApi())->get($jenis);
@@ -59,7 +66,7 @@ class Sipp extends BaseController
         }
         if ($jenis === 'panggilan_ghaib' && is_array($d['data']['perkara'] ?? null)) {
             foreach ($d['data']['perkara'] as &$p) {
-                unset($p['alamat_pihak']);
+                unset($p['alamat_pihak'], $p['relaas']);
             }
             unset($p);
         }

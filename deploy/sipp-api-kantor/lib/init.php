@@ -10,6 +10,7 @@ require $BASE . '/lib/http.php';
 require $BASE . '/lib/simpan.php';
 require $BASE . '/lib/pengaturan.php';
 require $BASE . '/lib/kumpul.php';
+require $BASE . '/lib/relaas.php';
 require $BASE . '/lib/kirim.php';
 
 // 1. Pengaturan permanen dari config.php hasil unduhan dashboard
@@ -21,6 +22,10 @@ $PENGATURAN_TERSIMPAN = baca_pengaturan();
 $CONFIG = gabung_array($CONFIG, $PENGATURAN_TERSIMPAN);
 if (!isset($CONFIG['dashboard_hash']))  $CONFIG['dashboard_hash']  = '';
 if (!isset($CONFIG['dashboard_garam'])) $CONFIG['dashboard_garam'] = '';
+// bawaan untuk config.php versi lama (sebelum ada pengiriman relaas)
+if (!isset($CONFIG['ghaib_kirim_relaas'])) $CONFIG['ghaib_kirim_relaas'] = true;
+if (!isset($CONFIG['relaas_dir']))         $CONFIG['relaas_dir']         = '';
+if (!isset($CONFIG['relaas_maks_mb']))     $CONFIG['relaas_maks_mb']     = 5;
 
 // 3. Koneksi database SIPP: dari pengaturan, atau otomatis dari aplikasi SIPP / SIMERAK di server ini
 $GLOBALS['DB_SUMBER'] = ''; $GLOBALS['DB_SUMBER_FILE'] = '';

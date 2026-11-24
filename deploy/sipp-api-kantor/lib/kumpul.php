@@ -196,6 +196,18 @@ function kumpul_panggilan_ghaib($cfg, $dbOk) {
         ORDER BY a.tanggal_pendaftaran ASC, a.perkara_id ASC");
     if ($rows === false) return kumpul_hasil(false, '', null, 0, db_error());
 
+    // relaas terbaru Tergugat/Termohon (berkas PDF dari folder dokumen SIPP)
+    $relaas = array();
+    $catatan = '';
+    if (!empty($cfg['ghaib_kirim_relaas']) && count($rows) > 0) {
+        $daftar = array();
+        foreach ($rows as $r) $daftar[(int)$r['perkara_id']] = $r['nomor_perkara'];
+        if (relaas_folder($cfg) == '') $catatan = 'folder dokumen SIPP tidak ditemukan, relaas tidak dikirim (isi "Folder dokumen SIPP" di Pengaturan lanjutan)';
+        else $relaas = relaas_terbaru($cfg, $daftar);
+    }
+    $maksByte = max(1, (int)(isset($cfg['relaas_maks_mb']) ? $cfg['relaas_maks_mb'] : 5)) * 1048576;
+    $adaRelaas = 0; $besar = 0;
+
     $data = array();
     foreach ($rows as $r) {
         $item = array(
@@ -206,9 +218,18 @@ function kumpul_panggilan_ghaib($cfg, $dbOk) {
         );
         if ($cfg['ghaib_kirim_nama'])   $item['nama_pihak']   = $r['nama_ghaib'];
         if ($cfg['ghaib_kirim_alamat']) $item['alamat_pihak'] = $r['alamat_ghaib'];
+        if (isset($relaas[(int)$r['perkara_id']])) {
+            $rl = $relaas[(int)$r['perkara_id']];
+            $info = relaas_info($r['nomor_perkara'], $rl[0], $rl[1], $maksByte);
+            if ($info) { $item['relaas'] = $info; $adaRelaas++; if (!empty($info['terlalu_besar'])) $besar++; }
+        }
         $data[] = $item;
     }
-    return kumpul_hasil(true, 'sipp_internal', array('perkara' => $data), count($data), 'OK');
+    if (!empty($cfg['ghaib_kirim_relaas']) && $catatan == '') {
+        $catatan = $adaRelaas . ' perkara punya relaas';
+        if ($besar > 0) $catatan .= ', ' . $besar . ' relaas tidak dikirim karena lebih dari ' . round($maksByte / 1048576, 1) . ' MB';
+    }
+    return kumpul_hasil(true, 'sipp_internal', array('perkara' => $data), count($data), $catatan != '' ? 'OK; ' . $catatan : 'OK');
 }
 
 /* ======================================================================

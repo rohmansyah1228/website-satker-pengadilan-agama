@@ -14,7 +14,10 @@ use RuntimeException;
  * Data diterapkan ke modul website yang sudah ada (bila "Integrasi SIPP" aktif):
  *   jadwal_sidang     → halaman Jadwal Sidang & blok Beranda (lewat SippSource)
  *   statistik_perkara → tabel case_stats (Statistik Perkara per bulan)
- *   panggilan_ghaib   → tabel ghaib (baris bertanda source = 'sipp'; relaas tetap diunggah manual)
+ *   panggilan_ghaib   → tabel ghaib (baris bertanda source = 'sipp'); jawaban berisi "butuh_relaas"
+ *                       = sidik (sha256) relaas yang belum dimiliki website
+ *   relaas_ghaib      → satu berkas PDF relaas (base64) untuk satu perkara → ghaib.file_id
+ *                       (relaas yang diunggah manual tidak pernah ditimpa)
  *   antrian           → disimpan, tersedia di GET /api/sipp/antrian
  */
 class SippApi
@@ -71,7 +74,8 @@ class SippApi
         if ($key === '' || $secret === '') {
             throw new RuntimeException('Penerima belum dikonfigurasi: tempel kunci di Pengaturan → Integrasi SIPP.', 503);
         }
-        if ($body === '' || strlen($body) > (int) $cfg->maksUkuran) {
+        $maks = max((int) $cfg->maksUkuran, (int) ($cfg->maksUkuranRelaas ?? 0));
+        if ($body === '' || strlen($body) > $maks) {
             throw new RuntimeException('Body kosong atau terlalu besar.', 400);
         }
         if ($apiKey === '' || ! hash_equals($key, $apiKey)) {
@@ -91,12 +95,19 @@ class SippApi
         if (! in_array($paket['jenis'], $cfg->jenis, true)) {
             throw new RuntimeException('Jenis data tidak dikenal: ' . mb_substr($paket['jenis'], 0, 50), 422);
         }
+        $paket['_ts'] = (int) $timestamp;
+        if ($paket['jenis'] === 'relaas_ghaib') {
+            // berkas dicocokkan lewat sidik sha256, jadi kiriman ulang tidak mengubah apa pun
+            return $paket;
+        }
+        if (strlen($body) > (int) $cfg->maksUkuran) {
+            throw new RuntimeException('Body kosong atau terlalu besar.', 400);
+        }
         // kiriman lama yang diputar ulang tidak boleh menimpa data yang lebih baru
         $last = (int) (db_connect()->table('sipp_data')->select('ts_kirim')->where('jenis', $paket['jenis'])->get()->getRow('ts_kirim') ?? 0);
         if ((int) $timestamp < $last) {
             throw new RuntimeException('Kiriman lebih lama dari data yang sudah diterima.', 409);
         }
-        $paket['_ts'] = (int) $timestamp;
 
         return $paket;
     }
@@ -106,6 +117,9 @@ class SippApi
     {
         $db    = db_connect();
         $jenis = $paket['jenis'];
+        if ($jenis === 'relaas_ghaib') {
+            return ['jenis' => $jenis, 'jumlah' => 1, 'diterapkan' => $this->applyRelaas(is_array($paket['data'] ?? null) ? $paket['data'] : [])];
+        }
         $dibuat = isset($paket['dibuat']) && is_string($paket['dibuat']) && strtotime($paket['dibuat']) ? date('Y-m-d H:i:s', strtotime($paket['dibuat'])) : null;
         $row   = [
             'jenis'         => $jenis,
@@ -120,16 +134,22 @@ class SippApi
         $id ? $db->table('sipp_data')->where('id', $id)->update($row) : $db->table('sipp_data')->insert($row);
 
         $applied = '';
+        $need    = [];
         if (self::enabled() && is_array($paket['data'] ?? null)) {
             if ($jenis === 'statistik_perkara' && setting('sipp_api_statistik', '1') === '1') {
                 $applied = $this->applyStats($paket['data']);
             } elseif ($jenis === 'panggilan_ghaib' && setting('sipp_api_ghaib', '1') === '1') {
-                $applied = $this->applyGhaib($paket['data']);
+                [$applied, $need] = $this->applyGhaib($paket['data']);
             }
         }
         cache()->clean(); // halaman publik & Beranda memakai data terbaru
 
-        return ['jenis' => $jenis, 'jumlah' => $row['jumlah'], 'diterapkan' => $applied];
+        $r = ['jenis' => $jenis, 'jumlah' => $row['jumlah'], 'diterapkan' => $applied];
+        if ($jenis === 'panggilan_ghaib') {
+            $r['butuh_relaas'] = $need;
+        }
+
+        return $r;
     }
 
     /** Data terakhir satu jenis: ['data','sumber','jumlah','diperbarui','diterima_pada'] atau null. */
@@ -224,18 +244,19 @@ class SippApi
 
     /**
      * Panggilan ghaib → tabel ghaib. Perkara dicocokkan lewat nomor perkara; relaas (PDF) yang
-     * diunggah manual tidak diubah. Baris buatan SIPP yang tidak ada lagi di kiriman (sudah putus)
+     * diunggah manual tidak diubah. Hasil: [ringkasan, daftar sha256 relaas yang perlu dikirim]. Baris buatan SIPP yang tidak ada lagi di kiriman (sudah putus)
      * disembunyikan.
      */
-    private function applyGhaib(array $d): string
+    private function applyGhaib(array $d): array
     {
         if (! is_array($d['perkara'] ?? null)) {
-            return '';
+            return ['', []];
         }
         $db     = db_connect();
         $now    = date('Y-m-d H:i:s');
         $hasSrc = $db->fieldExists('source', 'ghaib');
         $seen   = [];
+        $relaas = []; // nomor perkara => sha256 relaas terbaru di SIPP
         $n      = 0;
         foreach ($d['perkara'] as $p) {
             $no = trim((string) ($p['nomor_perkara'] ?? ''));
@@ -243,6 +264,10 @@ class SippApi
                 continue;
             }
             $seen[] = $no;
+            $sha    = strtolower((string) ($p['relaas']['sha256'] ?? ''));
+            if (preg_match('/^[0-9a-f]{64}$/', $sha)) {
+                $relaas[$no] = $sha;
+            }
             $date   = (string) ($p['sidang_berikutnya'] ?? '');
             $date   = preg_match('/^\d{4}-\d{2}-\d{2}/', $date) ? substr($date, 0, 10) : null;
             $name   = trim(preg_replace('/\s+/u', ' ', strip_tags((string) ($p['nama_pihak'] ?? ''))));
@@ -278,7 +303,121 @@ class SippApi
             $q->update(['is_active' => 0, 'updated_at' => $now]);
         }
 
-        return $n . ' panggilan ghaib';
+        // relaas yang perlu dikirim kantor: baris belum punya relaas, atau relaas otomatisnya sudah berganti
+        $need = [];
+        if ($relaas && self::relaasEnabled()) {
+            foreach ($relaas as $no => $sha) {
+                $row = $db->table('ghaib')->where('case_number', $no)->orderBy('id', 'DESC')->get(1)->getRowArray();
+                if ($row && $this->relaasNeeded($row, $sha)) {
+                    $need[] = $sha;
+                }
+            }
+        }
+
+        return [$n . ' panggilan ghaib', array_values(array_unique($need))];
+    }
+
+    /** Batas body POST dari php.ini (byte), 0 = tanpa batas. */
+    public static function phpPostMax(): int
+    {
+        $v = trim((string) ini_get('post_max_size'));
+        $n = (int) $v;
+        $u = strtolower(substr($v, -1));
+
+        return $u === 'g' ? $n * 1073741824 : ($u === 'm' ? $n * 1048576 : ($u === 'k' ? $n * 1024 : $n));
+    }
+
+    /** Ukuran PDF relaas terbesar yang bisa diterima (base64 + amplop JSON harus muat di batas kiriman). */
+    public static function maxRelaasBytes(): int
+    {
+        $body = (int) config('Sipp')->maksUkuranRelaas;
+        $php  = self::phpPostMax();
+        if ($php > 0) {
+            $body = min($body, $php);
+        }
+
+        return (int) max(0, min(Uploader::MAX_PDF_MB * 1048576, floor(($body - 8192) * 3 / 4)));
+    }
+
+    public static function relaasEnabled(): bool
+    {
+        return setting('sipp_api_relaas', '1') === '1' && db_connect()->fieldExists('relaas_file_id', 'ghaib');
+    }
+
+    /** Perlu berkas ini? Ya bila baris belum punya relaas, atau relaas otomatisnya berbeda. */
+    private function relaasNeeded(array $row, string $sha): bool
+    {
+        if ((int) ($row['file_id'] ?? 0) === 0) {
+            return true;
+        }
+
+        return $this->relaasSlot($row) && ($row['relaas_sha256'] ?? '') !== $sha;
+    }
+
+    /** Baris boleh diisi relaas otomatis: belum ada relaas, atau relaasnya memang dipasang otomatis. */
+    private function relaasSlot(array $row): bool
+    {
+        $file = (int) ($row['file_id'] ?? 0);
+
+        return $file === 0 || $file === (int) ($row['relaas_file_id'] ?? 0);
+    }
+
+    /**
+     * Satu berkas relaas: {nomor_perkara, nama, tanggal, sha256, pdf (base64)}.
+     * Diperiksa sidik & tanda PDF, disimpan lewat Uploader, lalu ditautkan ke baris ghaib.
+     * @throws RuntimeException 422 bila berkas tidak valid
+     */
+    private function applyRelaas(array $d): string
+    {
+        if (! self::enabled() || setting('sipp_api_ghaib', '1') !== '1' || ! self::relaasEnabled()) {
+            return 'relaas diabaikan (dimatikan di Pengaturan website)';
+        }
+        $no  = trim((string) ($d['nomor_perkara'] ?? ''));
+        $sha = strtolower((string) ($d['sha256'] ?? ''));
+        if ($no === '' || mb_strlen($no) > 80 || ! preg_match('/^[0-9a-f]{64}$/', $sha) || ! is_string($d['pdf'] ?? null)) {
+            throw new RuntimeException('Data relaas tidak lengkap.', 422);
+        }
+        $db  = db_connect();
+        $row = $db->table('ghaib')->where('case_number', $no)->orderBy('id', 'DESC')->get(1)->getRowArray();
+        if (! $row) {
+            return 'relaas ' . $no . ': perkara tidak ada di Panggilan Ghaib';
+        }
+        if (! $this->relaasSlot($row)) {
+            return 'relaas ' . $no . ': sudah ada relaas unggahan manual (tidak ditimpa)';
+        }
+        if (! $this->relaasNeeded($row, $sha)) {
+            return 'relaas ' . $no . ': sudah ada';
+        }
+        $pdf = base64_decode($d['pdf'], true);
+        if ($pdf === false || $pdf === '' || ! hash_equals($sha, hash('sha256', $pdf))) {
+            throw new RuntimeException('Berkas relaas rusak di perjalanan (sidik tidak cocok).', 422);
+        }
+        if (strlen($pdf) > Uploader::MAX_PDF_MB * 1048576 || ! str_starts_with($pdf, '%PDF-')) {
+            throw new RuntimeException('Berkas relaas harus PDF (maks. ' . Uploader::MAX_PDF_MB . ' MB).', 422);
+        }
+        $tmp = tempnam(WRITEPATH . 'cache', 'rls');
+        file_put_contents($tmp, $pdf);
+        unset($pdf);
+
+        try {
+            $name = 'Relaas ' . preg_replace('/[^\w.\-]+/u', '_', $no) . '.pdf';
+            $id   = service('uploader')->storePdfPath($tmp, $name, true);
+        } catch (RuntimeException $e) {
+            throw new RuntimeException('Berkas relaas ditolak: ' . $e->getMessage(), 422);
+        } finally {
+            if (is_file($tmp)) {
+                @unlink($tmp);
+            }
+        }
+        $old = (int) ($row['relaas_file_id'] ?? 0);
+        $db->table('ghaib')->where('id', $row['id'])->update([
+            'file_id' => $id, 'relaas_file_id' => $id, 'relaas_sha256' => $sha, 'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+        if ($old && $old !== $id) {
+            service('uploader')->deleteFile($old); // relaas otomatis lama diganti yang baru
+        }
+
+        return 'relaas ' . $no . ' tersimpan';
     }
 
     // ------------------------------------------------------------------ paket aplikasi kantor
