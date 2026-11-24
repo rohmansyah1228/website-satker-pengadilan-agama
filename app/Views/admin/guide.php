@@ -466,7 +466,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
         <li>Berkas dikirim sekali saja; bila di SIPP muncul relaas baru, relaas di website otomatis diganti.</li>
         <li><strong>Relaas yang diunggah manual di menu Panggilan Ghaib tidak pernah ditimpa.</strong> Untuk kembali ke relaas otomatis, hapus berkas manualnya.</li>
         <li>Mematikan: tab Integrasi SIPP → <em>Relaas (PDF) ikut dikirim otomatis</em> = Tidak, atau di dashboard kantor hilangkan centang <em>Kirim dokumen relaas</em>.</li>
-        <li>Batas ukuran relaas 5 MB (diatur di dashboard kantor). Bila dashboard kantor menulis <em>lebih besar dari batas hosting</em>, naikkan <code>post_max_size</code> PHP hosting (mis. 16M) atau unggah relaas itu manual.</li>
+        <li>Batas ukuran relaas 20 MB. Karena dikirim dalam bentuk teks, hosting harus menerima kiriman ± 28 MB: atur <code>post_max_size = 32M</code> di PHP hosting (dan <code>client_max_body_size 32m</code> bila memakai nginx). Bila dashboard kantor menulis <em>lebih besar dari batas hosting</em>, naikkan batas itu atau unggah relaas itu manual.</li>
         <li>Folder dokumen SIPP dicari otomatis. Bila dashboard kantor menulis <em>folder dokumen SIPP tidak ditemukan</em>, isi di Pengaturan → <em>Pengaturan lanjutan</em> → <strong>Folder dokumen SIPP</strong> (mis. <code>C:/xampp/htdocs/sipp/resources/file/doc</code>).</li>
     </ul>
     <?= $tip('Paket unduhan berisi <strong>kunci rahasia</strong> website: simpan hanya di server kantor dan jangan dibagikan. Bila bocor, buat kunci baru di dashboard kantor lalu tempel di tab Integrasi SIPP — kunci lama otomatis tidak berlaku.', 'warn') ?>

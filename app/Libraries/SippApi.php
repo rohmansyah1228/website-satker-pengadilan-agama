@@ -320,8 +320,17 @@ class SippApi
     /** Batas body POST dari php.ini (byte), 0 = tanpa batas. */
     public static function phpPostMax(): int
     {
-        $v = trim((string) ini_get('post_max_size'));
+        return self::iniBytes((string) ini_get('post_max_size'));
+    }
+
+    /** Nilai php.ini seperti "8M" → byte (-1 / 0 = tanpa batas → 0). */
+    public static function iniBytes(string $v): int
+    {
+        $v = trim($v);
         $n = (int) $v;
+        if ($n <= 0) {
+            return 0;
+        }
         $u = strtolower(substr($v, -1));
 
         return $u === 'g' ? $n * 1073741824 : ($u === 'm' ? $n * 1048576 : ($u === 'k' ? $n * 1024 : $n));

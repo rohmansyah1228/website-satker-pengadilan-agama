@@ -70,7 +70,9 @@ kantor ──relaas_ghaib (PDF base64, bertanda tangan)──▶ website → Pan
 - Berkas hanya dikirim bila website belum memilikinya (maks. 30 per putaran), jadi tidak membebani koneksi.
 - Website memeriksa sidik sha256 dan tanda PDF sebelum menyimpan, dan **tidak pernah menimpa relaas yang diunggah
   manual** oleh admin.
-- Batas ukuran: `relaas_maks_mb` (bawaan 5 MB), juga dibatasi `post_max_size` PHP hosting.
+- Batas ukuran: `relaas_maks_mb` (bawaan 20 MB). Hosting website harus menerima kiriman ± 28 MB
+  (`post_max_size = 32M`; nginx: `client_max_body_size 32m`). Relaas yang melebihi batas hosting dilewati dan
+  dicatat di dashboard.
 - Matikan dengan menghilangkan centang **Kirim dokumen relaas** di Pengaturan.
 
 ## Keamanan

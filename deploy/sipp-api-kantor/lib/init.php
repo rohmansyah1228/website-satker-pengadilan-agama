@@ -25,7 +25,7 @@ if (!isset($CONFIG['dashboard_garam'])) $CONFIG['dashboard_garam'] = '';
 // bawaan untuk config.php versi lama (sebelum ada pengiriman relaas)
 if (!isset($CONFIG['ghaib_kirim_relaas'])) $CONFIG['ghaib_kirim_relaas'] = true;
 if (!isset($CONFIG['relaas_dir']))         $CONFIG['relaas_dir']         = '';
-if (!isset($CONFIG['relaas_maks_mb']))     $CONFIG['relaas_maks_mb']     = 5;
+if (!isset($CONFIG['relaas_maks_mb']))     $CONFIG['relaas_maks_mb']     = 20;
 
 // 3. Koneksi database SIPP: dari pengaturan, atau otomatis dari aplikasi SIPP / SIMERAK di server ini
 $GLOBALS['DB_SUMBER'] = ''; $GLOBALS['DB_SUMBER_FILE'] = '';

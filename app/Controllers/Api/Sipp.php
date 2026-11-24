@@ -16,6 +16,13 @@ class Sipp extends BaseController
     public function terima(): ResponseInterface
     {
         $api = new SippApi();
+        if ((int) $this->request->getServer('CONTENT_LENGTH') > 4 * 1048576) {
+            $mem = SippApi::iniBytes((string) ini_get('memory_limit'));
+            if ($mem > 0 && $mem < 268435456) {
+                @ini_set('memory_limit', '256M'); // kiriman relaas besar (body + JSON + PDF di memori)
+            }
+            @set_time_limit(120);
+        }
         // kiriman yang melebihi post_max_size dipotong PHP: beri pesan jelas, bukan "tanda tangan tidak valid"
         $len = (int) $this->request->getServer('CONTENT_LENGTH');
         $max = SippApi::phpPostMax();

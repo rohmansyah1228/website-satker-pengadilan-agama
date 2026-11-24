@@ -140,6 +140,15 @@ function relaas_info($nomor, $path, $tgl, $maksByte) {
     return $info;
 }
 
+/** Naikkan memory_limit bila lebih kecil (tidak pernah menurunkan). */
+function relaas_naikkan_memori($target) {
+    $kini = trim((string)ini_get('memory_limit'));
+    if ($kini == '-1') return;
+    $byte = 0; $n = (int)$kini; $u = strtolower(substr($kini, -1));
+    $byte = $u == 'g' ? $n * 1073741824 : ($u == 'm' ? $n * 1048576 : ($u == 'k' ? $n * 1024 : $n));
+    if ($byte < (int)$target * 1048576) @ini_set('memory_limit', $target);
+}
+
 /**
  * Kirim berkas relaas yang diminta website (daftar sha256 dari jawaban panggilan_ghaib).
  * $maksWebsite: ukuran PDF terbesar yang bisa diterima website (byte, dari jawaban; 0 = tidak diketahui).
@@ -149,6 +158,10 @@ function kirim_relaas($cfg, $butuh, $maksWebsite) {
     $hasil = array('kirim' => 0, 'gagal' => 0, 'pesan' => '');
     if (!is_array($butuh)) return $hasil;
     $batas = 30; // per putaran, agar tidak terlalu lama; sisanya pada pengiriman berikutnya
+    // berkas besar (s.d. 20 MB → ± 28 MB base64): beri waktu & memori cukup
+    if (isset($cfg['website']['timeout']) && (int)$cfg['website']['timeout'] < 300) $cfg['website']['timeout'] = 300;
+    if (function_exists('set_time_limit')) @set_time_limit(0);
+    relaas_naikkan_memori('512M');
     $pesanGagal = array();
     foreach ($butuh as $sha) {
         if (!is_string($sha) || !isset($GLOBALS['RELAAS_BERKAS'][$sha])) continue;

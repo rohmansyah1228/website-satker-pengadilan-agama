@@ -34,7 +34,7 @@ class Sipp extends BaseConfig
     public int $maksUkuran = 5242880;
 
     /** Ukuran kiriman berkas relaas maksimal (byte; PDF base64 ≈ 4/3 ukuran asli) */
-    public int $maksUkuranRelaas = 11534336;
+    public int $maksUkuranRelaas = 29360128; // 28 MB = PDF 20 MB dalam base64 + amplop JSON
 
     /** Jenis data yang diterima (relaas_ghaib = berkas PDF relaas, tidak disimpan di sipp_data) */
     public array $jenis = ['jadwal_sidang', 'statistik_perkara', 'panggilan_ghaib', 'antrian', 'relaas_ghaib'];
