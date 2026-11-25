@@ -333,6 +333,11 @@ class SecurityScan
     private function fileInfo(string $abs, bool $strict = false): array
     {
         $info = ['size' => (int) @filesize($abs), 'mtime' => (int) @filemtime($abs)];
+        // pemeriksa ini & Panduan memang memuat contoh kata judi/webshell yang dicari: jangan ditandai
+        $rel = ltrim(str_replace('\\', '/', substr($abs, strlen(ROOTPATH))), '/');
+        if (in_array($rel, ['app/Libraries/SecurityScan.php', 'app/Views/admin/guide.php'], true)) {
+            return $info;
+        }
         $head = (string) @file_get_contents($abs, false, null, 0, 65536);
         if (preg_match(self::JUDI, $head, $m)) {
             $info['judi'] = $m[0];
