@@ -40,6 +40,14 @@ class LhkpnOrder
         return array_values($out);
     }
 
+    /** Daftar jabatan sesuai urutan di Pengaturan (untuk pilihan dropdown). */
+    public static function names(): array
+    {
+        $saved = trim((string) setting('lhkpn_jabatan', ''));
+
+        return self::clean($saved !== '' ? $saved : self::defaultText()) ?: self::DEFAULTS;
+    }
+
     /** [kata kunci huruf kecil => nilai urut], diurutkan dari kata kunci terpanjang. */
     public static function ranks(): array
     {

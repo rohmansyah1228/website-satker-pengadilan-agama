@@ -42,6 +42,24 @@ $showWhen  = ! empty($f['show_when']) ? ' data-show-when="' . esc($f['show_when'
                         : implode('', array_map(static fn ($l) => '<p>' . esc($l) . '</p>', $lines));
                 } ?>
                 <textarea id="<?= $id ?>" name="<?= $inputName ?>" rows="12" class="form-control<?= $invalid ?>" data-richtext<?= ! empty($f['height']) ? ' data-richtext-height="' . (int) $f['height'] . '"' : '' ?><?= $aria ?>><?= esc($html) ?></textarea>
+            <?php break; case 'combo':
+                // Dropdown + "Lainnya (ketik sendiri)": nilai tersimpan = teks pilihan / ketikan
+                $opts    = ($f['combo_source'] ?? '') === 'lhkpn' ? \App\Libraries\LhkpnOrder::names() : ($f['options'] ?? []);
+                $val     = (string) $value;
+                $match   = '';
+                foreach ($opts as $o) {
+                    if (mb_strtolower($o) === mb_strtolower(trim($val))) {
+                        $match = $o;
+                    }
+                }
+                $isOther = $val !== '' && $match === ''; ?>
+                <select id="<?= $id ?>" name="<?= $inputName ?>__pilih" class="form-select<?= $invalid ?>" data-combo="<?= $id ?>_lain"<?= $required ? ' required' : '' ?><?= $aria ?>>
+                    <option value="">— Pilih <?= esc(mb_strtolower($label)) ?> —</option>
+                    <?php foreach ($opts as $o): ?><option value="<?= esc($o, 'attr') ?>"<?= $match === $o ? ' selected' : '' ?>><?= esc($o) ?></option><?php endforeach ?>
+                    <option value="__lain"<?= $isOther ? ' selected' : '' ?>>Lainnya (ketik sendiri)…</option>
+                </select>
+                <input type="text" id="<?= $id ?>_lain" name="<?= $inputName ?>" value="<?= esc($isOther ? $val : '', 'attr') ?>" class="form-control mt-2<?= $invalid ?>" placeholder="Tulis <?= esc(mb_strtolower($label), 'attr') ?>" aria-label="<?= esc($label, 'attr') ?> lainnya" maxlength="150"<?= $isOther ? '' : ' hidden' ?>>
+                <?php if (! empty($f['combo_hint'])): ?><div class="form-text"><?= $f['combo_hint'] ?></div><?php endif ?>
             <?php break; case 'select':
                 $opts = $f['options'] ?? ($lookups[$name] ?? []); ?>
                 <select id="<?= $id ?>" name="<?= $inputName ?>" class="form-select<?= $invalid ?>"<?= $required ? ' required' : '' ?><?= $aria ?><?= $disabled ? ' disabled' : '' ?>>

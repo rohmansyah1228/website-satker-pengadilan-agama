@@ -330,6 +330,12 @@ class Crud extends AdminController
 
                     case 'year':
                     case 'date':
+                    case 'combo':
+                        $pick        = trim((string) ($post[$name . '__pilih'] ?? ''));
+                        $v           = ($pick !== '' && $pick !== '__lain') ? $pick : trim((string) ($post[$name] ?? ''));
+                        $data[$name] = $v === '' ? null : mb_substr($v, 0, 150);
+                        break;
+
                     case 'select':
                         $v           = $post[$name] ?? null;
                         $data[$name] = ($v === '' || $v === null) ? null : $v;

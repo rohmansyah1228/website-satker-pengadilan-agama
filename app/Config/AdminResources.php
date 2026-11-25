@@ -231,7 +231,8 @@ class AdminResources extends BaseConfig
                 'hint'  => 'Dokumen yang ditampilkan adalah Ikhtisar Kekayaan, minimal 2 tahun terakhir per pejabat.',
                 'fields' => [
                     'name'     => ['Nama Pejabat', 'text', 'required|max_length[150]'],
-                    'position' => ['Jabatan', 'text', 'permit_empty|max_length[150]'],
+                    'position' => ['Jabatan', 'combo', 'permit_empty|max_length[150]', 'combo_source' => 'lhkpn',
+                        'help' => 'Pilihan diambil dari daftar urutan jabatan (Pengaturan → Identitas Satker). Pilih "Lainnya" bila jabatan belum ada di daftar.'],
                     'year'     => ['Tahun Lapor', 'year', 'required|integer'],
                     'file_id'  => ['Ikhtisar Kekayaan (PDF)', 'pdf', 'permit_empty'],
                     'sort'     => ['Urutan Tampil', 'number', 'permit_empty|integer|greater_than_equal_to[0]', 'blank_zero' => true, 'placeholder' => 'Otomatis', 'help' => 'Kosongkan = otomatis menurut jabatan (daftar urutan jabatan diatur Admin di Pengaturan → Identitas Satker). Isi angka untuk mengatur sendiri; angka kecil tampil lebih atas, mis. 31, 32, 33 untuk mengurutkan para hakim.', 'help_dynamic' => 'lhkpn'],

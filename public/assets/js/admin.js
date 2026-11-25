@@ -120,6 +120,17 @@
         document.body.style.cursor = 'progress';
     }));
 
+    // ---------- Dropdown + "Lainnya (ketik sendiri)" ----------
+    document.querySelectorAll('select[data-combo]').forEach((sel) => {
+        const txt = document.getElementById(sel.dataset.combo);
+        if (!txt) return;
+        sel.addEventListener('change', () => {
+            const other = sel.value === '__lain';
+            txt.hidden = !other;
+            if (other) txt.focus(); else txt.value = '';
+        });
+    });
+
     // ---------- Tampilkan/sembunyikan field bergantung pilihan ----------
     const syncToggles = () => {
         document.querySelectorAll('[data-show-when]').forEach((el) => {
