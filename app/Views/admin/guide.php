@@ -566,6 +566,17 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
         <li>Isi editor dibersihkan otomatis dari kode berbahaya.</li>
         <li><strong>Kapasitas</strong> (uji 500 pengunjung serentak, 2 CPU/8 GB): 0 gagal, 95% halaman &lt; 33 ms, CPU rata-rata 40%. Untuk lonjakan, aktifkan cache nginx dari <code>deploy/nginx-satker.conf</code>.</li>
     </ul>
+    <h3 id="cloudflare">Memakai Cloudflare (opsional)</h3>
+    <p>Cloudflare menyaring bot dan serangan, serta mempercepat gambar/CSS. Website ini sudah mengenali Cloudflare: IP asli pengunjung dibaca dari jaringan Cloudflare, sehingga hitungan pengunjung, kunci percobaan login, dan log aktivitas tetap benar.</p>
+    <ol>
+        <li>Daftar di cloudflare.com → <em>Add a site</em> → masukkan domain → paket <strong>Free</strong>. Ganti <strong>nameserver</strong> domain ke milik Cloudflare (lewat pengelola domain .go.id).</li>
+        <li><strong>SSL/TLS → Full (strict)</strong>. Jangan pilih <em>Flexible</em> (halaman bisa berputar-putar/redirect terus).</li>
+        <li><strong>Security → Bots → Bot Fight Mode</strong>: aktifkan.</li>
+        <li><strong>Security → WAF → Custom rules</strong>, buat aturan <em>Skip</em> (lewati semua pemeriksaan, termasuk Bot Fight Mode) untuk <em>URI Path equals</em> <code>/api/sipp/terima</code>. Tanpa ini kiriman dari SIPP API Kantor bisa dianggap bot dan ditolak.</li>
+        <li><strong>Jangan</strong> aktifkan <em>Cache Everything</em> untuk halaman HTML dan <strong>matikan Rocket Loader</strong> (Speed → Optimization). Halaman HTML yang di-cache Cloudflare tidak terhitung di statistik pengunjung dan panel admin bisa menampilkan data lama.</li>
+        <li>Opsional: <em>Caching → Cache Rules</em> → <em>Bypass cache</em> untuk alamat panel admin dan <code>/api/</code>.</li>
+    </ol>
+    <?= $tip('Perbarui website ke versi terbaru <strong>sebelum</strong> mengaktifkan Cloudflare. Versi lama membaca semua pengunjung sebagai IP Cloudflare: hitungan pengunjung jadi sangat kecil dan percobaan login yang salah dari satu orang bisa mengunci semua admin.', 'warn') ?>
 </section>
 
 <section id="faq" class="guide-sec card">
@@ -593,6 +604,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
             ['Pengiriman SIPP berhenti saat komputer/browser ditutup', 'Mode Otomatis butuh tab yang terbuka. Jadwalkan <code>kirim.php</code> dengan Task Scheduler/cron (lihat <a href="#integrasi-sipp">Integrasi SIPP</a>).'],
             ['Menambah tautan di kaki halaman (Tautan Ekosistem Peradilan)', '<em>Pengaturan → Tautan Layanan → Tautan di kaki halaman</em>: tambahkan baris baru <code>Nama | https://alamat</code>, lalu Simpan. Urutan baris = urutan tampil; lebih dari 6 tautan otomatis tampil dua kolom.'],
             ['Apakah data pengunjung membuat database terus membesar?', 'Tidak. Jumlah kunjungan disimpan <strong>satu baris per hari</strong> (tabel <code>visitor_daily</code>, ± 365 baris per tahun). Tabel <code>visitor_hits</code> hanya penanda sementara agar satu pengunjung tidak dihitung dua kali dalam sehari, dan otomatis dikosongkan setiap hari (hanya 2 hari terakhir yang disimpan). Total kunjungan tetap utuh.'],
+            ['Pengunjung sangat banyak, apakah ada bot?', 'Website hanya menghitung satu kali per pengunjung per hari dan tidak menghitung bot yang mengaku bot. Bot yang menyamar sebagai browser tetap terhitung; untuk menyaringnya gunakan Cloudflare dengan Bot Fight Mode (lihat bab Perawatan & Keamanan).'],
             ['Kartu Pintasan hanya 2 per baris', 'Atur <em>Kartu per baris</em> di tampilan Pintasan Layanan, perlebar kotak tampilannya, lalu tekan Ctrl+F5.'],
         ];
         foreach ($faq as $i => [$q, $a]): ?>
