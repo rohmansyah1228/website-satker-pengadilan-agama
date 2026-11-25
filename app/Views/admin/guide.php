@@ -283,7 +283,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
     <div class="table-responsive"><table class="table table-sm align-middle">
         <thead><tr><th>Kategori</th><th>Tampil di</th></tr></thead>
         <tbody>
-            <tr><td>Berita Kegiatan, Inovasi Layanan, Opini, Infografis</td><td>Blok Berita Beranda & halaman Berita (9 per halaman)</td></tr>
+            <tr><td>Berita Kegiatan, Inovasi Layanan, Opini, <strong>Artikel Ilmiah</strong>, Infografis</td><td>Blok Berita Beranda & halaman Berita (9 per halaman)</td></tr>
             <tr><td>Pengumuman</td><td>Blok Pengumuman & Panggilan Ghaib</td></tr>
             <tr><td>Informasi Serta Merta</td><td>Pita kuning di atas semua halaman + blok Pengumuman</td></tr>
         </tbody>

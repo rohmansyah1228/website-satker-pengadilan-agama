@@ -191,6 +191,7 @@ class SiteStructure extends BaseConfig
         'pengumuman'  => 'Pengumuman',
         'inovasi'     => 'Inovasi Layanan',
         'opini'       => 'Opini & Gagasan Aparatur',
+        'artikel'     => 'Artikel Ilmiah',
         'serta-merta' => 'Informasi Serta Merta',
         'infografis'  => 'Infografis Pelayanan',
     ];
