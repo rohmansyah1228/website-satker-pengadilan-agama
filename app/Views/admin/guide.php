@@ -222,6 +222,17 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
     </ol>
     <?= $img('05-arsip-bulanan.jpg', 'Blok Arsip Bulanan di halaman publik: bulan yang terisi bisa diklik, yang belum tertulis Menunggu Publikasi.') ?>
     <?= $img('05-arsip-bulanan-editor.jpg', 'Mengisi blok Arsip Bulanan di editor halaman.') ?>
+
+    <h3 id="daftar-unduhan">Blok Daftar Unduhan (formulir, blanko, contoh berkas)</h3>
+    <ol>
+        <li>Pada <em>Konten Tambahan Halaman</em> klik <strong>Daftar Unduhan</strong>, isi judul daftar (mis. <em>Formulir Layanan PTSP</em>).</li>
+        <li>Tiap baris: tulis <strong>nama berkas</strong>, lalu klik <strong>Unggah berkas</strong> (PDF, Word, Excel, PowerPoint, ODT/ODS, RTF, maks. 20 MB) atau tempel tautan Google Drive. Keterangan boleh diisi.</li>
+        <li>Banyak formulir sekaligus: klik <strong>Unggah banyak sekaligus</strong> dan pilih semua berkasnya; nama baris diambil dari nama berkas (bisa diubah).</li>
+        <li>Klik <strong>Simpan</strong>.</li>
+    </ol>
+    <p>Pengunjung melihat tabel bernomor dengan jenis &amp; ukuran berkas dan tombol <strong>Unduh</strong> (PDF: <strong>Lihat / Unduh</strong>), serta kotak pencarian. Untuk beberapa kelompok (mis. Formulir PTSP, Contoh Format Gugatan), tambahkan beberapa blok Daftar Unduhan di halaman yang sama. Berkas Office yang memuat makro ditolak demi keamanan.</p>
+    <?= $img('05-daftar-unduhan.jpg', 'Blok Daftar Unduhan di halaman publik.') ?>
+    <?= $img('05-daftar-unduhan-editor.jpg', 'Mengisi blok Daftar Unduhan di editor halaman.') ?>
     <?= $tip('Bulan yang terisi ikut dihitung Dashboard SINOVA sebagai laporan bulan tersebut, jadi tidak perlu lagi menulis nama bulan di judul tabel.') ?>
     <h3>Blok Gambar & Sematan</h3>
     <p><strong>Gambar:</strong> ukuran (penuh/75%/50%/33%), perataan, teks alternatif (wajib), keterangan, tautan. <strong>Sematan:</strong> Google Drive/Docs/Sheets/Slides/Form, YouTube, PDF, Google Maps, atau situs lain — atur judul & tinggi, klik <strong>Pratinjau</strong>.</p>

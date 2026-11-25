@@ -307,4 +307,18 @@
 
     // ---------- Tahun berjalan ----------
     document.querySelectorAll('[data-year]').forEach((el) => { el.textContent = new Date().getFullYear(); });
+
+    // ---------- Daftar Unduhan: saring baris sesuai kata yang diketik ----------
+    document.querySelectorAll('input[data-dl-filter]').forEach((inp) => {
+        const table = document.getElementById(inp.dataset.dlFilter);
+        if (!table) return;
+        const rows = [...table.querySelectorAll('tr[data-dl-row]')];
+        const empty = table.querySelector('.dl-empty');
+        inp.addEventListener('input', () => {
+            const q = inp.value.trim().toLowerCase();
+            let n = 0;
+            rows.forEach((r) => { const hit = !q || r.textContent.toLowerCase().includes(q); r.hidden = !hit; if (hit) n++; });
+            if (empty) empty.hidden = n > 0;
+        });
+    });
 })();

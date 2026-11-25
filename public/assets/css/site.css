@@ -647,3 +647,32 @@ a:hover > .img-zoom, .img-zoom:hover, .card:hover .img-zoom, a:focus-visible > .
 .carousel-indicators.greet-dots [data-bs-target] { width: 14px; height: 14px; margin: 0; padding: 0; border: 0; border-radius: 3px; background: #cfd4da; opacity: 1; text-indent: -9999px; }
 .carousel-indicators.greet-dots .active { background: var(--pa-primary, #0a5c36); }
 @media (min-width: 992px) { .carousel-control-prev.ach-nav { left: calc(50% - 450px - 3.5rem); } .carousel-control-next.ach-nav { right: calc(50% - 450px - 3.5rem); } }
+
+/* ---------- Daftar Unduhan (blok halaman) ---------- */
+.dl-list { background: #fff; border: 1px solid #e3e8e6; border-radius: .75rem; overflow: hidden; }
+.dl-list__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; padding: .85rem 1rem; background: var(--pa-primary, #056e4f); color: #fff; }
+.dl-list__title { font-size: 1.05rem; font-weight: 700; margin: 0; color: #fff; }
+.dl-list__search { position: relative; min-width: 220px; flex: 0 1 280px; }
+.dl-list__search .bi { position: absolute; left: .65rem; top: 50%; transform: translateY(-50%); color: #6c757d; font-size: .85rem; }
+.dl-list__search input { padding-left: 2rem; border: 0; }
+.dl-table thead th { background: #f3f6f5; font-size: .8rem; text-transform: uppercase; letter-spacing: .03em; color: #4b5b55; border-bottom: 1px solid #e3e8e6; }
+.dl-table td, .dl-table th { padding: .7rem 1rem; }
+.dl-table tbody tr:hover { background: #f8faf9; }
+.dl-no { width: 3.5rem; text-align: center; color: #6c757d; }
+.dl-name { font-weight: 600; color: #1f2d28; line-height: 1.35; }
+.dl-meta { font-size: .8rem; color: #6c757d; margin-top: .15rem; }
+.dl-ico { font-size: 1.6rem; line-height: 1; color: #6c757d; flex-shrink: 0; }
+.dl-ico.is-pdf, .dl-type.is-pdf { color: #c62828; }
+.dl-ico.is-word, .dl-type.is-word { color: #1e5bb8; }
+.dl-ico.is-excel, .dl-type.is-excel { color: #1d7044; }
+.dl-ico.is-ppt, .dl-type.is-ppt { color: #c4501c; }
+.dl-type { font-weight: 600; }
+.dl-ico.is-drive, .dl-type.is-drive { color: #1a73e8; }
+@media (max-width: 575.98px) {
+  .dl-table td, .dl-table th { padding: .6rem .45rem; }
+  .dl-no { width: 2rem; }
+  .dl-ico { font-size: 1.3rem; }
+  .dl-btn { padding: .4rem .6rem; }
+  .dl-btn .dl-btn-text { display: none; } /* di HP tombol cukup ikon; nama tombol tetap dibacakan (aria-label) */
+  .dl-list__search { flex-basis: 100%; }
+}

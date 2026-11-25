@@ -562,8 +562,140 @@
         return el;
     }
 
+    // ------------------------------------------------------------ daftar unduhan
+    const adminMeta = (() => { try { return JSON.parse(document.querySelector('meta[name="satker-admin"]').content); } catch (e) { return {}; } })();
+    async function uploadFile(file) {
+        const fd = new FormData();
+        fd.append('file', file, file.name);
+        const tok = document.querySelector('input[name="' + (adminMeta.csrfName || 'csrf_test_name') + '"]');
+        if (tok) fd.append(tok.name, tok.value);
+        const r = await fetch((adminMeta.base || '/') + 'editor/berkas', { method: 'POST', body: fd, credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+        let j = {};
+        try { j = await r.json(); } catch (e) { /* abaikan */ }
+        if (j.csrf) document.querySelectorAll('input[name="' + j.csrf.name + '"]').forEach((i) => { i.value = j.csrf.hash; });
+        if (!r.ok || j.error) throw new Error(j.error || ('Unggah gagal (' + r.status + ')'));
+        return j;
+    }
+    const ACCEPT = '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.odt,.ods,.rtf';
+    const fmtSize = (n) => n >= 1048576 ? (n / 1048576).toFixed(1).replace('.', ',') + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
+
+    function downloadsBlock(d) {
+        const blank = () => ({ name: '', note: '', file: '', url: '', info: '' });
+        const st = {
+            heading: d.heading || '',
+            search: d.search === undefined ? true : !!d.search,
+            items: (d.items && d.items.length ? d.items : [blank()]).map((it) => ({ name: it.name || '', note: it.note || '', file: it.file || '', url: it.url || '', info: it.file ? 'Berkas terunggah' : '' }))
+        };
+        const heading = h('input', { type: 'text', class: 'form-control form-control-sm', maxlength: 200, value: st.heading, placeholder: 'mis. Formulir Layanan PTSP' });
+        const search = h('input', { type: 'checkbox', class: 'form-check-input', checked: st.search });
+        search.id = 'pbs' + (fieldSeq++);
+        const rowsBox = h('div', {});
+        const count = h('span', { class: 'badge text-bg-light border' });
+        const updCount = () => { const n = st.items.filter((it) => it.file || it.url).length; count.textContent = n + ' / ' + st.items.length + ' berkas siap'; };
+
+        function render(focusRow) {
+            rowsBox.replaceChildren(...st.items.map((it, ri) => {
+                const name = h('input', { type: 'text', class: 'form-control form-control-sm fw-semibold', maxlength: 200, value: it.name, placeholder: 'Nama berkas, mis. Formulir Cerai Gugat', 'aria-label': 'Nama berkas ' + (ri + 1) });
+                name.addEventListener('input', () => { it.name = name.value; dirty = true; el._refresh(); });
+                const note = h('input', { type: 'text', class: 'form-control form-control-sm', maxlength: 300, value: it.note, placeholder: 'Keterangan (opsional)', 'aria-label': 'Keterangan berkas ' + (ri + 1) });
+                note.addEventListener('input', () => { it.note = note.value; dirty = true; });
+                const url = h('input', { type: 'text', inputmode: 'url', class: 'form-control form-control-sm font-monospace', value: it.url, placeholder: 'atau tempel tautan Google Drive / https://…', spellcheck: 'false', 'aria-label': 'Tautan berkas ' + (ri + 1), disabled: !!it.file });
+                url.addEventListener('input', () => { it.url = url.value.trim(); url.classList.toggle('is-invalid', it.url !== '' && !isUrl(it.url)); dirty = true; updCount(); });
+                const status = h('span', { class: 'small ' + (it.file ? 'text-success' : 'text-secondary') }, it.file ? [icon('bi-check-circle-fill'), ' ', it.info || 'Berkas terunggah'] : 'Belum ada berkas');
+                const pick = h('input', { type: 'file', accept: ACCEPT, hidden: true });
+                const upBtn = h('button', { type: 'button', class: 'btn btn-sm btn-outline-success', onclick: () => pick.click() }, icon('bi-upload'), it.file ? ' Ganti berkas' : ' Unggah berkas');
+                const clearBtn = it.file ? h('button', { type: 'button', class: 'btn btn-sm btn-link text-danger p-0', onclick: () => { it.file = ''; it.info = ''; dirty = true; render(); updCount(); } }, 'lepas') : null;
+                pick.addEventListener('change', async () => {
+                    const f = pick.files[0];
+                    if (!f) return;
+                    upBtn.disabled = true;
+                    status.className = 'small text-secondary';
+                    status.textContent = 'Mengunggah ' + f.name + '…';
+                    try {
+                        const j = await uploadFile(f);
+                        it.file = j.uuid; it.url = '';
+                        it.info = f.name + ' · ' + fmtSize(j.size);
+                        if (!it.name.trim()) it.name = j.name.replace(/[_-]+/g, ' ');
+                        dirty = true;
+                        render(); updCount(); el._refresh();
+                        say('Berkas ' + f.name + ' terunggah');
+                    } catch (e) {
+                        upBtn.disabled = false;
+                        status.className = 'small text-danger';
+                        status.textContent = e.message;
+                    }
+                });
+                const swap = (a, b2) => { if (b2 < 0 || b2 >= st.items.length) return; [st.items[a], st.items[b2]] = [st.items[b2], st.items[a]]; dirty = true; render(); };
+                const tools = h('div', { class: 'd-flex gap-1 flex-shrink-0' },
+                    iconBtn('bi-arrow-up', 'Naikkan', () => swap(ri, ri - 1)),
+                    iconBtn('bi-arrow-down', 'Turunkan', () => swap(ri, ri + 1)),
+                    iconBtn('bi-trash', 'Hapus baris', () => {
+                        if ((it.name || it.file) && !window.confirm('Hapus ' + (it.name || 'baris ' + (ri + 1)) + ' dari daftar?')) return;
+                        st.items.splice(ri, 1);
+                        if (!st.items.length) st.items.push(blank());
+                        dirty = true; render(); updCount(); el._refresh();
+                    }, 'btn-outline-danger'));
+                const box = h('div', { class: 'border rounded p-2 mb-2 bg-light-subtle' },
+                    h('div', { class: 'd-flex gap-2 mb-2 align-items-center' }, h('span', { class: 'badge text-bg-secondary', text: String(ri + 1) }), name, tools),
+                    h('div', { class: 'row g-2 align-items-center' },
+                        h('div', { class: 'col-md-5' }, note),
+                        h('div', { class: 'col-md-7 d-flex flex-wrap align-items-center gap-2' }, upBtn, pick, status, clearBtn),
+                        it.file ? null : h('div', { class: 'col-12' }, url)));
+                if (focusRow === ri) setTimeout(() => name.focus(), 0);
+                return box;
+            }));
+            updCount();
+        }
+        heading.addEventListener('input', () => { st.heading = heading.value; dirty = true; el._refresh(); });
+        search.addEventListener('change', () => { st.search = search.checked; dirty = true; });
+        const addRow = h('button', { type: 'button', class: 'btn btn-sm btn-outline-success', onclick: () => { st.items.push(blank()); dirty = true; render(st.items.length - 1); el._refresh(); } }, icon('bi-plus-lg'), ' Tambah berkas');
+        const multi = h('input', { type: 'file', accept: ACCEPT, multiple: true, hidden: true });
+        const addMany = h('button', { type: 'button', class: 'btn btn-sm btn-outline-secondary', onclick: () => multi.click() }, icon('bi-files'), ' Unggah banyak sekaligus');
+        const multiStatus = h('span', { class: 'small text-secondary' });
+        multi.addEventListener('change', async () => {
+            const fs = [...multi.files];
+            multi.value = '';
+            if (!fs.length) return;
+            // buang baris kosong terakhir agar berkas baru langsung menggantikannya
+            st.items = st.items.filter((it) => it.name || it.file || it.url);
+            let ok = 0;
+            for (const f of fs) {
+                multiStatus.className = 'small text-secondary';
+                multiStatus.textContent = 'Mengunggah ' + (ok + 1) + '/' + fs.length + ': ' + f.name + '…';
+                try {
+                    const j = await uploadFile(f);
+                    st.items.push({ name: j.name.replace(/[_-]+/g, ' '), note: '', file: j.uuid, url: '', info: f.name + ' · ' + fmtSize(j.size) });
+                    ok++;
+                } catch (e) {
+                    multiStatus.className = 'small text-danger';
+                    multiStatus.textContent = f.name + ': ' + e.message;
+                    await new Promise((r) => setTimeout(r, 1500));
+                }
+            }
+            if (!st.items.length) st.items.push(blank());
+            dirty = true; render(); el._refresh();
+            multiStatus.className = 'small text-success';
+            multiStatus.textContent = ok + ' berkas terunggah. Periksa nama berkasnya, lalu Simpan halaman.';
+        });
+        const body = h('div', {},
+            h('div', { class: 'row g-2 align-items-end' },
+                h('div', { class: 'col-md-8' }, field('Judul daftar (opsional)', heading)),
+                h('div', { class: 'col-md-4' }, h('div', { class: 'form-check mb-2' }, search, h('label', { class: 'form-check-label small', for: search.id, text: 'Tampilkan kotak pencarian' })))),
+            h('div', { class: 'd-flex justify-content-between align-items-center mb-1' }, h('span', { class: 'small fw-semibold', text: 'Berkas' }), count),
+            rowsBox,
+            h('div', { class: 'd-flex flex-wrap align-items-center gap-2' }, addRow, addMany, multi, multiStatus),
+            h('div', { class: 'form-text', text: 'PDF, Word, Excel, PowerPoint, ODT/ODS, atau RTF, maks. 20 MB per berkas. PDF dibuka di peramban; berkas lain langsung terunduh. Bisa juga memakai tautan Google Drive.' }));
+        render();
+        const el = shell('downloads', body, {
+            get: () => ({ type: 'downloads', heading: st.heading, search: st.search, items: st.items.map((it) => ({ name: it.name, note: it.note, file: it.file, url: it.url })) }),
+            summary: () => (st.heading || 'Daftar Unduhan') + ' · ' + st.items.filter((it) => it.name).length + ' berkas'
+        });
+        el._focus = () => { const f = rowsBox.querySelector('input'); f && f.focus(); };
+        return el;
+    }
+
     // ------------------------------------------------------------ umum
-    const makers = { text: textBlock, table: tableBlock, image: imageBlock, embed: embedBlock, monthly: monthlyBlock };
+    const makers = { text: textBlock, table: tableBlock, image: imageBlock, embed: embedBlock, monthly: monthlyBlock, downloads: downloadsBlock };
     function add(type, data, after, top) {
         const el = makers[type](data || {});
         if (after) after.after(el); else if (top) list.prepend(el); else list.append(el);

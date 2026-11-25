@@ -48,6 +48,26 @@ class Editor extends AdminController
         return $this->json(['url' => file_url($id), 'name' => $name ?: 'Dokumen']);
     }
 
+    /** Unggah berkas untuk blok Daftar Unduhan (PDF/Word/Excel/PowerPoint/ODT/ODS/RTF). */
+    public function file()
+    {
+        $f = $this->request->getFile('file');
+        if (! $f || $f->getError() === UPLOAD_ERR_NO_FILE) {
+            return $this->json(['error' => 'Tidak ada berkas.'], 400);
+        }
+        try {
+            $id = service('uploader')->storeDocument($f);
+        } catch (RuntimeException $e) {
+            return $this->json(['error' => $e->getMessage()], 422);
+        }
+        $row  = service('uploader')->find($id);
+        $name = (string) pathinfo((string) $f->getClientName(), PATHINFO_FILENAME);
+        $this->log('unggah', 'Berkas unduhan: ' . $f->getClientName());
+
+        return $this->json(['uuid' => $row['uuid'], 'url' => file_url($id), 'name' => $name ?: 'Berkas',
+            'ext' => strtolower((string) pathinfo((string) $row['path'], PATHINFO_EXTENSION)), 'size' => (int) $row['size']]);
+    }
+
     /** Daftar halaman & berita untuk menu "Tautan Internal". */
     public function links()
     {

@@ -26,13 +26,19 @@ class Files extends BaseController
         }
         $this->db->table('files')->where('id', $f['id'])->set('downloads', 'downloads + 1', false)->update();
 
-        $name = str_replace(['"', "\r", "\n"], '', $f['original_name'] ?: 'dokumen.pdf');
+        $name = str_replace(['"', "\r", "\n", '\\'], '', $f['original_name'] ?: 'dokumen.pdf');
+        $mime = (string) ($f['mime'] ?: 'application/pdf');
+        // PDF dibuka di peramban; berkas Office selalu diunduh (tidak pernah ditampilkan sebagai halaman)
+        $isPdf = $mime === 'application/pdf';
+        if (! $isPdf && ! in_array($mime, array_column(\App\Libraries\Uploader::DOC_TYPES, 0), true)) {
+            $mime = 'application/octet-stream';
+        }
 
         $this->response->setCache(['public', 'max-age' => 86400]);
 
         return $this->response
-            ->setHeader('Content-Type', 'application/pdf')
-            ->setHeader('Content-Disposition', 'inline; filename="' . $name . '"')
+            ->setHeader('Content-Type', $mime)
+            ->setHeader('Content-Disposition', ($isPdf ? 'inline' : 'attachment') . '; filename="' . $name . '"; filename*=UTF-8\'\'' . rawurlencode($name))
             ->setHeader('X-Content-Type-Options', 'nosniff')
             ->setBody(file_get_contents($path));
     }

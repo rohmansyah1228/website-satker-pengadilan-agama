@@ -47,6 +47,113 @@ class Uploader
         return $this->storePdfPath($file->getTempName(), $file->getClientName(), true);
     }
 
+    /** Berkas unduhan yang diizinkan (selain PDF): ekstensi => [MIME, jenis tanda tangan berkas]. */
+    public const DOC_TYPES = [
+        'doc'  => ['application/msword', 'ole'],
+        'docx' => ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'ooxml'],
+        'xls'  => ['application/vnd.ms-excel', 'ole'],
+        'xlsx' => ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'ooxml'],
+        'ppt'  => ['application/vnd.ms-powerpoint', 'ole'],
+        'pptx' => ['application/vnd.openxmlformats-officedocument.presentationml.presentation', 'ooxml'],
+        'odt'  => ['application/vnd.oasis.opendocument.text', 'odf'],
+        'ods'  => ['application/vnd.oasis.opendocument.spreadsheet', 'odf'],
+        'rtf'  => ['application/rtf', 'rtf'],
+    ];
+
+    /**
+     * Simpan berkas unduhan: PDF, Word, Excel, PowerPoint, OpenDocument, RTF.
+     * Isi berkas diperiksa (bukan hanya nama/ekstensi); dokumen Office ber-makro (VBA) ditolak.
+     * Disimpan di writable/uploads (tidak bisa dijalankan dari web), disajikan lewat /berkas/{uuid}.
+     * @return int id baris pada tabel files
+     */
+    public function storeDocument(UploadedFile $file): int
+    {
+        if (! $file->isValid()) {
+            throw new RuntimeException('Unggahan gagal: ' . $file->getErrorString());
+        }
+        $ext = strtolower((string) pathinfo((string) $file->getClientName(), PATHINFO_EXTENSION));
+        if ($ext === 'pdf') {
+            return $this->storePdf($file);
+        }
+        if (! isset(self::DOC_TYPES[$ext])) {
+            throw new RuntimeException('Format berkas tidak didukung. Gunakan PDF, Word (doc/docx), Excel (xls/xlsx), PowerPoint (ppt/pptx), ODT/ODS, atau RTF.');
+        }
+        if ($file->getSize() > self::MAX_PDF_MB * 1048576) {
+            throw new RuntimeException('Ukuran berkas maksimal ' . self::MAX_PDF_MB . ' MB.');
+        }
+        [$mime, $kind] = self::DOC_TYPES[$ext];
+        $tmp = $file->getTempName();
+        $this->checkDocument($tmp, $ext, $kind);
+
+        $uuid = bin2hex(random_bytes(16));
+        $rel  = 'uploads/docs/' . date('Y') . '/' . $uuid . '.' . $ext;
+        $dir  = WRITEPATH . dirname($rel);
+        if (! is_dir($dir)) {
+            mkdir($dir, 0750, true);
+        }
+        if (! (@rename($tmp, WRITEPATH . $rel) || @copy($tmp, WRITEPATH . $rel))) {
+            throw new RuntimeException('Berkas tidak dapat disimpan.');
+        }
+        $name = preg_replace('/[^\w\s.\-()]/u', '', (string) $file->getClientName()) ?: ('berkas.' . $ext);
+        db_connect()->table('files')->insert([
+            'uuid' => $uuid, 'path' => $rel, 'original_name' => mb_substr($name, 0, 250),
+            'mime' => $mime, 'size' => (int) filesize(WRITEPATH . $rel), 'created_at' => date('Y-m-d H:i:s'),
+        ]);
+
+        return (int) db_connect()->insertID();
+    }
+
+    /** Pastikan isi berkas benar-benar dokumen sesuai ekstensinya. */
+    private function checkDocument(string $tmp, string $ext, string $kind): void
+    {
+        $head = (string) @file_get_contents($tmp, false, null, 0, 8);
+        $bad  = 'Isi berkas tidak sesuai format .' . $ext . '. Simpan ulang dari Word/Excel lalu unggah kembali.';
+        if ($kind === 'ole') {
+            if ($head !== "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1") {
+                throw new RuntimeException($bad);
+            }
+
+            return;
+        }
+        if ($kind === 'rtf') {
+            if (! str_starts_with($head, '{\\rtf')) {
+                throw new RuntimeException($bad);
+            }
+
+            return;
+        }
+        // docx/xlsx/pptx/odt/ods = arsip ZIP
+        if (! str_starts_with($head, "PK\x03\x04")) {
+            throw new RuntimeException($bad);
+        }
+        if (! class_exists(\ZipArchive::class)) {
+            return; // ekstensi zip tidak tersedia: cukup tanda tangan berkas
+        }
+        $z = new \ZipArchive();
+        if ($z->open($tmp) !== true) {
+            throw new RuntimeException($bad);
+        }
+        try {
+            if ($kind === 'ooxml') {
+                if ($z->locateName('[Content_Types].xml') === false) {
+                    throw new RuntimeException($bad);
+                }
+                for ($i = 0; $i < $z->numFiles; $i++) {
+                    if (preg_match('/vbaProject\.bin$|\.(exe|dll|bat|cmd|js|vbs|ps1|scr)$/i', (string) $z->getNameIndex($i))) {
+                        throw new RuntimeException('Dokumen memuat makro/program tersisip dan tidak boleh diunggah. Simpan sebagai .' . $ext . ' biasa (tanpa makro).');
+                    }
+                }
+            } else {
+                $mt = (string) $z->getFromName('mimetype');
+                if ($mt !== self::DOC_TYPES[$ext][0]) {
+                    throw new RuntimeException($bad);
+                }
+            }
+        } finally {
+            $z->close();
+        }
+    }
+
     /**
      * Simpan PDF dari berkas sementara di server (unggahan atau unduhan impor).
      * @return int id baris pada tabel files

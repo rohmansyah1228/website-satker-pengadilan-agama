@@ -83,14 +83,14 @@
                     <div class="pb-add pb-add-top" role="group" aria-label="Tambah blok di atas">
                         <span class="small fw-semibold text-secondary me-1"><i class="bi bi-arrow-up-short" aria-hidden="true"></i> Tambah blok di atas:</span>
                         <?php foreach ($blockTypes as $k => $t): ?>
-                            <button type="button" class="btn btn-sm btn-outline-success" data-pb-add="<?= $k ?>" data-pb-where="top"><i class="bi <?= $t['icon'] ?>" aria-hidden="true"></i> <?= esc($k === 'embed' ? 'Sematkan' : $t['label']) ?><span class="visually-hidden"> di atas</span></button>
+                            <button type="button" class="btn btn-sm btn-outline-success" data-pb-add="<?= $k ?>" data-pb-where="top"><i class="bi <?= $t['icon'] ?>" aria-hidden="true"></i> <?= esc($k === 'embed' ? 'Sematkan' : ($k === 'downloads' ? 'Daftar Unduhan' : $t['label'])) ?><span class="visually-hidden"> di atas</span></button>
                         <?php endforeach ?>
                     </div>
                     <div id="pbList" class="pb-list" data-media="<?= esc(base_url(), 'attr') ?>"></div>
                     <div class="pb-add pb-add-bottom" role="group" aria-label="Tambah blok di bawah">
                         <span class="small fw-semibold text-secondary me-1"><i class="bi bi-arrow-down-short" aria-hidden="true"></i> Tambah blok di bawah:</span>
                         <?php foreach ($blockTypes as $k => $t): ?>
-                            <button type="button" class="btn btn-sm btn-outline-success" data-pb-add="<?= $k ?>" data-pb-where="bottom"><i class="bi <?= $t['icon'] ?>" aria-hidden="true"></i> <?= esc($k === 'embed' ? 'Sematkan' : $t['label']) ?><span class="visually-hidden"> di bawah</span></button>
+                            <button type="button" class="btn btn-sm btn-outline-success" data-pb-add="<?= $k ?>" data-pb-where="bottom"><i class="bi <?= $t['icon'] ?>" aria-hidden="true"></i> <?= esc($k === 'embed' ? 'Sematkan' : ($k === 'downloads' ? 'Daftar Unduhan' : $t['label'])) ?><span class="visually-hidden"> di bawah</span></button>
                         <?php endforeach ?>
                     </div>
                     <input type="hidden" name="blocks_json" id="pbJson" value="">

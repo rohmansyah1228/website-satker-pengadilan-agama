@@ -82,6 +82,7 @@ $routes->group($admin, ['namespace' => 'App\Controllers\Admin'], static function
         $routes->post('impor/satu', 'Import::one');
         $routes->post('editor/gambar', 'Editor::image');
         $routes->post('editor/pdf', 'Editor::pdf');
+        $routes->post('editor/berkas', 'Editor::file');
         $routes->get('editor/tautan', 'Editor::links');
         $routes->post('cache/bersihkan', 'Dashboard::clearCache');
         $routes->post('pembaruan-database', 'Dashboard::migrate');

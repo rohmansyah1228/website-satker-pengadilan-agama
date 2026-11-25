@@ -21,7 +21,10 @@ class PageBlocks
         'image' => ['label' => 'Gambar', 'icon' => 'bi-image'],
         'embed' => ['label' => 'Sematkan Halaman / Google Drive', 'icon' => 'bi-window-stack'],
         'monthly' => ['label' => 'Arsip Bulanan', 'icon' => 'bi-calendar3'],
+        'downloads' => ['label' => 'Daftar Unduhan (Formulir/Berkas)', 'icon' => 'bi-download'],
     ];
+
+    public const MAX_DOWNLOADS = 200;
 
     public const MONTHS = [1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
     public const MAX_MONTHLY_ROWS = 20;
@@ -203,6 +206,45 @@ class PageBlocks
                         'rows'    => $rows,
                     ];
                     break;
+
+                case 'downloads':
+                    $items = [];
+                    $src   = array_slice(array_values((array) ($b['items'] ?? [])), 0, self::MAX_DOWNLOADS);
+                    $uuids = array_values(array_filter(array_map(static fn ($it) => is_array($it) && preg_match('/^[a-f0-9]{32}$/', (string) ($it['file'] ?? '')) ? (string) $it['file'] : null, $src)));
+                    $known = $uuids ? array_flip(array_column(db_connect()->table('files')->select('uuid')->whereIn('uuid', $uuids)->get()->getResultArray(), 'uuid')) : [];
+                    foreach ($src as $k => $it) {
+                        if (! is_array($it)) {
+                            continue;
+                        }
+                        $name = $this->str($it['name'] ?? '', 200);
+                        $note = $this->str($it['note'] ?? '', 300);
+                        $file = (string) ($it['file'] ?? '');
+                        $file = isset($known[$file]) ? $file : '';
+                        $url  = $file === '' ? $this->str($it['url'] ?? '', 2000) : '';
+                        if ($url !== '' && self::cleanUrl($url) === null) {
+                            $errors[] = "{$n} (daftar unduhan), " . ($name ?: 'baris ' . ($k + 1)) . ': tautan “' . mb_strimwidth($url, 0, 60, '…') . '” tidak valid. Gunakan alamat lengkap, mis. https://drive.google.com/…';
+                            $url = '';
+                        }
+                        if ($name === '' && $file === '' && $url === '') {
+                            continue;
+                        }
+                        if ($name === '') {
+                            $errors[] = "{$n} (daftar unduhan), baris " . ($k + 1) . ': isi nama berkas.';
+                            continue;
+                        }
+                        $items[] = ['name' => $name, 'note' => $note, 'file' => $file, 'url' => $url !== '' ? (self::cleanUrl($url) ?? '') : ''];
+                    }
+                    if (! $items) {
+                        $errors[] = "{$n} (daftar unduhan): isi minimal satu berkas atau hapus blok ini.";
+                        break;
+                    }
+                    $out[] = [
+                        'type'     => 'downloads',
+                        'heading'  => $this->str($b['heading'] ?? '', 200),
+                        'search'   => ! empty($b['search']),
+                        'items'    => $items,
+                    ];
+                    break;
             }
         }
 
@@ -237,6 +279,12 @@ class PageBlocks
                 $parts[] = '<p>' . esc($b['caption'] ?: $b['alt']) . '</p>';
             } elseif ($b['type'] === 'embed' && $b['heading'] !== '') {
                 $parts[] = '<h2>' . esc($b['heading']) . '</h2>';
+            } elseif ($b['type'] === 'downloads') {
+                $lines = $b['heading'] !== '' ? ['<h2>' . esc($b['heading']) . '</h2>'] : [];
+                foreach ($b['items'] as $it) {
+                    $lines[] = '<p>' . esc($it['name']) . ($it['note'] !== '' ? ' — ' . esc($it['note']) : '') . '</p>';
+                }
+                $parts[] = implode("\n", $lines);
             } elseif ($b['type'] === 'monthly') {
                 $lines = ['<h2>' . esc(($b['heading'] ?: 'Arsip') . ' ' . $b['year']) . '</h2>'];
                 foreach ($b['rows'] as $r) {
