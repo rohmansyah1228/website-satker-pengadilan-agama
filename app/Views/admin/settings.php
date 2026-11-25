@@ -31,7 +31,7 @@
                         <li>Klik <strong>Kirim Semua Data Sekarang</strong>, lalu jadwalkan pengiriman otomatis (Task Scheduler / cron, atau menu <strong>Mode Otomatis</strong>). Hanya data yang berubah yang dikirim. Data yang diterima tampil di tabel <em>Kiriman terakhir</em> di bawah.</li>
                     </ol>
                 </div>
-                <a href="<?= admin_url('pengaturan/sipp-kantor') ?>" class="btn btn-pa-primary" download data-reload-after="2500"><i class="bi bi-download" aria-hidden="true"></i> Unduh SIPP API Kantor</a>
+                <a href="<?= admin_url('pengaturan/sipp-kantor') ?>" class="btn btn-pa-primary" data-reload-after="2500"><i class="bi bi-download" aria-hidden="true"></i> Unduh SIPP API Kantor</a>
             </div>
             <p class="small text-danger mb-0 mt-2"><i class="bi bi-shield-lock" aria-hidden="true"></i> Paket berisi kunci rahasia website: simpan hanya di server kantor, jangan dibagikan. Bila bocor, tempel kunci baru dari dashboard kantor di bawah.</p>
         </div>

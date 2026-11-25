@@ -484,9 +484,6 @@ class SippApi
         if (! is_file($src . DIRECTORY_SEPARATOR . 'config.php')) {
             throw new RuntimeException('Berkas aplikasi SIPP API Kantor (deploy/sipp-api-kantor) tidak ditemukan. Perbarui website.');
         }
-        if (! class_exists(\ZipArchive::class)) {
-            throw new RuntimeException('Ekstensi PHP zip belum aktif (php.ini: extension=zip).');
-        }
         [$key, $secret] = self::ensureKeys();
         $preset = [
             'website' => ['url' => site_url('api/sipp/terima'), 'api_key' => $key, 'secret' => $secret, 'verify_ssl' => true, 'timeout' => 30],
@@ -501,10 +498,8 @@ class SippApi
             . '$CONFIG_DASHBOARD = ' . var_export($preset, true) . ";\n";
 
         $tmp = tempnam(WRITEPATH . 'cache', 'sippk');
-        $zip = new \ZipArchive();
-        if ($zip->open($tmp, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
-            throw new RuntimeException('Gagal membuat berkas zip.');
-        }
+        // tanpa ekstensi PHP zip (sering belum aktif di XAMPP Windows PHP 8.2+)
+        $zip = new ZipWriter();
         $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($src, \FilesystemIterator::SKIP_DOTS));
         foreach ($it as $f) {
             /** @var \SplFileInfo $f */
@@ -514,9 +509,9 @@ class SippApi
                 continue;
             }
             $name = 'sipp-api-kantor/' . $rel;
-            $rel === 'config.php' ? $zip->addFromString($name, $config) : $zip->addFile($f->getPathname(), $name);
+            $zip->add($name, $rel === 'config.php' ? $config : (string) file_get_contents($f->getPathname()));
         }
-        $zip->close();
+        $zip->save($tmp);
 
         return $tmp;
     }
