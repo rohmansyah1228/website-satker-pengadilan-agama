@@ -15,23 +15,23 @@
             <div class="me-auto" style="min-width:16rem;flex:1">
                 <strong>Versi baru website tersedia.</strong>
                 <div class="d-flex flex-wrap align-items-center gap-2 my-1">
-                    <span class="badge text-bg-light border fs-6 fw-semibold">Terpasang: <?= esc(\App\Libraries\VersionCheck::label((int) $update['local'], $update['localVersion'] ?? '')) ?></span>
+                    <span class="badge text-bg-light border fs-6 fw-semibold">Terpasang: <?= esc(\App\Libraries\VersionCheck::label((int) $update['local'], $update['localVersion'] ?? '', $update['localName'] ?? '')) ?></span>
                     <i class="bi bi-arrow-right" aria-hidden="true"></i><span class="visually-hidden">diperbarui ke</span>
-                    <span class="badge text-bg-primary fs-6 fw-semibold">Baru: <?= esc(\App\Libraries\VersionCheck::label((int) $update['latest'], $update['version'])) ?></span>
+                    <span class="badge text-bg-primary fs-6 fw-semibold">Baru: <?= esc(\App\Libraries\VersionCheck::label((int) $update['latest'], $update['version'], $update['name'] ?? '')) ?></span>
                 </div>
                 Klik tombol <strong>Update</strong>: sistem mengunduh <strong>hanya berkas yang berubah</strong> dari GitHub, menyimpan cadangan berkas lama, lalu menjalankan pembaruan database.
                 Data Anda (berita, pengaturan, unggahan, database) tidak terpengaruh.
             </div>
             <form action="<?= admin_url('pembaruan-aplikasi') ?>" method="post" data-loading="Memperbarui… jangan tutup halaman"
-                  data-confirm="Perbarui website dari Versi <?= (int) $update['local'] ?> ke Versi <?= (int) $update['latest'] ?> sekarang? <?= count($update['files']) ?> berkas akan diunduh dari GitHub dan menimpa berkas lama (cadangan otomatis disimpan di writable/backups/). Disarankan cadangkan database lebih dulu (phpMyAdmin → Export).">
+                  data-confirm="Perbarui website dari Versi <?= esc($update['localName'] ?: 'build ' . $update['local'], 'attr') ?> ke Versi <?= esc($update['name'] ?: 'build ' . $update['latest'], 'attr') ?> sekarang? <?= count($update['files']) ?> berkas akan diunduh dari GitHub dan menimpa berkas lama (cadangan otomatis disimpan di writable/backups/). Disarankan cadangkan database lebih dulu (phpMyAdmin → Export).">
                 <?= csrf_field() ?>
-                <button type="submit" class="btn btn-primary fw-semibold"><i class="bi bi-cloud-download" aria-hidden="true"></i> Update ke Versi <?= (int) $update['latest'] ?></button>
+                <button type="submit" class="btn btn-primary fw-semibold"><i class="bi bi-cloud-download" aria-hidden="true"></i> Update ke Versi <?= esc($update['name'] ?: (string) $update['latest']) ?></button>
             </form>
             <a href="<?= esc($update['url'], 'attr') ?>" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm"><i class="bi bi-github" aria-hidden="true"></i> GitHub</a>
         </div>
         <?php if (! empty($update['releases'])): ?>
             <div class="small mt-2 mb-1"><strong>Yang baru:</strong>
-                <ul class="mb-1"><?php foreach ($update['releases'] as $r): ?><li><strong><?= esc(\App\Libraries\VersionCheck::label($r['build'], $r['version'])) ?>:</strong> <?= esc($r['notes']) ?></li><?php endforeach ?></ul>
+                <ul class="mb-1"><?php foreach ($update['releases'] as $r): ?><li><strong><?= esc(\App\Libraries\VersionCheck::label($r['build'], $r['version'], $r['name'] ?? '')) ?>:</strong> <?= esc($r['notes']) ?></li><?php endforeach ?></ul>
             </div>
         <?php endif ?>
         <?php if (! empty($update['files'])): ?>
@@ -45,7 +45,7 @@
 <?php elseif (! empty($update)): ?>
     <div class="small text-secondary mb-3" id="pembaruan">
         <i class="bi bi-<?= empty($update['error']) ? 'check-circle text-success' : 'wifi-off' ?>" aria-hidden="true"></i>
-        <strong class="text-body"><?= esc(\App\Libraries\VersionCheck::label((int) $update['local'], $update['localVersion'] ?? '')) ?></strong>
+        <strong class="text-body"><?= esc(\App\Libraries\VersionCheck::label((int) $update['local'], $update['localVersion'] ?? '', $update['localName'] ?? '')) ?></strong>
         <?php if (! empty($update['error']) && ! empty($update['repo'])): ?>
             · pemeriksaan versi baru belum berhasil (<?= esc($update['error']) ?>), akan dicoba lagi otomatis.
         <?php elseif (! empty($update['repo'])): ?>
@@ -53,17 +53,19 @@
         <?php endif ?>
         <?php if (! empty($update['history'])): ?>
             <details class="d-inline-block ms-1"><summary class="d-inline">Riwayat versi</summary>
-                <ul class="mt-2 mb-0"><?php foreach ($update['history'] as $r): ?><li><strong><?= esc(\App\Libraries\VersionCheck::label($r['build'], $r['version'])) ?>:</strong> <?= esc($r['notes']) ?></li><?php endforeach ?></ul>
+                <ul class="mt-2 mb-0"><?php foreach ($update['history'] as $r): ?><li><strong><?= esc(\App\Libraries\VersionCheck::label($r['build'], $r['version'], $r['name'] ?? '')) ?>:</strong> <?= esc($r['notes']) ?></li><?php endforeach ?></ul>
             </details>
         <?php endif ?>
     </div>
 <?php endif ?>
-<?php if (! empty($lastUpdate)): ?>
+<?php if (! empty($lastUpdate)):
+    $vcJson = (new \App\Libraries\VersionCheck())->local();
+    $vName  = static fn (int $b): string => \App\Libraries\VersionCheck::nameOf($vcJson, $b) ?: (\App\Libraries\VersionCheck::nameOf(\App\Libraries\VersionCheck::cachedLatest()['data'], $b) ?: 'build ' . $b); ?>
     <div class="alert alert-light border d-flex flex-wrap align-items-center gap-3 small" role="status">
         <i class="bi bi-clock-history fs-5" aria-hidden="true"></i>
-        <div class="me-auto">Website diperbarui otomatis dari Versi <?= (int) $lastUpdate['from'] ?> ke Versi <?= (int) $lastUpdate['to'] ?> (<?= esc(date('d/m/Y H:i', strtotime($lastUpdate['at']))) ?>). Bila ada yang tidak berjalan semestinya, pembaruan dapat dibatalkan.</div>
+        <div class="me-auto">Website diperbarui otomatis dari Versi <?= esc($vName((int) $lastUpdate['from'])) ?> ke Versi <?= esc($vName((int) $lastUpdate['to'])) ?> (<?= esc(date('d/m/Y H:i', strtotime($lastUpdate['at']))) ?>). Bila ada yang tidak berjalan semestinya, pembaruan dapat dibatalkan.</div>
         <form action="<?= admin_url('pembaruan-aplikasi/batalkan') ?>" method="post" data-loading="Mengembalikan…"
-              data-confirm="Kembalikan berkas website ke Versi <?= (int) $lastUpdate['from'] ?>? Berkas dari pembaruan terakhir akan diganti dengan cadangannya.">
+              data-confirm="Kembalikan berkas website ke Versi <?= esc($vName((int) $lastUpdate['from']), 'attr') ?>? Berkas dari pembaruan terakhir akan diganti dengan cadangannya.">
             <?= csrf_field() ?>
             <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Batalkan pembaruan terakhir</button>
         </form>

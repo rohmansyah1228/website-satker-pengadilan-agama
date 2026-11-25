@@ -71,11 +71,11 @@ if ($rel === '') {
         <a href="<?= admin_url('akun') ?>" class="<?= $is('akun') ? 'active' : '' ?>"><i class="bi bi-person-circle" aria-hidden="true"></i>Akun Saya</a>
         <div class="grp">Bantuan</div>
         <a href="<?= admin_url('panduan') ?>" class="<?= $is('panduan') ? 'active' : '' ?>"<?= $is('panduan') ? ' aria-current="page"' : '' ?>><i class="bi bi-book" aria-hidden="true"></i>Panduan Penggunaan</a>
-        <?php $vcLocal = (new \App\Libraries\VersionCheck())->local(); $vcBuild = (int) ($vcLocal['build'] ?? 0); $vcNew = can([], true) ? \App\Libraries\VersionCheck::cachedLatest() : 0; ?>
+        <?php $vc = new \App\Libraries\VersionCheck(); $vcLocal = $vc->local(); $vcBuild = (int) ($vcLocal['build'] ?? 0); $vcNew = can([], true) ? \App\Libraries\VersionCheck::cachedLatest() : ['build' => 0, 'name' => '']; ?>
         <div class="admin-version">
-            <i class="bi bi-tag" aria-hidden="true"></i> <?= esc(\App\Libraries\VersionCheck::label($vcBuild, (string) ($vcLocal['version'] ?? ''))) ?>
-            <?php if ($vcNew > $vcBuild): ?>
-                <a href="<?= admin_url() ?>#pembaruan" class="admin-version__new"><i class="bi bi-arrow-up-circle" aria-hidden="true"></i> Versi <?= $vcNew ?> tersedia</a>
+            <i class="bi bi-tag" aria-hidden="true"></i> <?= esc(\App\Libraries\VersionCheck::label($vcBuild, (string) ($vcLocal['version'] ?? ''), $vc->localName())) ?>
+            <?php if ($vcNew['build'] > $vcBuild): ?>
+                <a href="<?= admin_url() ?>#pembaruan" class="admin-version__new"><i class="bi bi-arrow-up-circle" aria-hidden="true"></i> Versi <?= esc($vcNew['name'] ?: 'build ' . $vcNew['build']) ?> tersedia</a>
             <?php endif ?>
         </div>
     </nav>

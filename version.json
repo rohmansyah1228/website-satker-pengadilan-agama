@@ -6,6 +6,7 @@
   "releases": [
     {
       "build": 18,
+      "name": "1.8.0",
       "version": "2026-11-24",
       "notes": "Blok halaman baru Arsip Bulanan: laporan per bulan dalam satu tahun (mis. SERAPAN 01 & 04) tampil sebagai kartu Januari–Desember dengan status Menunggu Publikasi / Lihat Dokumen, dihitung Dashboard SINOVA. SIPP API Kantor: isian Folder aplikasi SIPP di Pengaturan bagian 1 untuk dokumen relaas (unduh ulang paket kantor dari Pengaturan → Integrasi SIPP).",
       "files": [
@@ -247,5 +248,6 @@
         "app/Libraries/UrlGuard.php"
       ]
     }
-  ]
+  ],
+  "name": "1.8.0"
 }

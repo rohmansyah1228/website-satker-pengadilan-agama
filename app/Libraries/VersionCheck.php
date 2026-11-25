@@ -10,20 +10,51 @@ class VersionCheck
 {
     public const TTL = 6 * 3600;
 
-    /** Nama versi untuk ditampilkan: "Versi 18 (24 November 2026)". */
-    public static function label(int $build, string $date = ''): string
+    /**
+     * Nama versi untuk ditampilkan: "Versi 1.8.0 (24 November 2026)".
+     * Nomor versi (name) diambil dari version.json; rilis lama tanpa nama tampil sebagai nomor build.
+     */
+    public static function label(int $build, string $date = '', string $name = ''): string
     {
         $d = $date !== '' && strtotime($date) ? tanggal_id($date) : '';
 
-        return 'Versi ' . $build . ($d !== '' ? ' (' . $d . ')' : '');
+        return 'Versi ' . ($name !== '' ? $name : 'build ' . $build) . ($d !== '' ? ' (' . $d . ')' : '');
     }
 
-    /** Versi terbaru dari hasil pemeriksaan terakhir (tanpa menghubungi GitHub), 0 bila belum diperiksa. */
-    public static function cachedLatest(): int
+    /** Nomor versi (mis. "1.8.0") untuk sebuah build dari isi version.json, '' bila tidak tercatat. */
+    public static function nameOf(?array $json, int $build): string
+    {
+        if (! $json) {
+            return '';
+        }
+        if ((int) ($json['build'] ?? 0) === $build && ! empty($json['name'])) {
+            return (string) $json['name'];
+        }
+        foreach ((array) ($json['releases'] ?? []) as $x) {
+            if ((int) ($x['build'] ?? 0) === $build && ! empty($x['name'])) {
+                return (string) $x['name'];
+            }
+        }
+
+        return '';
+    }
+
+    /** Versi terbaru dari hasil pemeriksaan terakhir (tanpa menghubungi GitHub): ['build','name','data']. */
+    public static function cachedLatest(): array
     {
         $c = cache('version_check');
+        $d = is_array($c) && is_array($c['data'] ?? null) ? $c['data'] : null;
 
-        return is_array($c) && is_array($c['data'] ?? null) ? (int) ($c['data']['build'] ?? 0) : 0;
+        return ['build' => (int) ($d['build'] ?? 0), 'name' => (string) ($d['name'] ?? ''), 'data' => $d];
+    }
+
+    /** Nomor versi yang terpasang (dari version.json lokal, atau dari daftar rilis di GitHub). */
+    public function localName(): string
+    {
+        $l = $this->local();
+        $b = (int) ($l['build'] ?? 0);
+
+        return self::nameOf($l, $b) ?: self::nameOf(self::cachedLatest()['data'], $b);
     }
 
     /** version.json yang ikut terpasang bersama kode (versi yang sedang berjalan). */
@@ -45,7 +76,8 @@ class VersionCheck
         $repo  = (string) ($local['repo'] ?? '');
         $base  = ['available' => false, 'local' => (int) ($local['build'] ?? 0), 'latest' => (int) ($local['build'] ?? 0),
             'version' => (string) ($local['version'] ?? '-'), 'localVersion' => (string) ($local['version'] ?? ''), 'repo' => $repo,
-            'history' => array_slice(array_map(static fn ($x) => ['version' => (string) ($x['version'] ?? ''), 'build' => (int) ($x['build'] ?? 0), 'notes' => (string) ($x['notes'] ?? '')], (array) ($local['releases'] ?? [])), 0, 5),
+            'name' => '', 'localName' => '',
+            'history' => array_slice(array_map(static fn ($x) => ['version' => (string) ($x['version'] ?? ''), 'build' => (int) ($x['build'] ?? 0), 'name' => (string) ($x['name'] ?? ''), 'notes' => (string) ($x['notes'] ?? '')], (array) ($local['releases'] ?? [])), 0, 5),
             'url' => $repo ? 'https://github.com/' . $repo : '', 'releases' => [], 'files' => [], 'error' => null, 'checkedAt' => null];
 
         if ($repo === '') {
@@ -53,6 +85,8 @@ class VersionCheck
         }
         $remote = $this->remote($local);
         $base['checkedAt'] = $remote['at'] ?? null;
+        $base['localName'] = self::nameOf($local, $base['local']) ?: self::nameOf($remote['data'] ?? null, $base['local']);
+        $base['name']      = $base['localName'];
         if (! empty($remote['error'])) {
             $base['error'] = $remote['error'];
 
@@ -78,7 +112,8 @@ class VersionCheck
             'available' => true,
             'latest'    => $latest,
             'version'   => (string) ($r['version'] ?? $base['version']),
-            'releases'  => array_map(static fn ($x) => ['version' => (string) ($x['version'] ?? ''), 'build' => (int) ($x['build'] ?? 0), 'notes' => (string) ($x['notes'] ?? '')], $newer),
+            'name'      => (string) ($r['name'] ?? ''),
+            'releases'  => array_map(static fn ($x) => ['version' => (string) ($x['version'] ?? ''), 'build' => (int) ($x['build'] ?? 0), 'name' => (string) ($x['name'] ?? ''), 'notes' => (string) ($x['notes'] ?? '')], $newer),
             'files'     => array_keys($files),
         ]);
     }
