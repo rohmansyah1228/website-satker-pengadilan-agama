@@ -207,7 +207,8 @@ class SecurityScan
                 continue;
             }
             if (! is_file($abs)) {
-                if (! preg_match('#^(docs|deploy)/#', $p)) { // dokumentasi boleh tidak ikut diunggah
+                // dokumentasi & berkas lisensi/teks boleh tidak ikut diunggah (tidak bisa dijalankan, tidak berbahaya bila hilang)
+                if (! preg_match('#^(docs|deploy)/#', $p) && ! preg_match('#(^|/)(LICEN[CS]E|COPYING|NOTICE|AUTHORS|CHANGELOG|README)[^/]*$|\.(md|txt)$#i', $p)) {
                     $out[] = $this->finding('file', 'missing', preg_match(self::SCRIPT, $p) || preg_match(self::SERVERCFG, $p) ? 'warn' : 'warn', $p, 'Berkas resmi tidak ada.');
                 }
                 continue;
@@ -465,16 +466,23 @@ class SecurityScan
         }
     }
 
-    /** Pulihkan semua berkas pustaka (vendor) dari temuan terakhir. @return array{0:int,1:array} [berhasil, gagal] */
-    public function restoreVendor(): array
+    /**
+     * Pulihkan banyak berkas sekaligus dari temuan terakhir.
+     * $which: 'vendor' = baris Pustaka; 'all' = semua berkas Diubah/Hilang + Pustaka.
+     * @return array{0:int,1:array} [berhasil, gagal]
+     */
+    public function restoreVendor(string $which = 'vendor'): array
     {
-        @set_time_limit(600);
+        @set_time_limit(900);
         $paths = [];
         foreach ((self::last()['files'] ?? []) as $f) {
             if ($f['kind'] === 'vendor') {
-                $paths = $f['info']['paths'] ?? [];
+                $paths = array_merge($paths, $f['info']['paths'] ?? []);
+            } elseif ($which === 'all' && in_array($f['kind'], ['changed', 'missing'], true)) {
+                $paths[] = $f['path'];
             }
         }
+        $paths = array_values(array_unique($paths));
         $ok = 0;
         $bad = [];
         foreach ($paths as $p) {

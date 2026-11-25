@@ -61,7 +61,17 @@ $kindLabel = ['changed' => 'Diubah', 'missing' => 'Hilang', 'unknown' => 'Berkas
     </div>
 
     <div class="card mb-3">
-        <div class="card-header bg-white fw-bold"><i class="bi bi-file-earmark-code" aria-hidden="true"></i> Berkas website (<?= count($scan['files']) ?>)</div>
+        <?php
+        $nRestore = 0;
+        foreach ($scan['files'] as $f) {
+            $nRestore += $f['kind'] === 'vendor' ? count($f['info']['paths'] ?? []) : (in_array($f['kind'], ['changed', 'missing'], true) ? 1 : 0);
+        } ?>
+        <div class="card-header bg-white fw-bold d-flex flex-wrap align-items-center gap-2"><span><i class="bi bi-file-earmark-code" aria-hidden="true"></i> Berkas website (<?= count($scan['files']) ?>)</span>
+            <?php if ($nRestore > 1 && $ref['ok']): ?>
+                <form action="<?= admin_url('keamanan/pulihkan') ?>" method="post" class="ms-auto" data-confirm-ok="Ya, Pulihkan Semua" data-confirm="Kembalikan <?= $nRestore ?> berkas Diubah/Hilang/Pustaka ke isi resmi dari GitHub? Perubahan yang Anda buat sendiri pada berkas tersebut akan tertimpa (salinan lama disimpan di writable/backups/). Berkas asing tidak ikut; karantina satu per satu."><?= csrf_field() ?>
+                    <input type="hidden" name="path" value="__semua__"><button class="btn btn-sm btn-pa-primary"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Pulihkan semua (<?= $nRestore ?> berkas)</button></form>
+            <?php endif ?>
+        </div>
         <?php if (! $scan['files']): ?>
             <div class="card-body text-success small"><i class="bi bi-check-circle" aria-hidden="true"></i> <?= $ref['ok'] ? 'Semua berkas sama dengan versi resmi dan tidak ada berkas skrip asing.' : 'Tidak ada berkas skrip asing yang ditemukan.' ?></div>
         <?php else: ?>
