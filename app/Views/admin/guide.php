@@ -574,7 +574,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
     </ul>
     <p>Pemeriksaan berjalan otomatis setiap 24 jam saat Super Admin membuka Dashboard. Bila ada temuan, Dashboard menampilkan peringatan merah dan menu samping diberi angka.</p>
     <?= $img('17-peringatan-dashboard.jpg', 'Peringatan di Dashboard bila Pemeriksaan Keamanan menemukan masalah.') ?>
-    <?= $img('17-pemeriksaan-keamanan.jpg', 'Halaman Pemeriksaan Keamanan: footer disisipi tautan judi, webshell di folder unggahan, dan berita berisi tautan togel tersembunyi.') ?>
+    <?= $img('17-pemeriksaan-keamanan.jpg', 'Halaman Pemeriksaan Keamanan: footer disisipi tautan judi, webshell di folder unggahan, dan berita berisi tautan judi tersembunyi.') ?>
     <div class="table-responsive"><table class="table table-sm align-middle">
         <thead><tr><th>Tombol</th><th>Fungsi</th></tr></thead>
         <tbody>

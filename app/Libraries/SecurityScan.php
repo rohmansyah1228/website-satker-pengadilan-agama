@@ -34,7 +34,7 @@ class SecurityScan
 
     /** Berkas bawaan website (dipakai bila daftar sidik resmi belum tersedia). */
     private const BASE_OK = ['.htaccess', 'preload.php', 'spark', 'public/.htaccess', 'public/index.php', 'public/uploads/.htaccess', 'writable/.htaccess',
-        'app/Libraries/SecurityScan.php']; // berkas ini sendiri memuat daftar kata kunci yang dicari
+        'app/Libraries/SecurityScan.php', 'app/Views/admin/guide.php']; // berkas ini & Panduan memuat contoh kata kunci yang dicari
 
     /** Berkas asing yang wajar di akar website (dibuat penyedia hosting / instalasi). */
     private const ROOT_OK = ['.env', 'error_log', '.well-known', 'cgi-bin', '.ftpquota', '.htpasswds'];
@@ -210,8 +210,10 @@ class SecurityScan
             if (! $known && ! preg_match('#^(public/uploads/|writable/)#', $p) && str_contains($p, '/')) {
                 // tanpa daftar resmi: berkas kode website tidak bisa dibedakan, laporkan hanya yang berciri webshell/judi
                 $head = (string) @file_get_contents($abs, false, null, 0, 262144);
-                if (preg_match(self::SCRIPT, $p) && (preg_match(self::SHELL, $head) || preg_match(self::JUDI, $head))) {
-                    $out[] = $this->finding('file', 'unknown', 'danger', $p, 'Berkas berciri webshell / sisipan judi.', $this->fileInfo($abs));
+                if (preg_match(self::SCRIPT, $p) && preg_match(self::SHELL, $head)) {
+                    $out[] = $this->finding('file', 'suspect', 'danger', $p, 'Berkas berciri webshell (pintu belakang).', $this->fileInfo($abs));
+                } elseif (preg_match(self::SCRIPT, $p) && preg_match(self::JUDI, $head)) {
+                    $out[] = $this->finding('file', 'suspect', 'warn', $p, 'Berkas memuat kata yang biasa dipakai sisipan judi online. Periksa isinya: bila hanya teks wajar, klik Aman.', $this->fileInfo($abs));
                 }
                 continue;
             }

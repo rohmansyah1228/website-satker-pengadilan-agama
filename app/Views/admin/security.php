@@ -9,7 +9,7 @@ $fmtAge = static function (int $t): string {
 $levelBadge = static fn (string $l): string => $l === 'danger'
     ? '<span class="badge text-bg-danger">Bahaya</span>'
     : '<span class="badge text-bg-warning">Periksa</span>';
-$kindLabel = ['changed' => 'Diubah', 'missing' => 'Hilang', 'unknown' => 'Berkas asing'];
+$kindLabel = ['changed' => 'Diubah', 'missing' => 'Hilang', 'unknown' => 'Berkas asing', 'suspect' => 'Mencurigakan'];
 ?>
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
     <div>
@@ -81,7 +81,7 @@ $kindLabel = ['changed' => 'Diubah', 'missing' => 'Hilang', 'unknown' => 'Berkas
                             <?php if (in_array($f['kind'], ['changed', 'missing'], true) && $ref['ok']): ?>
                                 <form action="<?= admin_url('keamanan/pulihkan') ?>" method="post" class="d-inline" data-confirm-ok="Ya, Pulihkan" data-confirm="Kembalikan <?= esc($f['path'], 'attr') ?> ke isi resmi dari GitHub? Salinan berkas sekarang disimpan di writable/backups/."><?= csrf_field() ?>
                                     <input type="hidden" name="path" value="<?= esc($f['path'], 'attr') ?>"><button class="btn btn-sm btn-pa-primary"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Pulihkan</button></form>
-                            <?php elseif ($f['kind'] === 'unknown'): ?>
+                            <?php elseif ($f['kind'] === 'unknown' || ($f['kind'] === 'suspect' && $f['level'] === 'danger')): ?>
                                 <form action="<?= admin_url('keamanan/karantina') ?>" method="post" class="d-inline" data-confirm-ok="Ya, Karantina" data-confirm="Pindahkan <?= esc($f['path'], 'attr') ?> ke karantina (writable/karantina)? Berkas tidak dihapus, tetapi tidak bisa dijalankan lagi dari web."><?= csrf_field() ?>
                                     <input type="hidden" name="path" value="<?= esc($f['path'], 'attr') ?>"><button class="btn btn-sm btn-danger"><i class="bi bi-shield-x" aria-hidden="true"></i> Karantina</button></form>
                             <?php endif ?>
