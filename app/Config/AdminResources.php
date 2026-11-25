@@ -234,7 +234,7 @@ class AdminResources extends BaseConfig
                     'position' => ['Jabatan', 'text', 'permit_empty|max_length[150]'],
                     'year'     => ['Tahun Lapor', 'year', 'required|integer'],
                     'file_id'  => ['Ikhtisar Kekayaan (PDF)', 'pdf', 'permit_empty'],
-                    'sort'     => ['Urutan Tampil', 'number', 'permit_empty|integer|greater_than_equal_to[0]', 'blank_zero' => true, 'placeholder' => 'Otomatis', 'help' => 'Kosongkan = otomatis menurut jabatan: Ketua (10), Wakil Ketua (20), Hakim (30), Panitera (40), Wakil Panitera (45), Sekretaris (50), Panitera Muda (60), Kasubbag (70), Panitera Pengganti (80), Jurusita (85), lainnya (90). Isi angka untuk mengatur sendiri, mis. 31, 32, 33 untuk mengurutkan para hakim.'],
+                    'sort'     => ['Urutan Tampil', 'number', 'permit_empty|integer|greater_than_equal_to[0]', 'blank_zero' => true, 'placeholder' => 'Otomatis', 'help' => 'Kosongkan = otomatis menurut jabatan (daftar urutan jabatan diatur Admin di Pengaturan → Identitas Satker). Isi angka untuk mengatur sendiri; angka kecil tampil lebih atas, mis. 31, 32, 33 untuk mengurutkan para hakim.', 'help_dynamic' => 'lhkpn'],
                 ],
             ],
             'wilayah' => [

@@ -9,6 +9,9 @@ $required = str_contains($rules, 'required') && ! str_contains($rules, 'permit_e
 $err      = $errors[$name] ?? null;
 $id       = 'f_' . $name;
 $invalid  = $err ? ' is-invalid' : '';
+if (($f['help_dynamic'] ?? '') === 'lhkpn') {
+    $f['help'] = ($f['help'] ?? '') . ' Nilai otomatis saat ini: ' . \App\Libraries\LhkpnOrder::legend() . '.';
+}
 $desc     = trim(($f['help'] ?? '') !== '' ? $id . '_help' : '');
 $aria     = ($desc ? ' aria-describedby="' . $desc . ($err ? ' ' . $id . '_err' : '') . '"' : ($err ? ' aria-describedby="' . $id . '_err"' : '')) . ($err ? ' aria-invalid="true"' : '');
 $disabled = ! empty($lockedField) ? ' readonly' : '';
@@ -28,7 +31,7 @@ $showWhen  = ! empty($f['show_when']) ? ' data-show-when="' . esc($f['show_when'
         <label for="<?= $id ?>" class="form-label fw-semibold"><?= esc($label) ?><?= $required ? ' <span class="text-danger" aria-hidden="true">*</span>' : '' ?></label>
         <?php switch ($type):
             case 'textarea': ?>
-                <textarea id="<?= $id ?>" name="<?= $inputName ?>" rows="4" class="form-control<?= $invalid ?>"<?= $required ? ' required' : '' ?><?= $aria ?>><?= esc((string) $value) ?></textarea>
+                <textarea id="<?= $id ?>" name="<?= $inputName ?>" rows="<?= (int) ($f['rows'] ?? 4) ?>" class="form-control<?= $invalid ?>"<?= $required ? ' required' : '' ?><?= $aria ?>><?= esc((string) $value) ?></textarea>
             <?php break; case 'richtext':
                 $html = (string) $value;
                 if (trim($html) !== '' && ! preg_match('/<(p|ol|ul|li|br|div|h\d|table|strong|em|a)\b/i', $html)) {

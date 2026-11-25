@@ -40,7 +40,8 @@
     <div class="row">
         <?php foreach ($fields as $key => $def): [$lbl, $type, $help] = $def;
             $f = [$lbl, $type, '', 'help' => $help];
-            if ($type === 'select') { $f['options'] = $def[3]; } ?>
+            if ($type === 'select') { $f['options'] = $def[3]; }
+            if ($key === 'lhkpn_jabatan') { $f['rows'] = 12; } ?>
             <div class="<?= in_array($type, ['textarea', 'image'], true) ? 'col-12' : 'col-md-6' ?>">
                 <?= view('admin/_field', ['name' => $key, 'f' => $f, 'value' => $values[$key] ?? '', 'errors' => [], 'lookups' => []]) ?>
             </div>

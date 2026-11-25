@@ -18,6 +18,7 @@ class Settings extends AdminController
                 'logo'             => ['Logo (PNG/WebP)', 'image', 'Logo resmi Mahkamah Agung RI.'],
                 'meta_description' => ['Deskripsi Situs (SEO)', 'textarea', ''],
                 'footer_note'      => ['Catatan Kaki', 'text', ''],
+                'lhkpn_jabatan'    => ['Urutan jabatan LHKPN', 'textarea', 'Satu jabatan per baris, dari yang paling atas. Tabel LHKPN diurutkan menurut daftar ini (baris 1 paling atas). Cukup tulis bagian khas jabatannya, mis. "Ketua" cocok dengan "Ketua Pengadilan Agama …"; "Wakil Ketua" tetap dibedakan dari "Ketua". Jabatan yang tidak ada di daftar tampil paling bawah. Kosongkan semua untuk kembali ke urutan bawaan.'],
             ]],
             'kontak' => ['Alamat & Kontak', [
                 'address_street'   => ['Nama Jalan', 'text', ''],
@@ -101,6 +102,9 @@ class Settings extends AdminController
 
         $values = service('siteSettings')->all();
         $values += ['cloudflare' => '1']; // nilai bawaan yang berlaku
+        if (trim((string) ($values['lhkpn_jabatan'] ?? '')) === '') {
+            $values['lhkpn_jabatan'] = \App\Libraries\LhkpnOrder::defaultText();
+        }
         $sipp   = null;
         if ($tab === 'sipp') {
             $this->authorize([], true);
@@ -204,6 +208,12 @@ class Settings extends AdminController
                     }
                 }
                 continue;
+            }
+            if ($key === 'lhkpn_jabatan') {
+                $v = implode("\n", \App\Libraries\LhkpnOrder::clean((string) $v));
+                if ($v === \App\Libraries\LhkpnOrder::defaultText()) {
+                    $v = ''; // sama dengan bawaan
+                }
             }
             if ($key === 'footer_links') {
                 $bad = [];
