@@ -102,7 +102,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
     <p>Bila ada versi baru di GitHub, <strong>Dashboard SINOVA</strong> menampilkan kotak <strong>Versi baru website tersedia</strong>: versi yang terpasang → versi baru, beserta isi perubahan setiap versi. Super Admin cukup klik <strong>Update ke Versi …</strong>, konfirmasi, lalu tunggu sampai muncul pesan berhasil (jangan tutup halaman). Sistem akan:</p>
     <ol>
         <li>memeriksa <strong>tanda tangan digital</strong> rilis (lihat <a href="#tanda-tangan">Tanda tangan digital pembaruan</a>), lalu mengunduh <strong>hanya berkas yang berubah</strong> dan mencocokkan setiap berkas dengan sidik resminya — bila satu berkas gagal, tidak ada yang diubah;</li>
-        <li>menyimpan <strong>cadangan berkas lama</strong> di <code>writable/backups/pembaruan-…</code>;</li>
+        <li>membuat <strong>cadangan database</strong> lalu menyimpan <strong>cadangan berkas lama</strong> di <code>writable/backups/pembaruan-…</code>;</li>
         <li>menimpa berkas, lalu menjalankan <strong>pembaruan database</strong> bila ada.</li>
     </ol>
     <p>Berkas <code>.env</code>, folder <code>writable/</code>, dan <code>public/uploads/</code> tidak pernah disentuh, sehingga berita, pengaturan, unggahan, dan database tetap aman. Bila setelah pembaruan ada yang tidak berjalan semestinya, klik <strong>Batalkan pembaruan terakhir</strong> di Dashboard untuk mengembalikan berkas.</p>
@@ -157,6 +157,17 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
         <li>Hapus semua teks <strong>[LENGKAPI]</strong>.</li>
     </ul>
     <p><strong>Salin URL</strong> menyalin alamat bukti untuk diisikan ke aplikasi SINOVA Badilag. Persentase = Lengkap (nilai penuh) + Perlu perbaikan (setengah).</p>
+    <h3 id="kesehatan">Kesehatan Website</h3>
+    <p>Super Admin melihat kotak <strong>Kesehatan Website</strong> di Dashboard bila ada hal yang perlu diperbaiki, lengkap dengan sarannya. Kotak ini tidak muncul bila semuanya baik.</p>
+    <ul>
+        <li>Versi PHP sudah atau hampir tidak mendapat perbaikan keamanan.</li>
+        <li>Website belum memakai HTTPS (tidak diperiksa di komputer lokal/XAMPP).</li>
+        <li>Pengguna yang belum mengaktifkan MFA.</li>
+        <li>Alamat panel admin mudah ditebak (mis. <code>/administrator</code>).</li>
+        <li>Cadangan database: belum ada, gagal, dinonaktifkan, atau lebih dari 30 hari belum diunduh ke komputer.</li>
+        <li>Ruang disk hosting hampir penuh.</li>
+    </ul>
+    <?= $img('04-kesehatan-website.jpg', 'Kotak Kesehatan Website di Dashboard.') ?>
     <h3>Kotak di bagian atas Dashboard</h3>
     <ul>
         <li><strong>Versi baru website tersedia</strong> (Super Admin): berisi catatan perubahan dan tombol <strong>Update Website</strong>. Lihat <a href="#pemasangan">bab 2 — Pembaruan website</a>.</li>
@@ -585,6 +596,23 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
         </tbody>
     </table></div>
     <?= $tip('Bila ditemukan sisipan: setelah dibersihkan, <strong>ganti password semua admin</strong>, password cPanel/FTP dan database, perbarui website ke versi terbaru, lalu periksa ulang. Sisipan judi biasanya masuk lewat password hosting yang bocor atau aplikasi lain di hosting yang sama.', 'warn') ?>
+    <h3 id="cadangan">Cadangan database</h3>
+    <p>Menu <em>Sistem → Cadangan</em> (Super Admin) menyimpan salinan seluruh isi database (berita, halaman, pengaturan, data layanan) dalam berkas <code>.sql.gz</code> di <code>writable/backups/database/</code>, yang tidak bisa dibuka dari web.</p>
+    <div class="table-responsive"><table class="table table-sm align-middle">
+        <thead><tr><th>Jenis</th><th>Kapan dibuat</th><th>Dihapus otomatis?</th></tr></thead>
+        <tbody>
+            <tr><td>Terjadwal</td><td>Harian atau mingguan (bawaan: mingguan), dibuat di latar belakang tanpa memperlambat pengunjung</td><td>Ya, hanya <em>N</em> terakhir yang disimpan</td></tr>
+            <tr><td>Sebelum Update</td><td>Otomatis setiap Update Website, sebelum berkas ditimpa (bila gagal, pembaruan dibatalkan)</td><td>Ya, hanya <em>N</em> terakhir yang disimpan</td></tr>
+            <tr><td>Manual</td><td>Tombol <strong>Buat cadangan sekarang</strong></td><td>Tidak, hapus sendiri bila tidak diperlukan</td></tr>
+        </tbody>
+    </table></div>
+    <p><em>N</em> = <strong>Jumlah yang disimpan</strong>, dapat dipilih 1–5 (bawaan 3). Cadangan berkas dari Update Website (<code>writable/backups/pembaruan-…</code>) ikut dibatasi dengan jumlah yang sama; yang terbaru selalu disimpan agar <em>Batalkan pembaruan terakhir</em> tetap bisa dipakai.</p>
+    <?= $img('17-cadangan.jpg', 'Halaman Cadangan: pengaturan jadwal & jumlah, daftar cadangan dengan tombol Unduh dan Hapus.') ?>
+    <ul>
+        <li><strong>Unduh cadangan ke komputer kantor secara rutin</strong> (mis. sebulan sekali). Cadangan yang hanya ada di hosting tidak menolong bila hostingnya rusak atau diretas.</li>
+        <li>Memulihkan: phpMyAdmin → pilih database → <em>Impor</em> → pilih berkas <code>.sql.gz</code> (tidak perlu diekstrak).</li>
+        <li>Cadangan ini berisi database saja. Gambar & PDF unggahan (<code>public/uploads</code>, <code>writable/uploads</code>) dicadangkan lewat fitur Backup di cPanel.</li>
+    </ul>
     <h3 id="tanda-tangan">Tanda tangan digital pembaruan</h3>
     <p>Setiap rilis di GitHub ditandatangani secara digital oleh pengelola. <strong>Update Website hanya memasang rilis yang tanda tangannya sah</strong>, dan setiap berkas yang diunduh harus sama persis dengan sidiknya. Rilis tanpa tanda tangan, ditandatangani pihak lain, atau berkasnya disisipi ditolak dengan pesan <em>“Tanda tangan digital rilis TIDAK VALID”</em> dan tidak ada berkas yang diubah. Dengan begitu, walaupun akun GitHub dibobol, kode berbahaya tidak bisa menyebar ke website satker lewat tombol Update.</p>
     <h3 id="cloudflare">Memakai Cloudflare (opsional)</h3>

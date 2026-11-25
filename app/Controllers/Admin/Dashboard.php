@@ -19,7 +19,22 @@ class Dashboard extends AdminController
             'update' => can([], true) ? (new \App\Libraries\VersionCheck())->status() : null,
             'lastUpdate' => can([], true) ? $this->undoableUpdate() : null,
             'security'   => can([], true) ? $this->securityStatus() : null,
+            'health'     => can([], true) ? $this->healthChecks() : [],
         ]);
+    }
+
+    /** Kesehatan Website; sekalian menjalankan cadangan terjadwal bila waktunya. */
+    private function healthChecks(): array
+    {
+        try {
+            \App\Libraries\Backup::runIfDue();
+
+            return (new \App\Libraries\SiteHealth())->checks();
+        } catch (\Throwable $e) {
+            log_message('error', 'Kesehatan website: ' . $e->getMessage());
+
+            return [];
+        }
     }
 
     /** Hasil Pemeriksaan Keamanan; dijalankan otomatis bila sudah lebih dari 24 jam. */
@@ -90,7 +105,7 @@ class Dashboard extends AdminController
         $vj    = (new \App\Libraries\VersionCheck())->local();
         $toNm  = \App\Libraries\VersionCheck::nameOf($vj, (int) $r['to']) ?: 'build ' . $r['to'];
         $this->log('pembaruan', 'Pembaruan otomatis build ' . $r['from'] . ' → ' . $r['to'] . ' (' . count($r['written']) . ' berkas, cadangan ' . $r['backup'] . ')');
-        $msg = 'Website berhasil diperbarui ke Versi ' . $toNm . ' (tanda tangan digital sah): ' . count($r['written']) . ' berkas diperbarui'
+        $msg = 'Website berhasil diperbarui ke Versi ' . $toNm . ' (tanda tangan digital sah, cadangan database: ' . ($r['dbBackup'] ?? '-') . '): ' . count($r['written']) . ' berkas diperbarui'
             . ($r['removed'] ? ', ' . count($r['removed']) . ' berkas lama dihapus' : '')
             . ($r['migrations'] ? ', ' . $r['migrations'] . ' pembaruan database dijalankan' : '')
             . '. Cadangan berkas lama: writable/backups/' . $r['backup'] . '.';

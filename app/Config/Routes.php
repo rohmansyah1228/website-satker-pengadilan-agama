@@ -87,6 +87,11 @@ $routes->group($admin, ['namespace' => 'App\Controllers\Admin'], static function
         $routes->post('pembaruan-database', 'Dashboard::migrate');
         $routes->post('pembaruan-aplikasi', 'Dashboard::selfUpdate');
         $routes->post('pembaruan-aplikasi/batalkan', 'Dashboard::rollbackUpdate');
+        $routes->get('cadangan', 'Backups::index');
+        $routes->post('cadangan/buat', 'Backups::create');
+        $routes->get('cadangan/unduh/(:segment)', 'Backups::download/$1');
+        $routes->post('cadangan/hapus', 'Backups::delete');
+        $routes->post('cadangan/pengaturan', 'Backups::settings');
         $routes->get('keamanan', 'Security::index');
         $routes->post('keamanan/periksa', 'Security::run');
         $routes->post('keamanan/pulihkan', 'Security::restore');

@@ -16,6 +16,20 @@
         <a href="<?= admin_url('keamanan') ?>" class="btn btn-<?= $sd['danger'] ? 'danger' : 'warning' ?> fw-semibold"><i class="bi bi-shield-check" aria-hidden="true"></i> Lihat temuan</a>
     </div>
 <?php endif ?>
+<?php if (! empty($health)): $hd = count(array_filter($health, static fn ($h) => $h['level'] === 'danger')); ?>
+    <div class="card border-<?= $hd ? 'danger' : 'warning' ?> mb-3" id="kesehatan">
+        <div class="card-header bg-white fw-bold"><i class="bi bi-heart-pulse text-<?= $hd ? 'danger' : 'warning' ?>" aria-hidden="true"></i> Kesehatan Website — <?= count($health) ?> hal perlu diperhatikan</div>
+        <ul class="list-group list-group-flush">
+            <?php foreach ($health as $h): ?>
+                <li class="list-group-item d-flex flex-wrap gap-2 align-items-start">
+                    <span class="badge <?= $h['level'] === 'danger' ? 'text-bg-danger' : 'text-bg-warning' ?> mt-1"><?= $h['level'] === 'danger' ? 'Penting' : 'Saran' ?></span>
+                    <div class="me-auto" style="flex:1;min-width:16rem"><strong><?= esc($h['title']) ?></strong><br><span class="small text-secondary"><?= esc($h['advice']) ?></span></div>
+                    <?php if ($h['link']): ?><a href="<?= admin_url($h['link']) ?>" class="btn btn-sm btn-outline-secondary">Buka</a><?php endif ?>
+                </li>
+            <?php endforeach ?>
+        </ul>
+    </div>
+<?php endif ?>
 <?php if (! empty($update) && ! empty($update['available'])): ?>
     <div class="alert alert-info" role="alert" id="pembaruan">
         <div class="d-flex flex-wrap align-items-center gap-3">
@@ -27,11 +41,11 @@
                     <i class="bi bi-arrow-right" aria-hidden="true"></i><span class="visually-hidden">diperbarui ke</span>
                     <span class="badge text-bg-primary fs-6 fw-semibold">Baru: <?= esc(\App\Libraries\VersionCheck::label((int) $update['latest'], $update['version'], $update['name'] ?? '')) ?></span>
                 </div>
-                Klik tombol <strong>Update</strong>: sistem mengunduh <strong>hanya berkas yang berubah</strong> dari GitHub, menyimpan cadangan berkas lama, lalu menjalankan pembaruan database.
+                Klik tombol <strong>Update</strong>: sistem mengunduh <strong>hanya berkas yang berubah</strong> dari GitHub, mencadangkan database dan berkas lama, lalu menjalankan pembaruan database.
                 Data Anda (berita, pengaturan, unggahan, database) tidak terpengaruh.
             </div>
             <form action="<?= admin_url('pembaruan-aplikasi') ?>" method="post" data-loading="Memperbarui… jangan tutup halaman"
-                  data-confirm="Perbarui website dari Versi <?= esc($update['localName'] ?: 'build ' . $update['local'], 'attr') ?> ke Versi <?= esc($update['name'] ?: 'build ' . $update['latest'], 'attr') ?> sekarang? <?= count($update['files']) ?> berkas akan diunduh dari GitHub dan menimpa berkas lama (cadangan otomatis disimpan di writable/backups/). Disarankan cadangkan database lebih dulu (phpMyAdmin → Export).">
+                  data-confirm="Perbarui website dari Versi <?= esc($update['localName'] ?: 'build ' . $update['local'], 'attr') ?> ke Versi <?= esc($update['name'] ?: 'build ' . $update['latest'], 'attr') ?> sekarang? <?= count($update['files']) ?> berkas akan diunduh dari GitHub dan menimpa berkas lama (cadangan otomatis disimpan di writable/backups/). Cadangan database dibuat otomatis lebih dulu.">
                 <?= csrf_field() ?>
                 <button type="submit" class="btn btn-primary fw-semibold"><i class="bi bi-cloud-download" aria-hidden="true"></i> Update ke Versi <?= esc($update['name'] ?: (string) $update['latest']) ?></button>
             </form>

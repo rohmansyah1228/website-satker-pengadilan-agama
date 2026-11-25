@@ -14,7 +14,7 @@ $rel   = trim(substr($path, strlen(rtrim($base, '/'))), '/');
 $guide = 'pendahuluan';
 foreach ([
     'halaman' => 'halaman', 'menu' => 'menu', 'beranda' => 'beranda', 'data/berita' => 'berita', 'data/slider' => 'slider',
-    'data/pintasan' => 'pintasan', 'data/video' => 'video', 'data/ucapan' => 'ucapan', 'keamanan' => 'pemeriksaan-keamanan', 'data/' => 'data', 'pengaturan' => 'pengaturan', 'pengguna' => 'pengguna',
+    'data/pintasan' => 'pintasan', 'data/video' => 'video', 'data/ucapan' => 'ucapan', 'keamanan' => 'pemeriksaan-keamanan', 'cadangan' => 'cadangan', 'data/' => 'data', 'pengaturan' => 'pengaturan', 'pengguna' => 'pengguna',
     'log' => 'pengguna', 'akun' => 'login', 'impor' => 'impor-berita', 'panduan' => '',
 ] as $prefix => $anchor) {
     if (str_starts_with($rel . '/', rtrim($prefix, '/') . '/') || ($prefix === 'data/' && str_starts_with($rel, 'data/'))) {
@@ -66,6 +66,7 @@ if ($rel === '') {
         <?php if (can([], true)): ?>
             <a href="<?= admin_url('pengguna') ?>" class="<?= $is('pengguna') ? 'active' : '' ?>"><i class="bi bi-people" aria-hidden="true"></i>Pengguna</a>
             <a href="<?= admin_url('log') ?>" class="<?= $is('log') ? 'active' : '' ?>"><i class="bi bi-journal-text" aria-hidden="true"></i>Log Aktivitas</a>
+            <a href="<?= admin_url('cadangan') ?>" class="<?= $is('cadangan') ? 'active' : '' ?>"<?= $is('cadangan') ? ' aria-current="page"' : '' ?>><i class="bi bi-database-down" aria-hidden="true"></i>Cadangan</a>
             <?php $secN = \App\Libraries\SecurityScan::alerts(); ?>
             <a href="<?= admin_url('keamanan') ?>" class="<?= $is('keamanan') ? 'active' : '' ?>"<?= $is('keamanan') ? ' aria-current="page"' : '' ?>><i class="bi bi-shield-check" aria-hidden="true"></i>Pemeriksaan Keamanan<?php if ($secN): ?> <span class="badge rounded-pill text-bg-danger ms-auto" title="<?= $secN ?> temuan"><?= $secN ?></span><?php endif ?></a>
             <a href="<?= admin_url('impor') ?>" class="<?= $is('impor') ? 'active' : '' ?>"><i class="bi bi-cloud-download" aria-hidden="true"></i>Impor Berita Lama</a>

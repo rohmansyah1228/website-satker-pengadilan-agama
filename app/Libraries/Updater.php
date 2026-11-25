@@ -215,6 +215,13 @@ class Updater
             $new[$p] = $body;
         }
 
+        // 5a. cadangan database lebih dulu (wajib; bila gagal pembaruan dibatalkan)
+        try {
+            $dbBackup = (new Backup())->create('pembaruan');
+        } catch (\Throwable $e) {
+            throw new RuntimeException('Cadangan database sebelum pembaruan gagal (' . $e->getMessage() . ') — pembaruan dibatalkan, tidak ada yang diubah.');
+        }
+
         // 5. cadangkan lalu tulis
         $backup = self::backupRoot() . 'pembaruan-' . date('Ymd-His') . '-build' . $fromBuild . '-ke-' . $toBuild . DIRECTORY_SEPARATOR;
         if (! @mkdir($backup, 0755, true) && ! is_dir($backup)) {
@@ -223,7 +230,7 @@ class Updater
         @file_put_contents(self::backupRoot() . 'index.html', '');
         @file_put_contents(self::backupRoot() . '.htaccess', "Require all denied\nDeny from all\n");
 
-        $manifest = ['from' => $fromBuild, 'to' => $toBuild, 'ref' => $ref, 'at' => date('c'), 'saved' => [], 'created' => [], 'removed' => []];
+        $manifest = ['from' => $fromBuild, 'to' => $toBuild, 'ref' => $ref, 'at' => date('c'), 'saved' => [], 'created' => [], 'removed' => [], 'database' => $dbBackup];
         foreach (array_merge(array_keys($new), $removed, Integrity::META) as $p) {
             $abs = ROOTPATH . $p;
             if (is_file($abs)) {
@@ -278,7 +285,12 @@ class Updater
             log_message('error', 'Pembaruan otomatis — migrasi: ' . $migErr);
         }
 
-        return ['from' => $fromBuild, 'to' => $toBuild, 'written' => $done, 'removed' => $manifest['removed'],
+        try {
+            (new Backup())->rotate(); // batasi jumlah cadangan lama
+        } catch (\Throwable) {
+        }
+
+        return ['from' => $fromBuild, 'to' => $toBuild, 'written' => $done, 'removed' => $manifest['removed'], 'dbBackup' => $dbBackup,
             'backup' => basename(rtrim($backup, DIRECTORY_SEPARATOR)), 'migrations' => $migrations, 'migrationError' => $migErr];
     }
 

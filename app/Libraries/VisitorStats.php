@@ -49,6 +49,15 @@ class VisitorStats
         } catch (\Throwable $e) {
             log_message('warning', 'Pembersihan harian gagal: ' . $e->getMessage());
         }
+        // cadangan database terjadwal: dibuat setelah halaman terkirim agar pengunjung tidak menunggu
+        if (Backup::due()) {
+            register_shutdown_function(static function (): void {
+                if (function_exists('fastcgi_finish_request')) {
+                    @fastcgi_finish_request();
+                }
+                Backup::runIfDue();
+            });
+        }
     }
 
     public function summary(): array
