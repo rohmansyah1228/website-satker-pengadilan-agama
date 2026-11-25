@@ -1,9 +1,20 @@
 {
-  "build": 20,
+  "build": 21,
   "version": "2026-11-25",
   "repo": "rohmansyah1228/website-satker-pengadilan-agama",
   "branch": "main",
   "releases": [
+    {
+      "build": 21,
+      "name": "1.8.3",
+      "version": "2026-11-25",
+      "notes": "Pemeriksaan Keamanan: tombol \"Pulihkan semua\" untuk mengembalikan sekaligus semua berkas Diubah/Hilang/Pustaka ke versi resmi; berkas lisensi/teks yang hilang tidak lagi dilaporkan.",
+      "files": [
+        "app/Controllers/Admin/Security.php",
+        "app/Libraries/SecurityScan.php",
+        "app/Views/admin/security.php"
+      ]
+    },
     {
       "build": 20,
       "name": "1.8.2",
@@ -343,5 +354,5 @@
       ]
     }
   ],
-  "name": "1.8.2"
+  "name": "1.8.3"
 }
