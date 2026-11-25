@@ -177,19 +177,40 @@ class LegacyImporter
         libxml_clear_errors();
         $xp = new DOMXPath($dom);
 
+        // wadah berita: template Joomla 3 (article.item / div.item-page), Joomla 4/5 (com-content-article),
+        // Joomla 1.5 (table.contentpaneopen) dan template lama lain
         $article = $this->first($xp, "//article[contains(concat(' ',normalize-space(@class),' '),' item ')]")
             ?? $this->first($xp, "//div[contains(@class,'item-page')]")
-            ?? $this->first($xp, "//*[@itemprop='articleBody']/..");
+            ?? $this->first($xp, "//div[contains(@class,'com-content-article')]")
+            ?? $this->first($xp, "//*[@itemprop='articleBody']/..")
+            ?? $this->first($xp, "//table[contains(@class,'contentpaneopen')]/..")
+            ?? $this->first($xp, "//*[@id='component' or @id='content' or contains(@class,'componentcontent') or contains(@class,'component-content')]");
         if (! $article) {
-            return ['status' => 'error', 'message' => 'Isi berita tidak dikenali'];
+            return ['status' => 'error', 'message' => 'Isi berita tidak dikenali (template website lama tidak dikenal)'];
         }
         $body = $this->first($xp, ".//div[contains(concat(' ',normalize-space(@class),' '),' content ')]", $article)
-            ?? $this->first($xp, ".//*[@itemprop='articleBody']", $article) ?? $article;
+            ?? $this->first($xp, ".//*[@itemprop='articleBody']", $article)
+            ?? $this->first($xp, ".//div[contains(@class,'com-content-article__body')]", $article)
+            ?? $this->first($xp, "(.//table[contains(@class,'contentpaneopen')])[last()]", $article) ?? $article;
 
         // judul
         $title = $this->text($this->first($xp, ".//*[@itemprop='headline' or @itemprop='name']", $article))
+            ?: $this->text($this->first($xp, ".//*[contains(@class,'contentheading') or contains(@class,'item-title') or contains(@class,'article-title')]", $article))
+            ?: $this->text($this->first($xp, ".//*[contains(@class,'page-header')]//*[self::h1 or self::h2]", $article))
             ?: $this->text($this->first($xp, "//meta[@property='og:title']/@content"))
+            ?: $this->text($this->first($xp, ".//h1 | .//h2", $article))
             ?: $this->text($this->first($xp, '//title'));
+        // template yang <title>-nya nama situs (judul berita hanya teks tebal di awal isi)
+        $docTitle = $this->text($this->first($xp, '//title'));
+        if ($title === '' || $title === $docTitle) {
+            foreach (iterator_to_array($xp->query('.//strong | .//b', $body)) as $st) {
+                $t = trim(preg_replace('/\s+/u', ' ', $st->textContent));
+                if (mb_strlen($t) >= 10 && mb_strlen($t) <= 250 && ! preg_match('/^(published|ditulis|dibuat|diterbitkan)\b/iu', $t)) {
+                    $title = $t;
+                    break;
+                }
+            }
+        }
         $title = trim(preg_replace('/\s+/u', ' ', html_entity_decode($title, ENT_QUOTES | ENT_HTML5, 'UTF-8')));
         $title = preg_replace('/\s+[-|–]\s+' . preg_quote((string) setting('site_name', '#'), '/') . '$/iu', '', $title);
         if ($title === '') {
@@ -202,6 +223,15 @@ class LegacyImporter
             ?: $this->text($this->first($xp, "//meta[@property='article:published_time']/@content"))
             ?: $this->text($this->first($xp, "//*[@itemprop='datePublished']/@datetime | //meta[@itemprop='datePublished']/@content"));
         $ts = $date ? strtotime($date) : false;
+        if (! $ts) {
+            // template lama: tanggal hanya berupa teks, mis. "Published: Friday, 13 November 2026 07:57" / "Jumat, 13 November 2026"
+            $txt = $meta . ' ' . $this->text($this->first($xp, ".//*[contains(@class,'published') or contains(@class,'createdate') or contains(@class,'create') or contains(@class,'date')]", $article))
+                . ' ' . mb_substr($this->text($article), 0, 1500);
+            if (($loose = self::looseDate($txt)) !== null) {
+                $date = $loose;
+                $ts   = strtotime($loose);
+            }
+        }
         if (! $ts) {
             return ['status' => 'error', 'message' => 'Tanggal terbit tidak ditemukan', 'title' => $title];
         }
@@ -236,6 +266,9 @@ class LegacyImporter
         // bersihkan isi
         foreach (['.//script', './/style', './/form', './/noscript', ".//*[@id='jc' or @id='comments' or contains(@class,'jcomments')]",
             ".//*[contains(@class,'pagenav') or contains(@class,'pager') or contains(@class,'icons') or contains(@class,'tags')]",
+            // keterangan artikel bawaan Joomla (tanggal terbit, penulis, dibaca, judul) — sudah diambil terpisah, jangan ikut jadi isi
+            ".//*[contains(concat(' ',normalize-space(@class),' '),' article-info ') or contains(@class,'createdate') or contains(@class,'createdby') or contains(@class,'modifydate') or contains(@class,'contentheading') or contains(@class,'page-header') or contains(@class,'buttonheading')]",
+            ".//dd[contains(@class,'hits') or contains(@class,'published') or contains(@class,'create') or contains(@class,'modified') or contains(@class,'category-name') or contains(@class,'parent-category-name')]",
             ".//*[contains(@class,'sharedaddy') or contains(@class,'jp-relatedposts') or contains(@class,'wp-block-buttons') and .//a[contains(@href,'share')]]"] as $q) {
             foreach (iterator_to_array($xp->query($q, $body)) as $n) {
                 $n->parentNode?->removeChild($n);
@@ -640,7 +673,28 @@ class LegacyImporter
     }
 
     /** @return array{code:int,body:string,error:string} */
-    private function fetch(string $url): array
+    /**
+     * Tanggal dari teks bebas berbahasa Indonesia/Inggris, mis. "Friday, 13 November 2026 07:57",
+     * "Jumat, 13 Nopember 2026", "13 Nov 2026". Hasil "Y-m-d H:i" atau "Y-m-d" (tanpa jam), null bila tidak ada.
+     */
+    public static function looseDate(string $text): ?string
+    {
+        $months = ['jan' => 1, 'feb' => 2, 'peb' => 2, 'mar' => 3, 'apr' => 4, 'mei' => 5, 'may' => 5, 'jun' => 6, 'jul' => 7,
+            'agu' => 8, 'agt' => 8, 'aug' => 8, 'sep' => 9, 'okt' => 10, 'oct' => 10, 'nov' => 11, 'nop' => 11, 'des' => 12, 'dec' => 12];
+        if (! preg_match('/\b(\d{1,2})\s+(jan|feb|peb|mar|apr|mei|may|jun|jul|agu|agt|aug|sep|okt|oct|nov|nop|des|dec)[a-z]*\.?\s+(\d{4})(?:[,\s]+(?:pukul\s+)?(\d{1,2})[:.](\d{2}))?/iu', $text, $m)) {
+            return null;
+        }
+        $d = (int) $m[1];
+        $mo = $months[strtolower($m[2])];
+        $y = (int) $m[3];
+        if (! checkdate($mo, $d, $y) || $y < 1990 || $y > (int) date('Y') + 1) {
+            return null;
+        }
+
+        return sprintf('%04d-%02d-%02d', $y, $mo, $d) . (isset($m[4]) && $m[4] !== '' ? sprintf(' %02d:%02d', (int) $m[4], (int) $m[5]) : '');
+    }
+
+    protected function fetch(string $url): array
     {
         $ch = $this->curl($url);
         $buf = '';

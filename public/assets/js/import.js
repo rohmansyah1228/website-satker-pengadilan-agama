@@ -81,6 +81,10 @@
         }
         tr.cells[2].textContent = r.date || '';
         tr.cells[3].textContent = r.message || '';
+        // alasan gagal juga ditulis di bawah judul agar terlihat walau tabel lebar terpotong di layar
+        if (r.status === 'error' && r.message) {
+            const why = document.createElement('div'); why.className = 'small text-danger'; why.textContent = r.message; tr.cells[1].append(why);
+        }
         const body = $('impLog');
         body.prepend(tr);
         while (body.rows.length > 500) body.lastElementChild.remove();
