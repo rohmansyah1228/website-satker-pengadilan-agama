@@ -1,9 +1,20 @@
 {
-  "build": 19,
+  "build": 20,
   "version": "2026-11-25",
   "repo": "rohmansyah1228/website-satker-pengadilan-agama",
   "branch": "main",
   "releases": [
+    {
+      "build": 20,
+      "name": "1.8.2",
+      "version": "2026-11-25",
+      "notes": "Perbaikan Pemeriksaan Keamanan: tidak lagi menampilkan banyak temuan palsu. Perbedaan folder vendor (pustaka dipasang lewat Composer) dirangkum jadi satu baris \"Pustaka\" dengan tombol Pulihkan semua; folder writable & unggahan tidak lagi dilaporkan; berkas contoh bawaan CodeIgniter (Home.php, welcome_message.php) cukup berlabel Periksa. Webshell & sisipan judi tetap terdeteksi sebagai Bahaya. Tombol Pulihkan kini bekerja walau tag versi belum tersedia. Setelah update, klik Periksa sekarang di menu Pemeriksaan Keamanan.",
+      "files": [
+        "app/Controllers/Admin/Security.php",
+        "app/Libraries/SecurityScan.php",
+        "app/Views/admin/security.php"
+      ]
+    },
     {
       "build": 19,
       "name": "1.8.1",
@@ -332,5 +343,5 @@
       ]
     }
   ],
-  "name": "1.8.1"
+  "name": "1.8.2"
 }
