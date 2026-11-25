@@ -43,3 +43,4 @@ composer.phar
 Thumbs.db
 /writable/backups/*
 !/writable/backups/index.html
+/writable/*.pem
