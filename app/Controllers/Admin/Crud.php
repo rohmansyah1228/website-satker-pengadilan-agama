@@ -191,6 +191,9 @@ class Crud extends AdminController
         if (in_array($table, ['sliders', 'shortcuts', 'greetings'], true)) {
             return [['label' => 'Beranda', 'url' => site_url('/')]];
         }
+        if ($table === 'achievements') {
+            return [['label' => 'Beranda', 'url' => site_url('/')], ['label' => 'Galeri Prestasi', 'url' => site_url('galeri-prestasi')]];
+        }
         $modules = array_keys(array_filter(Pages::MODULE_RESOURCES, fn ($k) => $k === $this->key));
         if (! $modules) {
             return [];
@@ -373,6 +376,14 @@ class Crud extends AdminController
         }
         if ($table === 'sliders' && empty($data['image']) && empty($old['image'])) {
             return $this->form(array_merge($old, $post), $id, ['image' => 'Gambar latar wajib diunggah.']);
+        }
+        if ($table === 'achievements') {
+            if (empty($data['image']) && empty($old['image'])) {
+                return $this->form(array_merge($old, $post), $id, ['image' => 'Foto piagam wajib diunggah.']);
+            }
+            if (empty($data['awarded_at'])) {
+                $data['awarded_at'] = date('Y-m-d');
+            }
         }
         if ($table === 'greetings') {
             if (empty($data['image']) && empty($old['image'])) {

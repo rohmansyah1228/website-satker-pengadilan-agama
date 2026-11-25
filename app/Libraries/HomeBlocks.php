@@ -178,6 +178,15 @@ class HomeBlocks
             case 'stats':
                 return ['stat' => $db->table('case_stats')->orderBy('year', 'DESC')->orderBy('month', 'DESC')->get(1)->getRowArray()];
 
+            case 'achievements':
+                if (! $db->tableExists('achievements')) {
+                    return ['items' => []];
+                }
+
+                return ['items' => $db->table('achievements')->where('is_active', 1)
+                    ->orderBy('awarded_at', 'DESC')->orderBy('sort')->orderBy('id', 'DESC')
+                    ->get(max(1, min(30, (int) ($s['limit'] ?? 6))))->getResultArray()];
+
             case 'greetings':
                 if (! $db->tableExists('greetings')) {
                     return ['selamat' => [], 'belasungkawa' => []];

@@ -357,6 +357,7 @@ class SecurityScan
             'sliders'       => [['badge', 'title', 'subtitle', 'button_url', 'button2_url'], 'data/slider/{id}', 'Slider'],
             'shortcuts'     => [['title', 'description', 'url'], 'data/pintasan/{id}', 'Pintasan'],
             'greetings'     => [['title', 'link_url'], 'data/ucapan/{id}', 'Ucapan'],
+            'achievements'  => [['title', 'issuer', 'description'], 'data/prestasi/{id}', 'Galeri Prestasi'],
             'videos'        => [['title', 'url', 'description'], 'data/video/{id}', 'Galeri Video'],
             'documents'     => [['title', 'external_url'], 'data/dokumen/{id}', 'Arsip Dokumen'],
             'settings'      => [['value'], 'pengaturan', 'Pengaturan'],

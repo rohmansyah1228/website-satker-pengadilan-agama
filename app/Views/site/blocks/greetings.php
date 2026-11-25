@@ -46,7 +46,7 @@ if (! $cssDone):
             <div id="<?= $cid ?>" class="carousel slide" data-bs-ride="carousel" data-bs-interval="6000"
                  aria-roledescription="carousel" aria-label="<?= esc($heading, 'attr') ?>">
                 <?php if (count($items) > 1): ?>
-                    <div class="greet-dots" role="tablist">
+                    <div class="carousel-indicators greet-dots">
                         <?php foreach ($items as $i => $g): ?>
                             <button type="button" data-bs-target="#<?= $cid ?>" data-bs-slide-to="<?= $i ?>"<?= $i === 0 ? ' class="active" aria-current="true"' : '' ?> aria-label="<?= esc($heading, 'attr') ?> <?= $i + 1 ?>"><?= $i + 1 ?></button>
                         <?php endforeach ?>

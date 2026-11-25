@@ -14,7 +14,7 @@ $rel   = trim(substr($path, strlen(rtrim($base, '/'))), '/');
 $guide = 'pendahuluan';
 foreach ([
     'halaman' => 'halaman', 'menu' => 'menu', 'beranda' => 'beranda', 'data/berita' => 'berita', 'data/slider' => 'slider',
-    'data/pintasan' => 'pintasan', 'data/video' => 'video', 'data/ucapan' => 'ucapan', 'keamanan' => 'pemeriksaan-keamanan', 'cadangan' => 'cadangan', 'data/' => 'data', 'pengaturan' => 'pengaturan', 'pengguna' => 'pengguna',
+    'data/pintasan' => 'pintasan', 'data/video' => 'video', 'data/prestasi' => 'video', 'data/ucapan' => 'ucapan', 'keamanan' => 'pemeriksaan-keamanan', 'cadangan' => 'cadangan', 'data/' => 'data', 'pengaturan' => 'pengaturan', 'pengguna' => 'pengguna',
     'log' => 'pengguna', 'akun' => 'login', 'impor' => 'impor-berita', 'panduan' => '',
 ] as $prefix => $anchor) {
     if (str_starts_with($rel . '/', rtrim($prefix, '/') . '/') || ($prefix === 'data/' && str_starts_with($rel, 'data/'))) {

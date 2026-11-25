@@ -628,3 +628,22 @@ a:hover > .img-zoom, .img-zoom:hover, .card:hover .img-zoom, a:focus-visible > .
     .img-zoom img, .greet-frame img { transition: none; }
     .img-zoom:hover img, a:hover > .img-zoom img, a:focus-visible > .img-zoom img, .card:hover .img-zoom img, .greet-frame:hover img, a:hover .greet-frame img { transform: none; }
 }
+
+/* ---------- Galeri Prestasi ---------- */
+.ach-card .ach-frame { aspect-ratio: 4 / 3; background: #f3f5f4; display: flex; align-items: center; justify-content: center; }
+.ach-card .ach-frame img { width: 100%; height: 100%; object-fit: contain; }
+.ach-slider { position: relative; }
+.ach-slide-frame { max-width: 900px; margin-inline: auto; aspect-ratio: 4 / 3; background: #f3f5f4; border-radius: .5rem; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.ach-slide-frame img { width: 100%; height: 100%; object-fit: contain; }
+.ach-nav { width: 3rem; height: 3rem; top: calc(50% - 1.5rem - 1.5rem); bottom: auto; border-radius: 50%; background: #fff; color: var(--pa-primary, #056e4f); opacity: .9; box-shadow: 0 2px 10px rgba(0,0,0,.18); font-size: 1.4rem; }
+.ach-nav:hover, .ach-nav:focus-visible { opacity: 1; color: var(--pa-primary, #056e4f); }
+.carousel-control-prev.ach-nav { left: .25rem; }
+.carousel-control-next.ach-nav { right: .25rem; }
+.carousel-indicators.ach-dots { position: static; display: flex; justify-content: center; flex-wrap: wrap; gap: .4rem; margin: .75rem 0 0; padding: 0; }
+.carousel-indicators.ach-dots [data-bs-target] { width: 12px; height: 12px; margin: 0; padding: 0; border: 2px solid var(--pa-primary, #056e4f); border-radius: 50%; background: transparent; opacity: 1; text-indent: -9999px; }
+.carousel-indicators.ach-dots .active { background: var(--pa-primary, #056e4f); }
+/* titik Ucapan & Belasungkawa: memakai indikator bawaan Bootstrap agar penanda aktif ikut berpindah */
+.carousel-indicators.greet-dots { position: static; justify-content: flex-start; gap: .35rem; margin: 0 0 .5rem; padding: 0; }
+.carousel-indicators.greet-dots [data-bs-target] { width: 14px; height: 14px; margin: 0; padding: 0; border: 0; border-radius: 3px; background: #cfd4da; opacity: 1; text-indent: -9999px; }
+.carousel-indicators.greet-dots .active { background: var(--pa-primary, #0a5c36); }
+@media (min-width: 992px) { .carousel-control-prev.ach-nav { left: calc(50% - 450px - 3.5rem); } .carousel-control-next.ach-nav { right: calc(50% - 450px - 3.5rem); } }

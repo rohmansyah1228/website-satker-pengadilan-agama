@@ -119,6 +119,7 @@ $routes->group('', ['filter' => 'visitor'], static function ($routes) {
     $routes->get('berita/kategori/(:segment)', 'Posts::index/$1');
     $routes->get('berita/(:segment)', 'Posts::show/$1');
     $routes->get('galeri-video', 'Videos::index');
+    $routes->get('galeri-prestasi', 'Achievements::index');
     $routes->get('pengumuman-badilag-ma', 'ExternalNotices::index');
     $routes->get('(:segment)', 'Site::section/$1');
     $routes->get('(:segment)/(:segment)', 'Site::page/$1/$2');

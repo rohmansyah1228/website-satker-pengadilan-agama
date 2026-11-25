@@ -24,7 +24,7 @@ class HomeBlocks extends BaseConfig
     /** Ukuran awal (lebar kolom dari 12, tinggi baris) saat tampilan baru ditambahkan. */
     public array $sizes = [
         'slider' => [12, 1], 'shortcuts' => [12, 1], 'videos' => [12, 1], 'survey' => [12, 1], 'stats' => [12, 1],
-        'announcements' => [6, 1], 'feed' => [6, 1], 'news' => [6, 1], 'hearings' => [8, 1], 'documents' => [6, 1], 'greetings' => [12, 1],
+        'announcements' => [6, 1], 'feed' => [6, 1], 'news' => [6, 1], 'hearings' => [8, 1], 'documents' => [6, 1], 'greetings' => [12, 1], 'achievements' => [12, 1],
         'html' => [8, 1], 'image' => [4, 1], 'card' => [4, 1], 'search' => [4, 1], 'hours' => [4, 1],
     ];
 
@@ -133,6 +133,17 @@ class HomeBlocks extends BaseConfig
                         'selamat'      => 'Ucapan Selamat saja',
                         'belasungkawa' => 'Belasungkawa saja',
                     ]],
+                ],
+            ],
+            'achievements' => [
+                'Galeri Prestasi', 'bi-trophy', 'Piagam / penghargaan satker, prestasi terbaru tampil paling awal. Isi dikelola di Publikasi → Galeri Prestasi.',
+                'top' => true, 'child' => true, 'fields' => [
+                    'limit' => ['Jumlah prestasi ditampilkan (yang terbaru)', 'number', 'required|integer|greater_than[0]|less_than[31]', 'default' => 6, 'help' => '1–30. Mis. 6 = 6 prestasi terbaru.'],
+                    'style' => ['Bentuk tampilan', 'select', 'required|in_list[slider,grid]', 'default' => 'slider', 'options' => [
+                        'slider' => 'Slider (satu piagam besar, bergantian otomatis)',
+                        'grid'   => 'Kartu berjajar (beberapa piagam sekaligus)',
+                    ]],
+                    'caption' => ['Tampilkan keterangan di bawah piagam', 'checkbox', 'permit_empty', 'default' => 1],
                 ],
             ],
             'stats' => [

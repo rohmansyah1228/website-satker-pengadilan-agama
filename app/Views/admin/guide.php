@@ -273,6 +273,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
             <tr><td>Slider Utama</td><td>Publikasi → Slider Beranda</td></tr>
             <tr><td>Pintasan Layanan (per kelompok, 3 gaya)</td><td>Publikasi → Pintasan Layanan</td></tr>
             <tr><td>Galeri Video</td><td>Publikasi → Galeri Video</td></tr>
+            <tr><td>Galeri Prestasi</td><td>Publikasi → Galeri Prestasi</td></tr>
             <tr><td>Ucapan & Belasungkawa (carousel banner terbaru)</td><td>Publikasi → Ucapan & Belasungkawa</td></tr>
             <tr><td>Pengumuman & Panggilan Ghaib</td><td>Panggilan Ghaib + berita Pengumuman/Serta Merta</td></tr>
             <tr><td>Berita & Publikasi</td><td>Berita (bisa per kategori)</td></tr>
@@ -379,6 +380,14 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
     <p>Video diputar di dalam website. Halaman <strong>Galeri Video</strong> (menu Berita & Publikasi) menampilkan 12 video per halaman; tambahkan blok <strong>Galeri Video</strong> di Beranda untuk video terbaru.</p>
     <?= $img('08-galeri-video.jpg', 'Halaman Galeri Video; klik sampul untuk memutar.') ?>
     <?= $go('data/video', 'Buka Galeri Video') ?>
+
+    <h3 id="galeri-prestasi" class="mt-4">Galeri Prestasi</h3>
+    <ol>
+        <li><em>Publikasi → Galeri Prestasi → Tambah</em>: isi nama prestasi, pemberi penghargaan, tanggal, dan unggah foto/scan piagam.</li>
+        <li><em>Tampilan Beranda → Tambah tampilan → Galeri Prestasi</em>: atur <strong>jumlah prestasi</strong> yang ditampilkan dan bentuknya (<em>Slider</em> satu piagam besar bergantian, atau <em>Kartu berjajar</em>).</li>
+    </ol>
+    <p>Prestasi dengan <strong>tanggal terbaru tampil paling awal</strong>. Semua prestasi tampil di halaman <code>/galeri-prestasi</code>; tambahkan ke menu lewat <em>Menu Navigasi</em> bila perlu.</p>
+    <?= $go('data/prestasi', 'Buka Galeri Prestasi') ?>
 </section>
 
 <section id="ucapan" class="guide-sec card">

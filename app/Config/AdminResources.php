@@ -119,6 +119,24 @@ class AdminResources extends BaseConfig
                 ],
             ],
 
+            'prestasi' => [
+                'table' => 'achievements', 'title' => 'Galeri Prestasi', 'singular' => 'Prestasi', 'icon' => 'bi-trophy',
+                'group' => 'Publikasi', 'roles' => ['humas'], 'order' => ['awarded_at', 'DESC'], 'timestamps' => true,
+                'list'  => ['image' => 'Piagam', 'title' => 'Prestasi', 'issuer' => 'Pemberi', 'awarded_at' => 'Tanggal', 'is_active' => 'Tampil'],
+                'search' => ['title', 'issuer'],
+                'hint'  => 'Piagam / penghargaan yang diterima satker. Tampil di Beranda (blok "Galeri Prestasi", prestasi dengan tanggal terbaru tampil paling awal; jumlahnya diatur di Tampilan Beranda) dan di halaman Galeri Prestasi.',
+                'fields' => [
+                    'title'       => ['Nama Prestasi', 'text', 'required|max_length[255]', 'help' => 'mis. Predikat SANGAT BAIK IKPA DIPA 04 Triwulan III 2026.'],
+                    'issuer'      => ['Pemberi Penghargaan', 'text', 'permit_empty|max_length[255]', 'help' => 'mis. Pengadilan Tinggi Agama Banten, Badilag MA RI.'],
+                    'awarded_at'  => ['Tanggal Penghargaan', 'date', 'permit_empty|valid_date[Y-m-d]', 'help' => 'Menentukan urutan: yang terbaru tampil paling awal. Kosongkan = hari ini.'],
+                    'image'       => ['Foto Piagam / Penghargaan', 'image', 'permit_empty', 'width' => 1600, 'help' => 'Scan/foto piagam. PNG/JPG/WebP, otomatis dikompres ke WebP.'],
+                    'image_alt'   => ['Teks Alternatif Gambar', 'text', 'permit_empty|max_length[255]', 'help' => 'Kosongkan = memakai nama prestasi.'],
+                    'description' => ['Keterangan (opsional)', 'textarea', 'permit_empty|max_length[2000]'],
+                    'sort'        => ['Urutan', 'number', 'permit_empty|integer', 'help' => 'Hanya dipakai bila tanggalnya sama.'],
+                    'is_active'   => ['Tampilkan', 'checkbox', 'permit_empty'],
+                ],
+            ],
+
             // ------------------------------------------------ DOKUMEN
             'dokumen' => [
                 'table' => 'documents', 'title' => 'Arsip Dokumen', 'singular' => 'Dokumen', 'icon' => 'bi-file-earmark-pdf',
@@ -315,6 +333,11 @@ class AdminResources extends BaseConfig
                 'main'  => ['' => ['title', 'link_url']],
                 'side'  => ['Banner' => ['image', 'image_alt'], 'Tampilan' => ['kind', 'published_at', 'sort', 'is_active']],
                 'intro' => 'Unggah banner ucapan selamat atau belasungkawa. Di Beranda tampil bergantian (carousel) pada blok "Ucapan & Belasungkawa".',
+            ],
+            'prestasi' => [
+                'main'  => ['' => ['title', 'issuer', 'description']],
+                'side'  => ['Piagam' => ['image', 'image_alt'], 'Tampilan' => ['awarded_at', 'sort', 'is_active']],
+                'intro' => 'Unggah foto/scan piagam penghargaan. Di Beranda tampil bergantian (slider), prestasi terbaru lebih dulu.',
             ],
             'dokumen' => [
                 'main'  => ['' => ['title'], 'Berkas' => ['file_id', 'external_url']],
