@@ -36,6 +36,9 @@ class SecurityScan
     private const BASE_OK = ['.htaccess', 'preload.php', 'spark', 'public/.htaccess', 'public/index.php', 'public/uploads/.htaccess', 'writable/.htaccess',
         'app/Libraries/SecurityScan.php', 'app/Views/admin/guide.php']; // berkas ini & Panduan memuat contoh kata kunci yang dicari
 
+    /** Berkas contoh bawaan CodeIgniter yang sering tertinggal saat instalasi lewat Composer. */
+    private const CI_LEFTOVER = ['app/Controllers/Home.php', 'app/Views/welcome_message.php'];
+
     /** Berkas asing yang wajar di akar website (dibuat penyedia hosting / instalasi). */
     private const ROOT_OK = ['.env', 'error_log', '.well-known', 'cgi-bin', '.ftpquota', '.htpasswds'];
 
@@ -176,12 +179,33 @@ class SecurityScan
         $known = $ref['files'] ?? [];
         $seen  = [];
 
+        $vendor = []; // perbedaan pustaka tanpa ciri webshell: dirangkum jadi satu temuan
+
         // berkas resmi: diubah / hilang (kecuali di folder yang memang ditulis ulang oleh website)
         foreach ($known as $p => $hash) {
             if ($this->skipped($p)) {
                 continue;
             }
+            // folder data satker (writable/, unggahan): isinya milik satker; yang diperiksa hanya .htaccess pelindungnya
+            if (preg_match('#^(writable|public/uploads)/#', $p) && ! preg_match(self::SERVERCFG, $p)) {
+                $seen[$p] = true;
+                continue;
+            }
             $abs = ROOTPATH . $p;
+            if (str_starts_with($p, 'vendor/')) {
+                $seen[$p] = true;
+                if (! is_file($abs)) {
+                    $vendor[] = $p;
+                } elseif (Integrity::hash((string) @file_get_contents($abs)) !== $hash) {
+                    $head = (string) @file_get_contents($abs, false, null, 0, 262144);
+                    if (preg_match(self::SCRIPT, $p) && (preg_match(self::SHELL, $head) || preg_match(self::JUDI, $head))) {
+                        $out[] = $this->finding('file', 'changed', 'danger', $p, 'Berkas pustaka diubah dan berciri webshell / sisipan judi.', $this->fileInfo($abs, true));
+                    } else {
+                        $vendor[] = $p;
+                    }
+                }
+                continue;
+            }
             if (! is_file($abs)) {
                 if (! preg_match('#^(docs|deploy)/#', $p)) { // dokumentasi boleh tidak ikut diunggah
                     $out[] = $this->finding('file', 'missing', preg_match(self::SCRIPT, $p) || preg_match(self::SERVERCFG, $p) ? 'warn' : 'warn', $p, 'Berkas resmi tidak ada.');
@@ -194,6 +218,14 @@ class SecurityScan
                 $out[] = $this->finding('file', 'changed', $risky ? 'danger' : 'warn', $p,
                     'Isi berbeda dengan versi resmi ' . ($ref['name'] ?: 'build ' . $ref['build']) . '.', $this->fileInfo($abs));
             }
+        }
+
+        if ($vendor) {
+            $f = $this->finding('file', 'vendor', 'warn', 'vendor/ (' . count($vendor) . ' berkas)',
+                count($vendor) . ' berkas pustaka (folder vendor) berbeda dari rilis resmi, tanpa ciri webshell. Biasanya karena pustaka pernah dipasang/diperbarui sendiri lewat Composer. '
+                . 'Klik "Pulihkan semua" untuk menyamakan dengan rilis resmi, atau "Aman" bila Anda memang memasangnya sendiri.', ['paths' => array_slice($vendor, 0, 500)]);
+            $f['key'] = sha1('file|vendor|' . implode('|', $vendor));
+            $out[]    = $f;
         }
 
         // berkas asing
@@ -226,7 +258,14 @@ class SecurityScan
                 continue;
             }
             if (preg_match(self::SCRIPT, $p)) {
-                $out[] = $this->finding('file', 'unknown', 'danger', $p, 'Berkas skrip yang bukan bagian dari website (kemungkinan sisipan/webshell).', $this->fileInfo($abs));
+                $info = $this->fileInfo($abs);
+                if (in_array($p, self::CI_LEFTOVER, true) && empty($info['code']) && empty($info['judi'])) {
+                    $out[] = $this->finding('file', 'unknown', 'warn', $p, 'Berkas contoh bawaan CodeIgniter (tidak dipakai website ini). Aman dikarantina.', $info);
+                } elseif (! empty($info['code']) || ! empty($info['judi']) || preg_match('#^public/#', $p)) {
+                    $out[] = $this->finding('file', 'unknown', 'danger', $p, 'Berkas skrip yang bukan bagian dari website (kemungkinan sisipan/webshell).', $info);
+                } else {
+                    $out[] = $this->finding('file', 'unknown', 'warn', $p, 'Berkas PHP tambahan yang bukan bagian dari rilis resmi (tanpa ciri webshell). Bila Anda tidak membuatnya, karantina.', $info);
+                }
             } elseif (preg_match(self::SERVERCFG, $p)) {
                 $out[] = $this->finding('file', 'unknown', 'warn', $p, 'Berkas pengaturan server tambahan. Wajar bila dibuat panel hosting (mis. MultiPHP INI); periksa isinya.', $this->fileInfo($abs));
             } elseif (preg_match('/\.(js|html?|svg)$/i', $p) && ! str_starts_with($p, 'public/uploads/') && $known) {
@@ -289,14 +328,15 @@ class SecurityScan
         return false;
     }
 
-    private function fileInfo(string $abs): array
+    /** @param bool $strict hanya ciri webshell yang kuat (untuk pustaka yang wajar memakai base64_decode dll.) */
+    private function fileInfo(string $abs, bool $strict = false): array
     {
         $info = ['size' => (int) @filesize($abs), 'mtime' => (int) @filemtime($abs)];
         $head = (string) @file_get_contents($abs, false, null, 0, 65536);
         if (preg_match(self::JUDI, $head, $m)) {
             $info['judi'] = $m[0];
         }
-        if (preg_match(self::SHELL, $head, $m) || preg_match('/(eval\s*\(|base64_decode\s*\(|gzinflate\s*\(|str_rot13\s*\(|shell_exec|passthru)/i', $head, $m)) {
+        if (preg_match(self::SHELL, $head, $m) || (! $strict && preg_match('/(eval\s*\(|base64_decode\s*\(|gzinflate\s*\(|str_rot13\s*\(|shell_exec|passthru)/i', $head, $m))) {
             $info['code'] = mb_substr($m[0], 0, 60);
         }
 
@@ -390,9 +430,21 @@ class SecurityScan
         if (! Updater::allowedPath($path)) {
             throw new RuntimeException('Berkas ini tidak boleh ditulis otomatis. Pulihkan manual dari GitHub.');
         }
-        $repo = (string) ((new VersionCheck())->local()['repo'] ?? '');
-        $body = $this->get('https://raw.githubusercontent.com/' . $repo . '/v' . rawurlencode($ref['name']) . '/'
-            . implode('/', array_map('rawurlencode', explode('/', $path))), 8 * 1024 * 1024);
+        $local = (new VersionCheck())->local();
+        $repo  = (string) ($local['repo'] ?? '');
+        $rel   = implode('/', array_map('rawurlencode', explode('/', $path)));
+        $body  = '';
+        // tag versi dulu; bila tag belum ada, cabang utama (aman: isi tetap harus cocok dengan sidik resmi bertanda tangan)
+        foreach (array_unique(['v' . rawurlencode($ref['name']), rawurlencode((string) ($local['branch'] ?? 'main'))]) as $refName) {
+            try {
+                $body = $this->get('https://raw.githubusercontent.com/' . $repo . '/' . $refName . '/' . $rel, 8 * 1024 * 1024);
+            } catch (\Throwable) {
+                $body = '';
+            }
+            if ($body !== '' && Integrity::hash($body) === $ref['files'][$path]) {
+                break;
+            }
+        }
         if (Integrity::hash($body) !== $ref['files'][$path]) {
             throw new RuntimeException('Berkas dari GitHub tidak cocok dengan sidik resmi — dibatalkan.');
         }
@@ -411,6 +463,30 @@ class SecurityScan
         if (function_exists('opcache_invalidate')) {
             @opcache_invalidate($abs, true);
         }
+    }
+
+    /** Pulihkan semua berkas pustaka (vendor) dari temuan terakhir. @return array{0:int,1:array} [berhasil, gagal] */
+    public function restoreVendor(): array
+    {
+        @set_time_limit(600);
+        $paths = [];
+        foreach ((self::last()['files'] ?? []) as $f) {
+            if ($f['kind'] === 'vendor') {
+                $paths = $f['info']['paths'] ?? [];
+            }
+        }
+        $ok = 0;
+        $bad = [];
+        foreach ($paths as $p) {
+            try {
+                $this->restore((string) $p);
+                $ok++;
+            } catch (\Throwable $e) {
+                $bad[] = $p . ': ' . $e->getMessage();
+            }
+        }
+
+        return [$ok, $bad];
     }
 
     /** Pindahkan berkas asing ke writable/karantina (tidak dihapus, bisa diperiksa/dikembalikan manual). */

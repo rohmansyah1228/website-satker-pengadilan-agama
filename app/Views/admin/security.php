@@ -9,7 +9,7 @@ $fmtAge = static function (int $t): string {
 $levelBadge = static fn (string $l): string => $l === 'danger'
     ? '<span class="badge text-bg-danger">Bahaya</span>'
     : '<span class="badge text-bg-warning">Periksa</span>';
-$kindLabel = ['changed' => 'Diubah', 'missing' => 'Hilang', 'unknown' => 'Berkas asing', 'suspect' => 'Mencurigakan'];
+$kindLabel = ['changed' => 'Diubah', 'missing' => 'Hilang', 'unknown' => 'Berkas asing', 'suspect' => 'Mencurigakan', 'vendor' => 'Pustaka'];
 ?>
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
     <div>
@@ -76,9 +76,13 @@ $kindLabel = ['changed' => 'Diubah', 'missing' => 'Hilang', 'unknown' => 'Berkas
                             <?php if (! empty($info['mtime'])): ?><br><span class="text-secondary">Diubah <?= esc(date('d/m/Y H:i', $info['mtime'])) ?> · <?= number_format($info['size'] / 1024, 1, ',', '.') ?> KB</span><?php endif ?>
                             <?php if (! empty($info['judi'])): ?><br><strong class="text-danger">Memuat kata judi: “<?= esc($info['judi']) ?>”</strong><?php endif ?>
                             <?php if (! empty($info['code'])): ?><br><strong class="text-danger">Memuat kode mencurigakan: <code><?= esc($info['code']) ?></code></strong><?php endif ?>
+                            <?php if (! empty($info['paths'])): ?><details class="mt-1"><summary class="text-secondary">Lihat daftar berkas</summary><div class="font-monospace small text-break" style="max-height:12rem;overflow:auto"><?= implode('<br>', array_map('esc', $info['paths'])) ?></div></details><?php endif ?>
                         </td>
                         <td class="text-end text-nowrap">
-                            <?php if (in_array($f['kind'], ['changed', 'missing'], true) && $ref['ok']): ?>
+                            <?php if ($f['kind'] === 'vendor' && $ref['ok']): ?>
+                                <form action="<?= admin_url('keamanan/pulihkan') ?>" method="post" class="d-inline" data-confirm-ok="Ya, Pulihkan Semua" data-confirm="Samakan <?= count($info['paths'] ?? []) ?> berkas pustaka dengan rilis resmi dari GitHub? Salinan berkas sekarang disimpan di writable/backups/."><?= csrf_field() ?>
+                                    <input type="hidden" name="path" value="__vendor__"><button class="btn btn-sm btn-pa-primary"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Pulihkan semua</button></form>
+                            <?php elseif (in_array($f['kind'], ['changed', 'missing'], true) && $ref['ok']): ?>
                                 <form action="<?= admin_url('keamanan/pulihkan') ?>" method="post" class="d-inline" data-confirm-ok="Ya, Pulihkan" data-confirm="Kembalikan <?= esc($f['path'], 'attr') ?> ke isi resmi dari GitHub? Salinan berkas sekarang disimpan di writable/backups/."><?= csrf_field() ?>
                                     <input type="hidden" name="path" value="<?= esc($f['path'], 'attr') ?>"><button class="btn btn-sm btn-pa-primary"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Pulihkan</button></form>
                             <?php elseif ($f['kind'] === 'unknown' || ($f['kind'] === 'suspect' && $f['level'] === 'danger')): ?>
@@ -131,6 +135,7 @@ $kindLabel = ['changed' => 'Diubah', 'missing' => 'Hilang', 'unknown' => 'Berkas
     <strong>Cara membaca:</strong>
     <ul class="mb-0">
         <li><strong>Diubah</strong>: isi berkas berbeda dengan versi resmi. Bila Anda tidak sengaja mengubahnya, klik <strong>Pulihkan</strong>. Berkas PHP/JS/.htaccess yang diubah tanpa sepengetahuan Anda adalah tanda website disusupi.</li>
+        <li><strong>Pustaka</strong>: berkas di folder <code>vendor</code> berbeda dari rilis resmi tanpa ciri webshell, dirangkum menjadi satu baris. Biasanya karena pustaka pernah dipasang sendiri lewat Composer. Klik <strong>Pulihkan semua</strong> untuk menyamakannya.</li>
         <li><strong>Berkas asing</strong>: berkas skrip yang bukan bagian dari website (mis. <code>wp-login.php</code>, <code>shell.php</code>, <code>.htaccess</code> tambahan). Klik <strong>Karantina</strong> untuk menonaktifkannya tanpa menghapus.</li>
         <li><strong>Isi website</strong>: kata kunci judi online atau tautan tersembunyi pada halaman/berita/menu. Buka lalu hapus bagian tersebut. Berita yang memang membahas judi (mis. sosialisasi bahaya judi online) tandai <strong>Aman</strong>.</li>
         <li>Bila ditemukan sisipan: ganti password semua admin dan password hosting/FTP, lalu laporkan ke pengelola TI.</li>

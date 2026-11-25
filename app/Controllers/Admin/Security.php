@@ -35,6 +35,14 @@ class Security extends AdminController
     {
         $this->authorize([], true);
         $path = (string) $this->request->getPost('path');
+        if ($path === '__vendor__') {
+            [$ok, $bad] = (new SecurityScan())->restoreVendor();
+            (new SecurityScan())->run();
+            $this->log('keamanan', 'Pulihkan berkas pustaka (vendor): ' . $ok . ' berkas');
+
+            return redirect()->to(admin_url('keamanan'))->with($bad ? 'error' : 'success', $ok . ' berkas pustaka dipulihkan.'
+                . ($bad ? ' Gagal ' . count($bad) . ': ' . implode('; ', array_slice($bad, 0, 3)) : ''));
+        }
         try {
             (new SecurityScan())->restore($path);
             (new SecurityScan())->run();
