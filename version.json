@@ -1,9 +1,20 @@
 {
-  "build": 21,
+  "build": 22,
   "version": "2026-11-25",
   "repo": "rohmansyah1228/website-satker-pengadilan-agama",
   "branch": "main",
   "releases": [
+    {
+      "build": 22,
+      "name": "1.8.4",
+      "version": "2026-11-25",
+      "notes": "Impor Berita Lama: berita Joomla yang alamatnya tanpa akhiran .html (mis. …/berita-terkini/785-judul-berita) kini bisa diimpor, baik satu berita maupun per kategori; pesan jelas bila alamat berita berasal dari website lain. Pesan \"Website ini membutuhkan PHP 8.2 atau lebih baru\" tampil di server/XAMPP dengan PHP lama (sebelumnya Parse error).",
+      "files": [
+        "app/Libraries/LegacyImporter.php",
+        "public/index.php",
+        "spark"
+      ]
+    },
     {
       "build": 21,
       "name": "1.8.3",
@@ -354,5 +365,5 @@
       ]
     }
   ],
-  "name": "1.8.3"
+  "name": "1.8.4"
 }
