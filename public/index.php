@@ -11,13 +11,12 @@ use Config\Paths;
 
 $minPhpVersion = '8.2'; // If you update this, don't forget to update `spark`.
 if (version_compare(PHP_VERSION, $minPhpVersion, '<')) {
-    $message = sprintf(
-        'Your PHP version must be %s or higher to run CodeIgniter. Current version: %s',
-        $minPhpVersion,
-        PHP_VERSION,
-    );
+    // Ditulis tanpa sintaks PHP baru agar PHP lama (5.x/7.x) tetap bisa menampilkan pesan ini.
+    $message = 'Website ini membutuhkan PHP ' . $minPhpVersion . ' atau lebih baru. Versi PHP di server/komputer ini: ' . PHP_VERSION
+        . '. Perbarui XAMPP (pilih PHP 8.2/8.3) atau ubah versi PHP di cPanel (MultiPHP Manager / Select PHP Version).';
 
     header('HTTP/1.1 503 Service Unavailable.', true, 503);
+    header('Content-Type: text/plain; charset=UTF-8');
     echo $message;
 
     exit(1);
