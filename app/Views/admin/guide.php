@@ -592,6 +592,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
             ['GIF ditolak "mengandung kode yang tidak diperbolehkan"', 'Perbarui website (Update Website). GIF sah tidak lagi ditolak; yang ditolak hanya GIF yang disisipi kode program.'],
             ['Pengiriman SIPP berhenti saat komputer/browser ditutup', 'Mode Otomatis butuh tab yang terbuka. Jadwalkan <code>kirim.php</code> dengan Task Scheduler/cron (lihat <a href="#integrasi-sipp">Integrasi SIPP</a>).'],
             ['Menambah tautan di kaki halaman (Tautan Ekosistem Peradilan)', '<em>Pengaturan → Tautan Layanan → Tautan di kaki halaman</em>: tambahkan baris baru <code>Nama | https://alamat</code>, lalu Simpan. Urutan baris = urutan tampil; lebih dari 6 tautan otomatis tampil dua kolom.'],
+            ['Apakah data pengunjung membuat database terus membesar?', 'Tidak. Jumlah kunjungan disimpan <strong>satu baris per hari</strong> (tabel <code>visitor_daily</code>, ± 365 baris per tahun). Tabel <code>visitor_hits</code> hanya penanda sementara agar satu pengunjung tidak dihitung dua kali dalam sehari, dan otomatis dikosongkan setiap hari (hanya 2 hari terakhir yang disimpan). Total kunjungan tetap utuh.'],
             ['Kartu Pintasan hanya 2 per baris', 'Atur <em>Kartu per baris</em> di tampilan Pintasan Layanan, perlebar kotak tampilannya, lalu tekan Ctrl+F5.'],
         ];
         foreach ($faq as $i => [$q, $a]): ?>

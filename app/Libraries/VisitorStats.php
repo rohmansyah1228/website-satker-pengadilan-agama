@@ -19,6 +19,9 @@ class VisitorStats
 
         if ($db->table('visitor_daily')->where('date', $today)->countAllResults() === 0) {
             $db->table('visitor_daily')->ignore(true)->insert(['date' => $today, 'visitors' => 0, 'pageviews' => 0]);
+            if ($db->affectedRows() > 0) {
+                $this->housekeeping(); // kunjungan pertama hari ini: bersihkan data harian lama
+            }
         }
         $b = $db->table('visitor_daily')->where('date', $today)->set('pageviews', 'pageviews + 1', false);
         if ($new) {
@@ -28,6 +31,23 @@ class VisitorStats
 
         if (mt_rand(1, 200) === 1) { // bersihkan hash lama sesekali
             $db->table('visitor_hits')->where('date <', date('Y-m-d', strtotime('-2 days')))->delete();
+        }
+    }
+
+    /**
+     * Pembersihan harian agar database tidak terus membesar:
+     *  - visitor_hits hanya penanda "IP ini sudah dihitung hari ini" (hash, bukan IP) → cukup 2 hari terakhir.
+     *    Jumlah kunjungan sendiri tersimpan permanen di visitor_daily (1 baris per hari).
+     *  - catatan percobaan login lebih dari 90 hari.
+     */
+    public function housekeeping(): void
+    {
+        $db = db_connect();
+        try {
+            $db->table('visitor_hits')->where('date <', date('Y-m-d', strtotime('-1 day')))->delete();
+            $db->table('login_attempts')->where('created_at <', date('Y-m-d H:i:s', strtotime('-90 days')))->delete();
+        } catch (\Throwable $e) {
+            log_message('warning', 'Pembersihan harian gagal: ' . $e->getMessage());
         }
     }
 
