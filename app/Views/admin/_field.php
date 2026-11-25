@@ -64,7 +64,7 @@ $showWhen  = ! empty($f['show_when']) ? ' data-show-when="' . esc($f['show_when'
                 <input type="file" id="<?= $id ?>" name="<?= $inputName ?>" accept="application/pdf,.pdf" class="form-control<?= $invalid ?>"<?= $aria ?>>
                 <div class="form-text">PDF, maks. 20 MB.<?= $value ? ' Unggah berkas baru untuk mengganti.' : '' ?></div>
             <?php break; case 'number': ?>
-                <input type="number" id="<?= $id ?>" name="<?= $inputName ?>" value="<?= esc((string) $value, 'attr') ?>" step="<?= str_contains($rules, 'decimal') ? '0.1' : '1' ?>" class="form-control<?= $invalid ?>" inputmode="<?= str_contains($rules, 'decimal') ? 'decimal' : 'numeric' ?>"<?= $required ? ' required' : '' ?><?= $aria ?>>
+                <input type="number" id="<?= $id ?>" name="<?= $inputName ?>" value="<?= esc(! empty($f['blank_zero']) && (string) $value === '0' ? '' : (string) $value, 'attr') ?>"<?= ! empty($f['placeholder']) ? ' placeholder="' . esc($f['placeholder'], 'attr') . '"' : '' ?> step="<?= str_contains($rules, 'decimal') ? '0.1' : '1' ?>" class="form-control<?= $invalid ?>" inputmode="<?= str_contains($rules, 'decimal') ? 'decimal' : 'numeric' ?>"<?= $required ? ' required' : '' ?><?= $aria ?>>
             <?php break; case 'year': ?>
                 <input type="number" id="<?= $id ?>" name="<?= $inputName ?>" value="<?= esc((string) $value, 'attr') ?>" min="2000" max="2099" class="form-control<?= $invalid ?>" inputmode="numeric" style="max-width: 10rem"<?= $required ? ' required' : '' ?><?= $aria ?>>
             <?php break; case 'date': ?>

@@ -225,6 +225,7 @@ class AdminResources extends BaseConfig
             'lhkpn' => [
                 'table' => 'lhkpn', 'title' => 'LHKPN / LHKASN', 'singular' => 'LHKPN', 'icon' => 'bi-wallet2',
                 'group' => 'Kesekretariatan', 'roles' => ['kesekretariatan'], 'order' => ['year', 'DESC'],
+                'orderRaw' => static fn () => \App\Libraries\LhkpnOrder::sql('', \App\Libraries\LhkpnOrder::hasSortColumn()),
                 'list'  => ['name' => 'Nama', 'position' => 'Jabatan', 'year' => 'Tahun', 'file_id' => 'Ikhtisar'],
                 'search' => ['name'],
                 'hint'  => 'Dokumen yang ditampilkan adalah Ikhtisar Kekayaan, minimal 2 tahun terakhir per pejabat.',
@@ -233,6 +234,7 @@ class AdminResources extends BaseConfig
                     'position' => ['Jabatan', 'text', 'permit_empty|max_length[150]'],
                     'year'     => ['Tahun Lapor', 'year', 'required|integer'],
                     'file_id'  => ['Ikhtisar Kekayaan (PDF)', 'pdf', 'permit_empty'],
+                    'sort'     => ['Urutan Tampil', 'number', 'permit_empty|integer|greater_than_equal_to[0]', 'blank_zero' => true, 'placeholder' => 'Otomatis', 'help' => 'Kosongkan = otomatis menurut jabatan: Ketua (10), Wakil Ketua (20), Hakim (30), Panitera (40), Wakil Panitera (45), Sekretaris (50), Panitera Muda (60), Kasubbag (70), Panitera Pengganti (80), Jurusita (85), lainnya (90). Isi angka untuk mengatur sendiri, mis. 31, 32, 33 untuk mengurutkan para hakim.'],
                 ],
             ],
             'wilayah' => [
@@ -342,7 +344,7 @@ class AdminResources extends BaseConfig
             ],
             'lhkpn' => [
                 'main'  => ['' => ['name', 'position'], 'Berkas' => ['file_id']],
-                'side'  => ['Periode' => ['year']],
+                'side'  => ['Periode' => ['year'], 'Tampilan' => ['sort']],
                 'intro' => 'Unggah Ikhtisar Kekayaan, minimal 2 tahun terakhir untuk setiap pejabat wajib lapor.',
             ],
             'wilayah' => [

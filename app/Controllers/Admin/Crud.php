@@ -75,6 +75,10 @@ class Crud extends AdminController
         for ($i = 0; $i < count($order); $i += 2) {
             $b->orderBy($order[$i], $order[$i + 1]);
         }
+        if (! empty($r['orderRaw']) && is_callable($r['orderRaw'])) {
+            $b->orderBy(($r['orderRaw'])(), '', false); // mis. urutan jabatan LHKPN
+            $b->orderBy('id', 'ASC');
+        }
         $b->orderBy('id', 'DESC');
 
         $page  = max(1, (int) $this->request->getGet('page'));

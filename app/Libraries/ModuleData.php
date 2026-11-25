@@ -78,7 +78,9 @@ class ModuleData
 
             case 'lhkpn':
                 return ['rows' => $db->table('lhkpn l')->select('l.*, f.uuid')->join('files f', 'f.id = l.file_id', 'left')
-                    ->orderBy('l.year', 'DESC')->orderBy('l.name')->get()->getResultArray()];
+                    ->orderBy('l.year', 'DESC')
+                    ->orderBy(\App\Libraries\LhkpnOrder::sql('l.', \App\Libraries\LhkpnOrder::hasSortColumn()), '', false)
+                    ->orderBy('l.id')->get()->getResultArray()];
 
             case 'akses_informasi':
                 return ['rows' => $db->table('info_requests')->orderBy('year', 'DESC')->orderBy('month', 'DESC')->limit(24)->get()->getResultArray()];

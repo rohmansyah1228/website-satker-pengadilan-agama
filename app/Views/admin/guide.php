@@ -418,7 +418,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
             <tr><td>Panggilan Ghaib</td><td>Nama pihak, nomor perkara, tanggal sidang, relaas PDF; isi <em>Tanggal Putus</em> bila perkara sudah diputus (pindah ke tabel Sudah Putus)</td><td>Panggilan Ghaib, blok Pengumuman</td></tr>
             <tr><td>Statistik Perkara</td><td>Tahun, bulan, sisa lalu, masuk, putus, sisa</td><td>Statistik Perkara</td></tr>
             <tr><td>Pejabat & Pegawai</td><td>Nama, jabatan, kelompok, pangkat, foto, riwayat, SIMTEPA</td><td>Profil Pejabat & Pegawai + profil per orang</td></tr>
-            <tr><td>LHKPN / LHKASN</td><td>Nama, jabatan, tahun, ikhtisar PDF</td><td>LHKPN</td></tr>
+            <tr><td>LHKPN / LHKASN</td><td>Nama, jabatan, tahun, ikhtisar PDF, urutan. Tampil per tahun (terbaru dulu), lalu <strong>otomatis menurut jabatan</strong>: Ketua, Wakil Ketua, Hakim, Panitera, Wakil Panitera, Sekretaris, Panitera Muda, Kasubbag, Panitera Pengganti, Jurusita. Isi kolom <em>Urutan Tampil</em> bila ingin mengatur sendiri (mis. 31, 32, 33 untuk urutan para hakim).</td><td>LHKPN</td></tr>
             <tr><td>Wilayah Yurisdiksi</td><td>Nama kecamatan / kab-kota</td><td>Wilayah Yurisdiksi</td></tr>
             <tr><td>Pengaduan & Hukuman Disiplin</td><td>Jenis, tahun, inisial, pelanggaran, tindak lanjut</td><td>Pengaduan, Hukuman Disiplin</td></tr>
             <tr><td>Laporan Akses Informasi</td><td>Tahun, bulan, permohonan, waktu, hasil</td><td>Laporan Akses Informasi</td></tr>
