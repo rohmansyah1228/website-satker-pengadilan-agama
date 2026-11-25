@@ -85,7 +85,8 @@ class LegacyImporter
         if ($catPath === '') {
             throw new RuntimeException('Alamat kategori tidak valid, contoh: ' . $this->base . '/berita/berita-terkini.html');
         }
-        $re = '#^/' . preg_quote($catPath, '#') . '/(?:[\w-]+/)*(\d+)-[^/?\#]+\.html?$#i';
+        // alamat artikel Joomla: …/123-judul.html, atau tanpa akhiran .html (SEF tanpa sufiks)
+        $re = '#^/' . preg_quote($catPath, '#') . '/(?:[\w-]+/)*(\d+)-[^/?\#.]+(?:\.html?)?/?$#i';
 
         $found = [];
         $pages = [$this->withQuery($url, 'limit=0')];
@@ -147,8 +148,15 @@ class LegacyImporter
         }
         $db  = db_connect();
         $url = $this->absolute($url, $this->base . '/');
-        if (! $url || ! $this->isOwnHost($url) || ! preg_match('#/(\d+)-[^/]+\.html?$#i', (string) parse_url($url, PHP_URL_PATH), $m)) {
+        if (! $url) {
             return ['status' => 'error', 'message' => 'Alamat berita tidak valid.'];
+        }
+        if (! $this->isOwnHost($url)) {
+            return ['status' => 'error', 'message' => 'Berita ini dari ' . parse_url($url, PHP_URL_HOST) . ', sedangkan Website lama (kotak 1) berisi '
+                . $this->host . '. Isi kotak 1 dengan alamat website asal berita tersebut.'];
+        }
+        if (! preg_match('#/(\d+)-[^/.]+(?:\.html?)?/?$#i', (string) parse_url($url, PHP_URL_PATH), $m)) {
+            return ['status' => 'error', 'message' => 'Alamat berita tidak dikenali. Tempel alamat satu berita (mis. …/berita-terkini/785-judul-berita atau …/785-judul-berita.html), bukan halaman kategori.'];
         }
         $ref = 'joomla:' . (int) $m[1];
         $old = $db->table('posts')->select('id, slug, title, image')->where('source_ref', $ref)->get()->getRowArray();
@@ -206,7 +214,7 @@ class LegacyImporter
         $author = preg_match('/(?:Ditulis oleh|Written by)\s+(.+?)\s+(?:on|pada|\bDitulis\b|$)/iu', $meta, $am) ? trim($am[1], " .:\t") : 'Humas';
         $views  = preg_match('/(?:Dilihat|Hits|Dibaca)\s*:?\s*([\d.,]+)/iu', $meta, $vm) ? (int) preg_replace('/\D/', '', $vm[1]) : 0;
 
-        $alias = preg_replace(['#^.*/\d+-#', '#\.html?$#i'], '', (string) parse_url($url, PHP_URL_PATH));
+        $alias = preg_replace(['#/+$#', '#^.*/\d+-#', '#\.html?$#i'], '', (string) parse_url($url, PHP_URL_PATH));
 
         return $this->build($dom, $xp, $body, $url, [
             'ref' => $ref, 'old' => $old, 'title' => $title, 'ts' => $ts, 'author' => $author, 'views' => $views,
