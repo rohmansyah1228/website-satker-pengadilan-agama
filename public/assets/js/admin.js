@@ -61,11 +61,17 @@
     // ---------- Dialog konfirmasi hapus (native <dialog>) ----------
     const dlg = document.getElementById('confirmDialog');
     let pendingForm = null;
+    // label tombol "Ya": data-confirm-ok, atau otomatis (Hapus untuk penghapusan, Lanjutkan untuk lainnya)
+    const okLabel = (text, custom) => {
+        const ok = dlg && dlg.querySelector('button[value=ok]');
+        if (ok) ok.textContent = custom || (/^\s*hapus/i.test(text || '') ? 'Ya, Hapus' : 'Ya, Lanjutkan');
+    };
     document.querySelectorAll('form[data-confirm]').forEach((f) => f.addEventListener('submit', (e) => {
         if (f.dataset.confirmed === '1' || !dlg || typeof dlg.showModal !== 'function') return;
         e.preventDefault();
         pendingForm = f;
         dlg.querySelector('[data-confirm-text]').textContent = f.dataset.confirm;
+        okLabel(f.dataset.confirm, f.dataset.confirmOk);
         dlg.returnValue = '';
         dlg.showModal();
     }));
@@ -84,6 +90,7 @@
         if (!dlg || typeof dlg.showModal !== 'function') { if (window.confirm(btn.dataset.confirmMsg)) run(); return; }
         pendingAction = run;
         dlg.querySelector('[data-confirm-text]').textContent = btn.dataset.confirmMsg;
+        okLabel(btn.dataset.confirmMsg, btn.dataset.confirmOk);
         dlg.returnValue = '';
         dlg.showModal();
     }));

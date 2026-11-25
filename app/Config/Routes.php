@@ -87,6 +87,11 @@ $routes->group($admin, ['namespace' => 'App\Controllers\Admin'], static function
         $routes->post('pembaruan-database', 'Dashboard::migrate');
         $routes->post('pembaruan-aplikasi', 'Dashboard::selfUpdate');
         $routes->post('pembaruan-aplikasi/batalkan', 'Dashboard::rollbackUpdate');
+        $routes->get('keamanan', 'Security::index');
+        $routes->post('keamanan/periksa', 'Security::run');
+        $routes->post('keamanan/pulihkan', 'Security::restore');
+        $routes->post('keamanan/karantina', 'Security::quarantine');
+        $routes->post('keamanan/aman', 'Security::ignore');
 
         // Modul data generik (slider, dokumen, pegawai, dst.) — lihat app/Config/AdminResources.php
         $routes->get('data/(:segment)', 'Crud::index/$1');

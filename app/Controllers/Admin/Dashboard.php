@@ -18,7 +18,20 @@ class Dashboard extends AdminController
             'pendingMigrations' => can([], true) ? $this->pendingMigrations() : [],
             'update' => can([], true) ? (new \App\Libraries\VersionCheck())->status() : null,
             'lastUpdate' => can([], true) ? $this->undoableUpdate() : null,
+            'security'   => can([], true) ? $this->securityStatus() : null,
         ]);
+    }
+
+    /** Hasil Pemeriksaan Keamanan; dijalankan otomatis bila sudah lebih dari 24 jam. */
+    private function securityStatus(): ?array
+    {
+        try {
+            return \App\Libraries\SecurityScan::due() ? (new \App\Libraries\SecurityScan())->run() : \App\Libraries\SecurityScan::last();
+        } catch (\Throwable $e) {
+            log_message('error', 'Pemeriksaan keamanan otomatis: ' . $e->getMessage());
+
+            return \App\Libraries\SecurityScan::last();
+        }
     }
 
     /** Migrasi yang belum dijalankan (pembaruan kode yang membawa perubahan tabel). */
@@ -74,8 +87,10 @@ class Dashboard extends AdminController
 
             return redirect()->to(admin_url())->with('error', 'Update Website tidak dijalankan: ' . $e->getMessage());
         }
+        $vj    = (new \App\Libraries\VersionCheck())->local();
+        $toNm  = \App\Libraries\VersionCheck::nameOf($vj, (int) $r['to']) ?: 'build ' . $r['to'];
         $this->log('pembaruan', 'Pembaruan otomatis build ' . $r['from'] . ' → ' . $r['to'] . ' (' . count($r['written']) . ' berkas, cadangan ' . $r['backup'] . ')');
-        $msg = 'Website berhasil diperbarui ke build ' . $r['to'] . ': ' . count($r['written']) . ' berkas diperbarui'
+        $msg = 'Website berhasil diperbarui ke Versi ' . $toNm . ' (tanda tangan digital sah): ' . count($r['written']) . ' berkas diperbarui'
             . ($r['removed'] ? ', ' . count($r['removed']) . ' berkas lama dihapus' : '')
             . ($r['migrations'] ? ', ' . $r['migrations'] . ' pembaruan database dijalankan' : '')
             . '. Cadangan berkas lama: writable/backups/' . $r['backup'] . '.';

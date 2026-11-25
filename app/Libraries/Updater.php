@@ -15,6 +15,10 @@ use RuntimeException;
  *  5. Cadangkan berkas lama ke writable/backups/pembaruan-…/ lalu tulis berkas baru.
  *     Bila penulisan gagal di tengah jalan → semua dikembalikan dari cadangan.
  *  6. Perbarui version.json, bersihkan cache, jalankan pembaruan database.
+ *
+ * Tanda tangan digital: rilis wajib disertai integrity.json + version.sig yang ditandatangani kunci
+ * pengelola (Config\Release). Tanpa tanda tangan yang sah → pembaruan ditolak. Setiap berkas yang
+ * diunduh harus sama persis dengan sidiknya di integrity.json (GitHub/jalur unduhan tidak bisa menyelipkan isi lain).
  */
 class Updater
 {
@@ -124,6 +128,18 @@ class Updater
             throw new RuntimeException('version.json di GitHub menunjuk repositori lain — pembaruan dibatalkan.');
         }
 
+        // 2b. tanda tangan digital rilis (wajib)
+        try {
+            $ijRaw  = $this->fetch(self::RAW . $this->repo . '/' . $ref . '/integrity.json', 4 * 1024 * 1024);
+            $sigRaw = $this->fetch(self::RAW . $this->repo . '/' . $ref . '/version.sig', 8192);
+        } catch (\Throwable $e) {
+            throw new RuntimeException('Rilis di GitHub tidak memiliki tanda tangan digital (integrity.json / version.sig) — pembaruan ditolak demi keamanan.');
+        }
+        $signed = Integrity::verified($vjRaw, $ijRaw, $sigRaw, config('Release')->trustedKeys); // melempar galat bila tidak sah
+        if ($signed['build'] !== $toBuild) {
+            throw new RuntimeException('Tanda tangan rilis bukan untuk versi ini — pembaruan ditolak.');
+        }
+
         $files = $removed = [];
         foreach ((array) ($remote['releases'] ?? []) as $rel) {
             if ((int) ($rel['build'] ?? 0) <= $fromBuild) {
@@ -166,8 +182,10 @@ class Updater
                 $notWritable[] = $p;
             }
         }
-        if (! is_writable(ROOTPATH . 'version.json') && is_file(ROOTPATH . 'version.json')) {
-            $notWritable[] = 'version.json';
+        foreach (Integrity::META as $m) {
+            if (is_file(ROOTPATH . $m) ? ! is_writable(ROOTPATH . $m) : ! is_writable(ROOTPATH)) {
+                $notWritable[] = $m;
+            }
         }
         if ($notWritable) {
             throw new RuntimeException('Server tidak mengizinkan menulis berkas: ' . implode(', ', array_slice($notWritable, 0, 5))
@@ -183,6 +201,9 @@ class Updater
             $total += strlen($body);
             if ($total > self::MAX_ALL) {
                 throw new RuntimeException('Ukuran pembaruan terlalu besar untuk pembaruan otomatis. Perbarui secara manual.');
+            }
+            if (! isset($signed['files'][$p]) || Integrity::hash($body) !== $signed['files'][$p]) {
+                throw new RuntimeException('Berkas ' . $p . ' dari GitHub tidak cocok dengan sidik resmi bertanda tangan — pembaruan dibatalkan, tidak ada yang diubah.');
             }
             if (str_ends_with(strtolower($p), '.php')) {
                 try {
@@ -203,7 +224,7 @@ class Updater
         @file_put_contents(self::backupRoot() . '.htaccess', "Require all denied\nDeny from all\n");
 
         $manifest = ['from' => $fromBuild, 'to' => $toBuild, 'ref' => $ref, 'at' => date('c'), 'saved' => [], 'created' => [], 'removed' => []];
-        foreach (array_merge(array_keys($new), $removed, ['version.json']) as $p) {
+        foreach (array_merge(array_keys($new), $removed, Integrity::META) as $p) {
             $abs = ROOTPATH . $p;
             if (is_file($abs)) {
                 $dst = $backup . 'files' . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $p);
@@ -212,7 +233,7 @@ class Updater
                     throw new RuntimeException('Gagal mencadangkan ' . $p . ' — pembaruan dibatalkan, tidak ada berkas yang diubah.');
                 }
                 $manifest['saved'][] = $p;
-            } elseif ($p !== 'version.json' && isset($new[$p])) {
+            } elseif (isset($new[$p]) || (in_array($p, Integrity::META, true) && $p !== 'version.json')) {
                 $manifest['created'][] = $p;
             }
         }
@@ -230,6 +251,8 @@ class Updater
                 }
                 $manifest['removed'][] = $p;
             }
+            $this->writeAtomic(ROOTPATH . 'integrity.json', $ijRaw);
+            $this->writeAtomic(ROOTPATH . 'version.sig', $sigRaw);
             $this->writeAtomic(ROOTPATH . 'version.json', $vjRaw);
         } catch (\Throwable $e) {
             $this->restore($backup, $manifest);
@@ -239,7 +262,7 @@ class Updater
         file_put_contents($backup . 'manifest.json', json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
         // 6. bersihkan cache & jalankan pembaruan database
-        $this->resetOpcache(array_merge($done, ['version.json']));
+        $this->resetOpcache(array_merge($done, Integrity::META));
         cache()->clean();
 
         $migrations = 0;
@@ -300,7 +323,7 @@ class Updater
     private function restore(string $backup, array $manifest): void
     {
         foreach ((array) ($manifest['saved'] ?? []) as $p) {
-            if (! self::allowedPath($p) && $p !== 'version.json') {
+            if (! self::allowedPath($p) && ! in_array($p, Integrity::META, true)) {
                 continue;
             }
             $src = $backup . 'files' . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $p);
@@ -310,7 +333,7 @@ class Updater
             }
         }
         foreach ((array) ($manifest['created'] ?? []) as $p) {
-            if (self::allowedPath($p) && is_file(ROOTPATH . $p)) {
+            if ((self::allowedPath($p) || in_array($p, Integrity::META, true)) && is_file(ROOTPATH . $p)) {
                 @unlink(ROOTPATH . $p);
             }
         }
@@ -351,13 +374,13 @@ class Updater
     }
 
     /** SHA commit terbaru cabang (null bila GitHub tidak dapat dihubungi → pakai nama cabang). */
-    private function latestCommit(): ?string
+    protected function latestCommit(): ?string
     {
         return VersionCheck::latestSha($this->repo, $this->branch);
     }
 
     /** Unduh lewat HTTPS dari GitHub saja. */
-    private function fetch(string $url, int $max, array $headers = []): string
+    protected function fetch(string $url, int $max, array $headers = []): string
     {
         $host = parse_url($url, PHP_URL_HOST);
         if (! in_array($host, ['raw.githubusercontent.com', 'api.github.com'], true)) {

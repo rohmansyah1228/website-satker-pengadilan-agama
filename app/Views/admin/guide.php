@@ -101,7 +101,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
     <p><strong>Versi website</strong> yang terpasang tertulis di bagian bawah menu samping panel admin, mis. <em>Versi 1.8.0 (24 November 2026)</em>. Bila ada versi baru, di bawahnya muncul tanda oranye mis. <em>Versi 1.8.1 tersedia</em>.</p>
     <p>Bila ada versi baru di GitHub, <strong>Dashboard SINOVA</strong> menampilkan kotak <strong>Versi baru website tersedia</strong>: versi yang terpasang → versi baru, beserta isi perubahan setiap versi. Super Admin cukup klik <strong>Update ke Versi …</strong>, konfirmasi, lalu tunggu sampai muncul pesan berhasil (jangan tutup halaman). Sistem akan:</p>
     <ol>
-        <li>mengunduh <strong>hanya berkas yang berubah</strong> dari repositori resmi di GitHub dan memeriksanya lebih dulu — bila satu berkas gagal, tidak ada yang diubah;</li>
+        <li>memeriksa <strong>tanda tangan digital</strong> rilis (lihat <a href="#tanda-tangan">Tanda tangan digital pembaruan</a>), lalu mengunduh <strong>hanya berkas yang berubah</strong> dan mencocokkan setiap berkas dengan sidik resminya — bila satu berkas gagal, tidak ada yang diubah;</li>
         <li>menyimpan <strong>cadangan berkas lama</strong> di <code>writable/backups/pembaruan-…</code>;</li>
         <li>menimpa berkas, lalu menjalankan <strong>pembaruan database</strong> bila ada.</li>
     </ol>
@@ -566,6 +566,27 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
         <li>Isi editor dibersihkan otomatis dari kode berbahaya.</li>
         <li><strong>Kapasitas</strong> (uji 500 pengunjung serentak, 2 CPU/8 GB): 0 gagal, 95% halaman &lt; 33 ms, CPU rata-rata 40%. Untuk lonjakan, aktifkan cache nginx dari <code>deploy/nginx-satker.conf</code>.</li>
     </ul>
+    <h3 id="pemeriksaan-keamanan">Pemeriksaan Keamanan (berkas & sisipan judi online)</h3>
+    <p>Menu <em>Sistem → Pemeriksaan Keamanan</em> (Super Admin) memeriksa:</p>
+    <ul>
+        <li><strong>Berkas website</strong> dibandingkan dengan <strong>versi resmi yang ditandatangani digital</strong> (diambil dari GitHub): berkas yang <em>diubah</em>, berkas resmi yang <em>hilang</em>, dan <em>berkas asing</em> seperti webshell (<code>.php</code> di folder unggahan), <code>.htaccess</code> atau <code>.user.ini</code> sisipan.</li>
+        <li><strong>Isi website</strong> (halaman, berita, menu, tampilan beranda, slider, pintasan, pengaturan): kata kunci judi online/slot, tautan tersembunyi, dan kode sisipan seperti <code>&lt;script&gt;</code> atau <code>javascript:</code>.</li>
+    </ul>
+    <p>Pemeriksaan berjalan otomatis setiap 24 jam saat Super Admin membuka Dashboard. Bila ada temuan, Dashboard menampilkan peringatan merah dan menu samping diberi angka.</p>
+    <?= $img('17-peringatan-dashboard.jpg', 'Peringatan di Dashboard bila Pemeriksaan Keamanan menemukan masalah.') ?>
+    <?= $img('17-pemeriksaan-keamanan.jpg', 'Halaman Pemeriksaan Keamanan: footer disisipi tautan judi, webshell di folder unggahan, dan berita berisi tautan togel tersembunyi.') ?>
+    <div class="table-responsive"><table class="table table-sm align-middle">
+        <thead><tr><th>Tombol</th><th>Fungsi</th></tr></thead>
+        <tbody>
+            <tr><td><strong>Pulihkan</strong></td><td>Mengembalikan berkas yang diubah ke isi resmi dari GitHub (dicocokkan dengan sidik bertanda tangan). Salinan berkas sebelumnya disimpan di <code>writable/backups/pemulihan-…</code>.</td></tr>
+            <tr><td><strong>Karantina</strong></td><td>Memindahkan berkas asing ke <code>writable/karantina/</code>: tidak dihapus, tetapi tidak bisa dijalankan lagi dari web.</td></tr>
+            <tr><td><strong>Buka</strong></td><td>Membuka halaman/berita/menu yang berisi temuan untuk dibersihkan.</td></tr>
+            <tr><td><strong>Aman</strong></td><td>Menyembunyikan temuan yang memang wajar (mis. berita sosialisasi bahaya judi online, berkas <code>.user.ini</code> buatan panel hosting). Temuan berkas muncul lagi bila isinya berubah.</td></tr>
+        </tbody>
+    </table></div>
+    <?= $tip('Bila ditemukan sisipan: setelah dibersihkan, <strong>ganti password semua admin</strong>, password cPanel/FTP dan database, perbarui website ke versi terbaru, lalu periksa ulang. Sisipan judi biasanya masuk lewat password hosting yang bocor atau aplikasi lain di hosting yang sama.', 'warn') ?>
+    <h3 id="tanda-tangan">Tanda tangan digital pembaruan</h3>
+    <p>Setiap rilis di GitHub ditandatangani secara digital oleh pengelola. <strong>Update Website hanya memasang rilis yang tanda tangannya sah</strong>, dan setiap berkas yang diunduh harus sama persis dengan sidiknya. Rilis tanpa tanda tangan, ditandatangani pihak lain, atau berkasnya disisipi ditolak dengan pesan <em>“Tanda tangan digital rilis TIDAK VALID”</em> dan tidak ada berkas yang diubah. Dengan begitu, walaupun akun GitHub dibobol, kode berbahaya tidak bisa menyebar ke website satker lewat tombol Update.</p>
     <h3 id="cloudflare">Memakai Cloudflare (opsional)</h3>
     <p>Cloudflare menyaring bot dan serangan, serta mempercepat gambar/CSS. Website ini sudah mengenali Cloudflare: IP asli pengunjung dibaca dari jaringan Cloudflare, sehingga hitungan pengunjung, kunci percobaan login, dan log aktivitas tetap benar.</p>
     <ol>
@@ -606,6 +627,8 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
             ['Menambah tautan di kaki halaman (Tautan Ekosistem Peradilan)', '<em>Pengaturan → Tautan Layanan → Tautan di kaki halaman</em>: tambahkan baris baru <code>Nama | https://alamat</code>, lalu Simpan. Urutan baris = urutan tampil; lebih dari 6 tautan otomatis tampil dua kolom.'],
             ['Apakah data pengunjung membuat database terus membesar?', 'Tidak. Jumlah kunjungan disimpan <strong>satu baris per hari</strong> (tabel <code>visitor_daily</code>, ± 365 baris per tahun). Tabel <code>visitor_hits</code> hanya penanda sementara agar satu pengunjung tidak dihitung dua kali dalam sehari, dan otomatis dikosongkan setiap hari (hanya 2 hari terakhir yang disimpan). Total kunjungan tetap utuh.'],
             ['Pengunjung sangat banyak, apakah ada bot?', 'Website hanya menghitung satu kali per pengunjung per hari dan tidak menghitung bot yang mengaku bot. Bot yang menyamar sebagai browser tetap terhitung; untuk menyaringnya gunakan Cloudflare dengan Bot Fight Mode (lihat bab Perawatan & Keamanan).'],
+            ['Update Website: “Tanda tangan digital rilis TIDAK VALID”', 'Rilis di GitHub bukan dari pengelola resmi atau telah diubah, sehingga sengaja ditolak. Jangan perbarui manual dari sumber tersebut; hubungi pengelola aplikasi.'],
+            ['Pemeriksaan Keamanan menandai berkas yang saya ubah sendiri', 'Bila perubahan disengaja (mis. teknisi menyesuaikan berkas konfigurasi), klik <strong>Aman</strong>. Ingat: Update Website berikutnya bisa menimpa berkas tersebut.'],
             ['Kartu Pintasan hanya 2 per baris', 'Atur <em>Kartu per baris</em> di tampilan Pintasan Layanan, perlebar kotak tampilannya, lalu tekan Ctrl+F5.'],
         ];
         foreach ($faq as $i => [$q, $a]): ?>

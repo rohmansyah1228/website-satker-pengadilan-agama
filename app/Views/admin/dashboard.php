@@ -8,6 +8,14 @@
     <form action="<?= admin_url('cache/bersihkan') ?>" method="post"><?= csrf_field() ?><button class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> Bersihkan Cache</button></form>
 </div>
 
+<?php if (! empty($security) && ($security['summary']['danger'] + $security['summary']['warn']) > 0): $sd = $security['summary']; ?>
+    <div class="alert alert-<?= $sd['danger'] ? 'danger' : 'warning' ?> d-flex flex-wrap align-items-center gap-3" role="alert">
+        <i class="bi bi-shield-exclamation fs-4" aria-hidden="true"></i>
+        <div class="me-auto"><strong>Pemeriksaan Keamanan: <?= $sd['danger'] + $sd['warn'] ?> temuan</strong>
+            (<?= $sd['danger'] ?> bahaya, <?= $sd['warn'] ?> perlu diperiksa) — mis. berkas yang diubah, berkas skrip asing, atau sisipan judi online.</div>
+        <a href="<?= admin_url('keamanan') ?>" class="btn btn-<?= $sd['danger'] ? 'danger' : 'warning' ?> fw-semibold"><i class="bi bi-shield-check" aria-hidden="true"></i> Lihat temuan</a>
+    </div>
+<?php endif ?>
 <?php if (! empty($update) && ! empty($update['available'])): ?>
     <div class="alert alert-info" role="alert" id="pembaruan">
         <div class="d-flex flex-wrap align-items-center gap-3">
