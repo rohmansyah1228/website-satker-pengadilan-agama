@@ -81,6 +81,7 @@ class Settings extends AdminController
                 'popup_link'      => ['Tautan tombol / gambar (opsional)', 'url', ''],
             ]],
             'keamanan' => ['Keamanan', [
+                'cloudflare'  => ['Cloudflare', 'select', 'Otomatis: bila domain dilewatkan Cloudflare, IP asli pengunjung dibaca dari Cloudflare (hanya dari jaringan resmi Cloudflare) agar hitungan pengunjung, kunci login, dan log aktivitas tetap benar. Tanpa Cloudflare pilihan ini tidak berpengaruh. Pilih Nonaktif bila satker tidak memakai Cloudflare.', ['1' => 'Otomatis (dikenali bila memakai Cloudflare)', '0' => 'Nonaktif (tidak memakai Cloudflare)']],
                 'require_2fa' => ['Wajibkan MFA untuk semua pengguna', 'select', 'SK 2722/2026 Bab II B.3: login admin dilindungi Captcha dan/atau MFA. Dinilai pada kriteria Keamanan.', ['1' => 'Ya (disarankan)', '0' => 'Tidak']],
                 'sk_unlock'   => ['Buka kunci halaman & menu wajib SK', 'select', 'Normalnya halaman dan menu wajib SK terkunci (slug & jenis tidak bisa diubah, tidak bisa dihapus/dipindah) agar alamat yang dinilai SINOVA tetap berlaku. Buka HANYA saat ada SK baru yang mengubah struktur, sesuaikan halaman/menunya, lalu kunci kembali. Saat terbuka, mengubah alamat halaman yang sudah dinilai dapat memengaruhi penilaian SINOVA sampai diperbarui.', ['0' => 'Terkunci (disarankan)', '1' => 'Terbuka — untuk menyesuaikan SK baru']],
             ]],
@@ -99,6 +100,7 @@ class Settings extends AdminController
         }
 
         $values = service('siteSettings')->all();
+        $values += ['cloudflare' => '1']; // nilai bawaan yang berlaku
         $sipp   = null;
         if ($tab === 'sipp') {
             $this->authorize([], true);

@@ -23,6 +23,21 @@ use CodeIgniter\HotReloader\HotReloader;
  *      Events::on('create', [$myInstance, 'myMethod']);
  */
 
+// Cloudflare dapat dimatikan di Pengaturan → Keamanan: IP pengunjung lalu dibaca langsung dari koneksi,
+// tanpa mempercayai header CF-Connecting-IP (lihat Config\App::$proxyIPs).
+Events::on('pre_system', static function (): void {
+    if (is_cli() || ! is_file(ROOTPATH . '.env')) {
+        return;
+    }
+    try {
+        if (function_exists('setting') && setting('cloudflare', '1') === '0') {
+            config('App')->proxyIPs = [];
+        }
+    } catch (\Throwable) {
+        // database belum siap (mis. saat instalasi): pakai bawaan
+    }
+});
+
 Events::on('pre_system', static function (): void {
     if (ENVIRONMENT !== 'testing') {
         $value = ini_get('zlib.output_compression');

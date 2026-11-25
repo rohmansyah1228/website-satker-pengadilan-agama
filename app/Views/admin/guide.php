@@ -576,6 +576,7 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
         <li><strong>Jangan</strong> aktifkan <em>Cache Everything</em> untuk halaman HTML dan <strong>matikan Rocket Loader</strong> (Speed → Optimization). Halaman HTML yang di-cache Cloudflare tidak terhitung di statistik pengunjung dan panel admin bisa menampilkan data lama.</li>
         <li>Opsional: <em>Caching → Cache Rules</em> → <em>Bypass cache</em> untuk alamat panel admin dan <code>/api/</code>.</li>
     </ol>
+    <p class="small">Satker yang <strong>tidak</strong> memakai Cloudflare tidak perlu melakukan apa pun: pengenalan Cloudflare hanya aktif bila permintaan benar-benar datang dari jaringan Cloudflare. Bila ingin dimatikan sama sekali: <em>Pengaturan → Keamanan → Cloudflare</em> = <strong>Nonaktif</strong>.</p>
     <?= $tip('Perbarui website ke versi terbaru <strong>sebelum</strong> mengaktifkan Cloudflare. Versi lama membaca semua pengunjung sebagai IP Cloudflare: hitungan pengunjung jadi sangat kecil dan percobaan login yang salah dari satu orang bisa mengunci semua admin.', 'warn') ?>
 </section>
 
