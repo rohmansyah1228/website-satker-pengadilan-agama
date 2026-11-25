@@ -1,9 +1,47 @@
 {
-  "build": 22,
+  "build": 23,
   "version": "2026-11-25",
   "repo": "rohmansyah1228/website-satker-pengadilan-agama",
   "branch": "main",
   "releases": [
+    {
+      "build": 23,
+      "name": "1.9.0",
+      "version": "2026-11-25",
+      "notes": "Fitur baru: Galeri Prestasi (Publikasi → Galeri Prestasi; blok Beranda slider/kartu, jumlah bisa diatur, prestasi terbaru lebih dulu; halaman /galeri-prestasi). Blok halaman Daftar Unduhan: formulir/blanko/contoh berkas (PDF, Word, Excel, PowerPoint, ODT/ODS, RTF) atau tautan Google Drive, bisa dibagi beberapa tab (mis. Formulir PTSP | Contoh Format Gugatan | Tutorial e-Court), dengan tombol unduh & pencarian; dokumen bermakro ditolak. Perbaikan: Impor Berita Lama mengenali template Joomla lama (1.5/2.5) & Joomla 4 serta tanggal berupa teks; paket SIPP API Kantor bisa diunduh walau ekstensi PHP zip belum aktif; Pemeriksaan Keamanan tidak menandai dirinya sendiri. Pembaruan database berjalan otomatis lewat Update Website; bila memperbarui manual, klik Jalankan pembaruan di Dashboard.",
+      "files": [
+        "app/Config/AdminResources.php",
+        "app/Config/HomeBlocks.php",
+        "app/Config/Routes.php",
+        "app/Controllers/Achievements.php",
+        "app/Controllers/Admin/Crud.php",
+        "app/Controllers/Admin/Editor.php",
+        "app/Controllers/Files.php",
+        "app/Database/Migrations/2026-11-25-000020_Achievements.php",
+        "app/Libraries/HomeBlocks.php",
+        "app/Libraries/LegacyImporter.php",
+        "app/Libraries/PageBlocks.php",
+        "app/Libraries/SecurityScan.php",
+        "app/Libraries/SippApi.php",
+        "app/Libraries/Uploader.php",
+        "app/Libraries/ZipWriter.php",
+        "app/Views/admin/guide.php",
+        "app/Views/admin/pages/form.php",
+        "app/Views/admin/settings.php",
+        "app/Views/layouts/admin.php",
+        "app/Views/partials/achievement_card.php",
+        "app/Views/site/achievements.php",
+        "app/Views/site/blocks/achievements.php",
+        "app/Views/site/blocks/greetings.php",
+        "app/Views/site/page_blocks/downloads.php",
+        "public/assets/css/site.css",
+        "public/assets/img/panduan/05-daftar-unduhan-editor.jpg",
+        "public/assets/img/panduan/05-daftar-unduhan.jpg",
+        "public/assets/js/import.js",
+        "public/assets/js/page-builder.js",
+        "public/assets/js/site.js"
+      ]
+    },
     {
       "build": 22,
       "name": "1.8.4",
@@ -365,5 +403,5 @@
       ]
     }
   ],
-  "name": "1.8.4"
+  "name": "1.9.0"
 }
