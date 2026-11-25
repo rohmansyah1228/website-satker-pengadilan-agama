@@ -294,7 +294,7 @@ class PageBlocks
             return ($basePath !== '' && str_starts_with($u, $basePath . '/')) ? $u : site_url(ltrim($u, '/'));
         }
 
-        return content_expand_urls($u);
+        return safe_href(content_expand_urls($u));
     }
 
     public static function isInternal(string $u): bool

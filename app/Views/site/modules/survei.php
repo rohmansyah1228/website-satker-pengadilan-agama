@@ -8,5 +8,5 @@
     <?php endforeach ?>
 </div>
 <?php if (setting('survey_period')): ?><p class="small text-secondary">Periode survei: <?= esc(setting('survey_period')) ?></p><?php endif ?>
-<?php if (setting('survey_url')): ?><a href="<?= esc(setting('survey_url'), 'attr') ?>" target="_blank" rel="noopener noreferrer" class="btn btn-pa-secondary fw-bold mb-4"><i class="bi bi-pencil-square me-1" aria-hidden="true"></i>Isi Survei Pelayanan Publik</a><?php endif ?>
+<?php if (setting('survey_url')): ?><a href="<?= esc(safe_href(setting('survey_url')), 'attr') ?>" target="_blank" rel="noopener noreferrer" class="btn btn-pa-secondary fw-bold mb-4"><i class="bi bi-pencil-square me-1" aria-hidden="true"></i>Isi Survei Pelayanan Publik</a><?php endif ?>
 <?= view('site/modules/documents', ['groups' => $groups ?? [], 'hideEmpty' => true]) ?>

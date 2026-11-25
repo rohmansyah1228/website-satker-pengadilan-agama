@@ -25,11 +25,12 @@
                     ]) ?>
                 <?php endforeach ?>
                 <?php if ($r['type'] === 'videos'): ?>
-                    <p class="small mb-0"><i class="bi bi-arrow-right-circle text-pa-primary" aria-hidden="true"></i> Video dikelola di <a href="<?= admin_url('data/video') ?>">Galeri Video</a>.</p>
+                    <p class="small mb-0"><i class="bi bi-arrow-right-circle text-pa-primary" aria-hidden="true"></i> Video dikelola di <?php if (can(config('AdminResources')->resources['video']['roles'] ?? [])): ?><a href="<?= admin_url('data/video') ?>">Galeri Video</a><?php else: ?>menu Galeri Video<?php endif ?>.</p>
                 <?php endif ?>
                 <?php if (in_array($r['type'], ['slider', 'shortcuts'], true)): ?>
                     <p class="small mb-0"><i class="bi bi-arrow-right-circle text-pa-primary" aria-hidden="true"></i>
-                        Isi <?= $r['type'] === 'slider' ? 'slide' : 'kartu pintasan' ?> dikelola di <a href="<?= admin_url('data/' . ($r['type'] === 'slider' ? 'slider' : 'pintasan')) ?>"><?= $r['type'] === 'slider' ? 'Slider Beranda' : 'Pintasan Layanan' ?></a>.</p>
+                        <?php $resKey = $r['type'] === 'slider' ? 'slider' : 'pintasan'; $resLbl = $r['type'] === 'slider' ? 'Slider Beranda' : 'Pintasan Layanan'; ?>
+                        Isi <?= $r['type'] === 'slider' ? 'slide' : 'kartu pintasan' ?> dikelola di <?php if (can(config('AdminResources')->resources[$resKey]['roles'] ?? [])): ?><a href="<?= admin_url('data/' . $resKey) ?>"><?= $resLbl ?></a><?php else: ?>menu <?= $resLbl ?> (oleh Admin)<?php endif ?>.</p>
                 <?php endif ?>
             </div>
         </div>

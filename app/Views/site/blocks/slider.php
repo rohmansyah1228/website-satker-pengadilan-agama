@@ -26,7 +26,7 @@
                     <div class="mt-4 d-flex flex-wrap gap-3">
                         <?php foreach ([['button_text', 'button_url', 'btn-pa-secondary'], ['button2_text', 'button2_url', 'btn-outline-light']] as [$tk, $uk, $cls]): ?>
                             <?php $u = link_url($s[$uk]); if (! $s[$tk] || $u === '#') continue; ?>
-                            <a href="<?= esc($u, 'attr') ?>" class="btn <?= $cls ?> btn-lg px-4"<?= is_external($u) ? ' target="_blank" rel="noopener noreferrer"' : '' ?>><?= esc($s[$tk]) ?><?= $tk === 'button_text' ? ' <i class="bi bi-arrow-right ms-1" aria-hidden="true"></i>' : '' ?></a>
+                            <a href="<?= esc(safe_href($u), 'attr') ?>" class="btn <?= $cls ?> btn-lg px-4"<?= is_external($u) ? ' target="_blank" rel="noopener noreferrer"' : '' ?>><?= esc($s[$tk]) ?><?= $tk === 'button_text' ? ' <i class="bi bi-arrow-right ms-1" aria-hidden="true"></i>' : '' ?></a>
                         <?php endforeach ?>
                     </div>
                 </div>

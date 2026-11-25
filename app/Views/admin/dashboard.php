@@ -123,6 +123,12 @@
     </div>
 </div>
 
+<?php
+// Tombol "Lengkapi/Kelola" hanya untuk bagian yang boleh dikelola pengguna ini (operator tidak diarahkan ke halaman 404).
+$adminRes    = config('AdminResources')->resources;
+$pageRoles   = array_map(static fn ($s) => $s['roles'] ?? [], config('SiteStructure')->sections) + ['informasi' => []];
+$pageSection = array_column(db_connect()->table('pages')->select('id, section')->get()->getResultArray(), 'section', 'id');
+?>
 <?php foreach (['berkala' => 'A.1 Informasi Berkala (bobot 40%)', 'wajib' => 'A.2 Informasi Wajib (bobot 20%)'] as $grp => $label): ?>
 <div class="card mb-4">
     <div class="card-header bg-white"><h2 class="h6 fw-bold mb-0"><?= $label ?></h2></div>
@@ -146,14 +152,14 @@
                         <?php
                         $fix = null;
                         if (str_starts_with($r['check'], 'setting:')) {
-                            $fix = admin_url('pengaturan?tab=' . (str_contains($r['check'], 'ikm') ? 'survei' : (str_contains($r['check'], 'address') ? 'kontak' : 'tautan')));
+                            $fix = ! can([]) ? null : admin_url('pengaturan?tab=' . (str_contains($r['check'], 'ikm') ? 'survei' : (str_contains($r['check'], 'address') ? 'kontak' : 'tautan')));
                         } elseif (str_starts_with($r['check'], 'docs:')) {
-                            $fix = admin_url('data/dokumen');
+                            $fix = can($adminRes['dokumen']['roles'] ?? []) ? admin_url('data/dokumen') : null;
                         } elseif (str_starts_with($r['check'], 'table:')) {
                             $map = ['hearings' => 'jadwal-sidang', 'case_stats' => 'statistik-perkara', 'ghaib' => 'panggilan-ghaib', 'lhkpn' => 'lhkpn', 'info_requests' => 'akses-informasi', 'complaints' => 'pengaduan', 'jurisdictions' => 'wilayah', 'employees' => 'pegawai'];
                             $t   = explode(':', $r['check'])[1];
-                            $fix = isset($map[$t]) ? admin_url('data/' . $map[$t]) : null;
-                        } elseif ($r['page_id']) {
+                            $fix = isset($map[$t]) && can($adminRes[$map[$t]]['roles'] ?? []) ? admin_url('data/' . $map[$t]) : null;
+                        } elseif ($r['page_id'] && can($pageRoles[$pageSection[$r['page_id']] ?? ''] ?? ['__none__'])) {
                             $fix = admin_url('halaman/' . $r['page_id']);
                         }
                         ?>

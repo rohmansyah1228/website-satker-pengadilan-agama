@@ -17,7 +17,7 @@
             <p class="text-secondary"><?= nl2br(esc(setting('office_hours'))) ?></p>
         <?php endif ?>
         <?php if (setting('map_url')): ?>
-            <a href="<?= esc(setting('map_url'), 'attr') ?>" target="_blank" rel="noopener noreferrer" class="btn btn-pa-primary"><i class="bi bi-geo-alt me-1" aria-hidden="true"></i>Lihat di Peta</a>
+            <a href="<?= esc(safe_href(setting('map_url')), 'attr') ?>" target="_blank" rel="noopener noreferrer" class="btn btn-pa-primary"><i class="bi bi-geo-alt me-1" aria-hidden="true"></i>Lihat di Peta</a>
         <?php endif ?>
     </div>
     <div class="col-md-6">

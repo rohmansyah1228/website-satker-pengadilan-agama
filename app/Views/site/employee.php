@@ -79,7 +79,7 @@ $identity = implode('  |  ', array_filter([$emp['religion'] ?? '', $gender]));
                     <?php endif ?>
 
                     <?php if (! empty($emp['profile_url']) && ($ext = \App\Libraries\PageBlocks::cleanUrl((string) $emp['profile_url']))): ?>
-                        <p class="mt-4 mb-0"><a href="<?= esc($ext, 'attr') ?>" data-preview="<?= esc(\App\Libraries\PageBlocks::previewUrl($ext) ?? $ext, 'attr') ?>" data-preview-title="<?= esc($emp['name'], 'attr') ?>" target="_blank" rel="noopener noreferrer" class="btn btn-pa-primary btn-sm"><i class="bi bi-person-vcard" aria-hidden="true"></i> Profil lengkap (SIMTEPA)</a></p>
+                        <p class="mt-4 mb-0"><a href="<?= esc(safe_href($ext), 'attr') ?>" data-preview="<?= esc(\App\Libraries\PageBlocks::previewUrl($ext) ?? $ext, 'attr') ?>" data-preview-title="<?= esc($emp['name'], 'attr') ?>" target="_blank" rel="noopener noreferrer" class="btn btn-pa-primary btn-sm"><i class="bi bi-person-vcard" aria-hidden="true"></i> Profil lengkap (SIMTEPA)</a></p>
                     <?php endif ?>
                     <p class="mt-4 mb-0"><a href="<?= $pageUrl ?>" class="btn btn-outline-success btn-sm"><i class="bi bi-arrow-left" aria-hidden="true"></i> Kembali ke <?= esc($page['title']) ?></a></p>
                 </div>

@@ -14,7 +14,7 @@
         <?php if (mb_strlen($q) < 3): ?><p class="text-secondary">Masukkan minimal 3 karakter.</p><?php endif ?>
         <div class="list-group">
             <?php foreach ($results as $r): ?>
-                <a href="<?= esc($r['url'], 'attr') ?>" class="list-group-item list-group-item-action p-3">
+                <a href="<?= esc(safe_href($r['url']), 'attr') ?>" class="list-group-item list-group-item-action p-3">
                     <span class="badge bg-pa-primary mb-1"><?= esc($r['type']) ?></span>
                     <span class="d-block fw-bold text-pa-primary"><?= esc($r['title']) ?></span>
                     <small class="text-secondary"><?= esc($r['snippet']) ?></small>

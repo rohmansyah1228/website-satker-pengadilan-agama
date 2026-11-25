@@ -43,7 +43,7 @@ $dropItems = static function (array $items, int $depth) use (&$dropItems, $curUr
                     <span class="text-white-50" aria-hidden="true">|</span>
                     <div class="d-flex gap-2">
                         <?php foreach ($soc as $net => $url): ?>
-                            <a href="<?= esc($url, 'attr') ?>" target="_blank" rel="noopener noreferrer" aria-label="<?= ucfirst($net) ?> <?= esc($siteName) ?>" class="text-white"><i class="bi bi-<?= $net ?>" aria-hidden="true"></i></a>
+                            <a href="<?= esc(safe_href($url), 'attr') ?>" target="_blank" rel="noopener noreferrer" aria-label="<?= ucfirst($net) ?> <?= esc($siteName) ?>" class="text-white"><i class="bi bi-<?= $net ?>" aria-hidden="true"></i></a>
                         <?php endforeach ?>
                     </div>
                 <?php endif ?>
@@ -72,7 +72,7 @@ $dropItems = static function (array $items, int $depth) use (&$dropItems, $curUr
                         <?php $isActive = $activeId === $item['id']; $ext = $item['type'] === 'url'; ?>
                         <?php if ($item['children']): ?>
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle<?= $isActive ? ' active' : '' ?>" href="<?= esc($item['href'], 'attr') ?>" id="menu<?= $item['id'] ?>" role="button" data-bs-toggle="dropdown" aria-expanded="false"<?= $isActive ? ' aria-current="true"' : '' ?>>
+                                <a class="nav-link dropdown-toggle<?= $isActive ? ' active' : '' ?>" href="<?= esc(safe_href($item['href']), 'attr') ?>" id="menu<?= $item['id'] ?>" role="button" data-bs-toggle="dropdown" aria-expanded="false"<?= $isActive ? ' aria-current="true"' : '' ?>>
                                     <?= esc($item['label']) ?>
                                 </a>
                                 <ul class="dropdown-menu shadow border-0" aria-labelledby="menu<?= $item['id'] ?>">
@@ -81,7 +81,7 @@ $dropItems = static function (array $items, int $depth) use (&$dropItems, $curUr
                             </li>
                         <?php else: ?>
                             <li class="nav-item">
-                                <a class="nav-link<?= $isActive ? ' active' : '' ?>" href="<?= esc($item['href'], 'attr') ?>"<?= $isActive ? ' aria-current="page"' : '' ?><?= $item['new_tab'] || $ext ? ' target="_blank" rel="noopener noreferrer"' : '' ?>><?= esc($item['label']) ?></a>
+                                <a class="nav-link<?= $isActive ? ' active' : '' ?>" href="<?= esc(safe_href($item['href']), 'attr') ?>"<?= $isActive ? ' aria-current="page"' : '' ?><?= $item['new_tab'] || $ext ? ' target="_blank" rel="noopener noreferrer"' : '' ?>><?= esc($item['label']) ?></a>
                             </li>
                         <?php endif ?>
                     <?php endforeach ?>

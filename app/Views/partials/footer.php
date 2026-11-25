@@ -26,7 +26,7 @@ $addr     = implode(', ', array_filter([setting('address_street'), setting('addr
                 <?php $flinks = footer_links(); // lebih dari 6 tautan → dua kolom agar kaki halaman tidak terlalu panjang ?>
                 <ul class="list-unstyled small mb-0"<?= count($flinks) > 6 ? ' style="column-count:2;column-gap:1.5rem"' : '' ?>>
                     <?php foreach ($flinks as [$fname, $furl]): ?>
-                    <li class="mb-2" style="break-inside:avoid"><a href="<?= esc($furl, 'attr') ?>" target="_blank" rel="noopener noreferrer" class="text-white-50 text-decoration-none"><?= esc($fname) ?></a></li>
+                    <li class="mb-2" style="break-inside:avoid"><a href="<?= esc(safe_href($furl), 'attr') ?>" target="_blank" rel="noopener noreferrer" class="text-white-50 text-decoration-none"><?= esc($fname) ?></a></li>
                     <?php endforeach ?>
                 </ul>
             </div>

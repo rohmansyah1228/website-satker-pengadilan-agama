@@ -7,7 +7,7 @@ $title = $b['heading'] !== '' ? $b['heading'] : 'Konten tersemat dari ' . $host;
         <iframe src="<?= esc(PageBlocks::embedUrl($b['url']), 'attr') ?>" title="<?= esc($title, 'attr') ?>" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="fullscreen; clipboard-write; encrypted-media; picture-in-picture" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation allow-downloads"></iframe>
     </div>
     <p class="small text-secondary mt-2 mb-0">
-        Tidak tampil? <a href="<?= esc($b['url'], 'attr') ?>" target="_blank" rel="noopener noreferrer" class="text-pa-primary fw-semibold">Buka di tab baru <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i></a>
+        Tidak tampil? <a href="<?= esc(safe_href($b['url']), 'attr') ?>" target="_blank" rel="noopener noreferrer" class="text-pa-primary fw-semibold">Buka di tab baru <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i></a>
         <span class="ms-1">· Sumber: <?= esc($host) ?></span>
     </p>
 </div>

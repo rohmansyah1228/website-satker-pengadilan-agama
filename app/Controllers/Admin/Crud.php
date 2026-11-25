@@ -194,7 +194,8 @@ class Crud extends AdminController
         $codes = $table === 'documents' ? array_column($this->db->table('doc_types')->select('id, code')->get()->getResultArray(), 'id', 'code') : [];
         $out   = [];
         foreach ($this->db->table('pages')->whereIn('module', $modules)->where('status', 'published')->get()->getResultArray() as $p) {
-            $item = ['label' => $p['title'], 'url' => site_url("{$p['section']}/{$p['slug']}"), 'edit' => admin_url('halaman/' . $p['id'])];
+            $secRoles = $p['section'] === 'informasi' ? [] : (config('SiteStructure')->sections[$p['section']]['roles'] ?? ['__none__']);
+            $item     = ['label' => $p['title'], 'url' => site_url("{$p['section']}/{$p['slug']}"), 'edit' => can($secRoles) ? admin_url('halaman/' . $p['id']) : null];
             if ($table === 'documents') {
                 // dokumen: tampil di halaman yang memilih jenis dokumennya (disaring di browser saat jenis dipilih)
                 $item['types'] = array_values(array_filter(array_map(static fn ($c) => $codes[$c] ?? null, explode(',', (string) $p['module_param']))));
@@ -335,6 +336,9 @@ class Crud extends AdminController
                         $v = trim((string) ($post[$name] ?? ''));
                         if ($v !== '' && ! preg_match('#^([a-z][a-z0-9+.-]*:|/|\{)#i', $v) && preg_match('#^[a-z0-9-]+(\.[a-z0-9-]+)+(/|$|\?)#i', $v)) {
                             $v = 'https://' . $v;
+                        }
+                        if (! url_scheme_ok($v)) {
+                            throw new RuntimeException('Tautan harus diawali https://, http://, atau alamat internal "/…".');
                         }
                         $data[$name] = $v;
                         break;

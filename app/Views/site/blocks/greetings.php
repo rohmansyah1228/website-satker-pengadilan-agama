@@ -62,7 +62,7 @@ if (! $cssDone):
                         ?>
                         <div class="carousel-item<?= $i === 0 ? ' active' : '' ?>">
                             <?php if ($u !== '#'): ?>
-                                <a href="<?= esc($u, 'attr') ?>"<?= is_external($u) ? ' target="_blank" rel="noopener noreferrer"' : '' ?>><?= $img ?></a>
+                                <a href="<?= esc(safe_href($u), 'attr') ?>"<?= is_external($u) ? ' target="_blank" rel="noopener noreferrer"' : '' ?>><?= $img ?></a>
                             <?php else: ?>
                                 <?= $img ?>
                             <?php endif ?>

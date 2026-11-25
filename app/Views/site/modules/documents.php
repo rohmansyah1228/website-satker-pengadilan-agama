@@ -20,7 +20,7 @@ $filled = array_filter($groups, static fn ($g) => ! empty($g['years']));
                                 <?= esc($d['title']) ?><?= $d['month'] ? ' — ' . bulan_id((int) $d['month']) . ' ' . (int) $d['year'] : '' ?>
                                 <?php if ($d['size']): ?><small class="text-secondary">(PDF, <?= format_bytes((int) $d['size']) ?>)</small><?php endif ?>
                             </span>
-                            <a href="<?= esc($url, 'attr') ?>" class="btn btn-sm btn-pa-primary" target="_blank" rel="noopener">Lihat Dokumen<span class="visually-hidden"> <?= esc($d['title']) ?></span></a>
+                            <a href="<?= esc(safe_href($url), 'attr') ?>" class="btn btn-sm btn-pa-primary" target="_blank" rel="noopener">Lihat Dokumen<span class="visually-hidden"> <?= esc($d['title']) ?></span></a>
                         </li>
                     <?php endforeach ?>
                 </ul>

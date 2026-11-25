@@ -217,7 +217,7 @@ class Settings extends AdminController
                     $v = ''; // sama dengan bawaan: tetap ikut perubahan URL SIWAS
                 }
             }
-            if ($type === 'url' && $v !== '' && ! filter_var($v, FILTER_VALIDATE_URL)) {
+            if ($type === 'url' && $v !== '' && (! filter_var($v, FILTER_VALIDATE_URL) || ! preg_match('#^https?://#i', $v))) {
                 $errors[] = "{$label}: format URL tidak valid (awali dengan https://).";
                 continue;
             }

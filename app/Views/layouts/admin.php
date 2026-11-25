@@ -52,7 +52,7 @@ if ($rel === '') {
         </div>
         <a href="<?= admin_url() ?>" class="<?= $is('', true) ? 'active' : '' ?>"<?= $is('', true) ? ' aria-current="page"' : '' ?>><i class="bi bi-speedometer2" aria-hidden="true"></i>Dashboard SINOVA</a>
         <div class="grp">Konten</div>
-        <a href="<?= admin_url('halaman') ?>" class="<?= $is('halaman') ? 'active' : '' ?>"><i class="bi bi-file-earmark-richtext" aria-hidden="true"></i>Halaman</a>
+        <?php if (can([]) || array_filter(config('SiteStructure')->sections, static fn ($s) => can($s['roles'] ?? []))): ?><a href="<?= admin_url('halaman') ?>" class="<?= $is('halaman') ? 'active' : '' ?>"><i class="bi bi-file-earmark-richtext" aria-hidden="true"></i>Halaman</a><?php endif ?>
         <?php if (can(['humas'])): ?><a href="<?= admin_url('beranda') ?>" class="<?= $is('beranda') ? 'active' : '' ?>"<?= $is('beranda') ? ' aria-current="page"' : '' ?>><i class="bi bi-layout-text-window-reverse" aria-hidden="true"></i>Tampilan Beranda</a><?php endif ?>
         <?php if (can([])): ?><a href="<?= admin_url('menu') ?>" class="<?= $is('menu') ? 'active' : '' ?>"><i class="bi bi-list-nested" aria-hidden="true"></i>Menu Navigasi</a><?php endif ?>
         <?php foreach ($nav as $grp => $items): ?>

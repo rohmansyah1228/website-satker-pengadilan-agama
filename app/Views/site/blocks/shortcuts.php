@@ -21,7 +21,7 @@ $cls   = $nested ? $base : $base . ' row-cols-md-' . min($cols, 3) . ' row-cols-
         ?>
         <div class="col">
             <?php if ($style === 'tile'): ?>
-                <a href="<?= esc($s['href'], 'attr') ?>"<?= $attr ?> class="d-block h-100 shortcut-tile" title="<?= esc($s['title'], 'attr') ?>">
+                <a href="<?= esc(safe_href($s['href']), 'attr') ?>"<?= $attr ?> class="d-block h-100 shortcut-tile" title="<?= esc($s['title'], 'attr') ?>">
                     <?php if ($img): ?>
                         <img src="<?= esc($img, 'attr') ?>" alt="<?= esc($s['title'], 'attr') ?>" loading="lazy" decoding="async">
                     <?php else: ?>
@@ -29,12 +29,12 @@ $cls   = $nested ? $base : $base . ' row-cols-md-' . min($cols, 3) . ' row-cols-
                     <?php endif ?><?= $sr ?>
                 </a>
             <?php elseif ($style === 'button'): ?>
-                <a href="<?= esc($s['href'], 'attr') ?>"<?= $attr ?> class="d-flex flex-column align-items-center justify-content-center h-100 text-center text-decoration-none shortcut-button">
+                <a href="<?= esc(safe_href($s['href']), 'attr') ?>"<?= $attr ?> class="d-flex flex-column align-items-center justify-content-center h-100 text-center text-decoration-none shortcut-button">
                     <?php if ($img): ?><img src="<?= esc($img, 'attr') ?>" alt="" loading="lazy" decoding="async"><?php else: ?><i class="bi <?= esc($s['icon'] ?: 'bi-link-45deg', 'attr') ?>" aria-hidden="true"></i><?php endif ?>
                     <span class="shortcut-button-label"><?= esc($s['title']) ?></span><?= $sr ?>
                 </a>
             <?php else: ?>
-                <a href="<?= esc($s['href'], 'attr') ?>"<?= $attr ?> class="d-block bg-light p-4 rounded-3 text-center shadow-sm text-decoration-none h-100 card-shortcut">
+                <a href="<?= esc(safe_href($s['href']), 'attr') ?>"<?= $attr ?> class="d-block bg-light p-4 rounded-3 text-center shadow-sm text-decoration-none h-100 card-shortcut">
                     <?php if ($img): ?>
                         <img src="<?= esc($img, 'attr') ?>" alt="" class="shortcut-img" loading="lazy" decoding="async">
                     <?php else: ?>

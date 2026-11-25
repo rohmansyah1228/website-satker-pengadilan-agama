@@ -8,7 +8,7 @@ if ($wa !== '') {
 $waText = setting('whatsapp_text', 'Assalamualaikum, saya ingin bertanya tentang layanan ' . setting('site_name', 'pengadilan') . '.');
 ?>
 <?php if ($cctv !== ''): ?>
-    <a href="<?= esc($cctv, 'attr') ?>" target="_blank" rel="noopener noreferrer" class="float-cctv" aria-label="Akses CCTV Online <?= esc(setting('site_name'), 'attr') ?> (membuka tab baru)">
+    <a href="<?= esc(safe_href($cctv), 'attr') ?>" target="_blank" rel="noopener noreferrer" class="float-cctv" aria-label="Akses CCTV Online <?= esc(setting('site_name'), 'attr') ?> (membuka tab baru)">
         <?php if (setting('cctv_image')): ?>
             <img src="<?= media_url(setting('cctv_image')) ?>" alt="" class="float-cctv-img">
         <?php else: ?>

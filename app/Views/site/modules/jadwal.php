@@ -27,5 +27,5 @@
     <p class="small text-secondary mb-2"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> Jadwal diperbarui otomatis dari SIPP, terakhir <?= esc(date('d-m-Y H:i', (int) strtotime((string) $st['diterima_pada']))) ?>.</p>
 <?php endif ?>
 <?php if (setting('sipp_url')): ?>
-    <a href="<?= esc(setting('sipp_url'), 'attr') ?>" target="_blank" rel="noopener noreferrer" class="btn btn-pa-primary mt-2">Buka Jadwal Lengkap di SIPP <i class="bi bi-box-arrow-up-right ms-1" aria-hidden="true"></i></a>
+    <a href="<?= esc(safe_href(setting('sipp_url')), 'attr') ?>" target="_blank" rel="noopener noreferrer" class="btn btn-pa-primary mt-2">Buka Jadwal Lengkap di SIPP <i class="bi bi-box-arrow-up-right ms-1" aria-hidden="true"></i></a>
 <?php endif ?>

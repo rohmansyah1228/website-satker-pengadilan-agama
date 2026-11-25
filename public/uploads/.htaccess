@@ -1,8 +1,17 @@
 # Folder unggahan gambar: larang eksekusi skrip & listing direktori (SK 2722/2026 Bab II A.3)
 Options -Indexes -ExecCGI
-<FilesMatch "\.(php|phtml|php\d|phar|pl|py|cgi|sh|jsp|asp|aspx|shtml)$">
-    Require all denied
+<FilesMatch "\.(php|phtml|php\d|phps|phar|pl|py|cgi|sh|jsp|asp|aspx|shtml|htaccess|htpasswd|ini)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
 </FilesMatch>
 <IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
     php_flag engine off
 </IfModule>

@@ -56,6 +56,21 @@ class Cookie extends BaseConfig
      */
     public bool $secure = false;
 
+    public function __construct()
+    {
+        parent::__construct();
+        // Cookie bertanda Secure otomatis saat website dibuka lewat HTTPS (langsung atau di
+        // belakang Cloudflare/proxy), agar cookie sesi admin tidak pernah terkirim lewat HTTP biasa.
+        // Header proxy yang dipalsukan hanya membuat cookie penyerang sendiri tidak terkirim di HTTP.
+        $https = strtolower((string) ($_SERVER['HTTPS'] ?? ''));
+        if (($https !== '' && $https !== 'off')
+            || (string) ($_SERVER['SERVER_PORT'] ?? '') === '443'
+            || strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https'
+            || str_contains((string) ($_SERVER['HTTP_CF_VISITOR'] ?? ''), 'https')) {
+            $this->secure = true;
+        }
+    }
+
     /**
      * --------------------------------------------------------------------------
      * Cookie HTTPOnly

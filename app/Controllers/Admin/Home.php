@@ -318,6 +318,9 @@ class Home extends AdminController
 
                 default:
                     $settings[$k] = trim((string) $v);
+                    if ($f[1] === 'url' && ! url_scheme_ok($settings[$k])) {
+                        return $this->form($current, $id, ['settings_' . $k => 'Tautan harus diawali https://, http://, atau alamat internal "/…".']);
+                    }
             }
         }
         if ($type === 'image' && empty($settings['image'])) {

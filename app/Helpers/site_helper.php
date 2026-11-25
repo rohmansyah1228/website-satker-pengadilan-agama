@@ -182,6 +182,32 @@ if (! function_exists('content_expand_urls')) {
     }
 }
 
+if (! function_exists('url_scheme_ok')) {
+    /**
+     * Tautan isian admin hanya boleh http(s), mailto:, tel:, jalur lokal "/…", "#…", "?…" atau token "{…}".
+     * Menolak javascript:, data:, vbscript: dsb. (termasuk yang disamarkan dengan spasi/tab/baris baru).
+     */
+    function url_scheme_ok(string $u): bool
+    {
+        $t = preg_replace('/[\x00-\x20\x7f]+/', '', $u);
+        if ($t === '' || ! preg_match('#^([a-z][a-z0-9+.\-]*):#i', $t, $m)) {
+            return true; // tanpa skema: jalur relatif / domain tanpa https:// / token
+        }
+
+        return in_array(strtolower($m[1]), ['http', 'https', 'mailto', 'tel'], true);
+    }
+}
+
+if (! function_exists('safe_href')) {
+    /** Untuk ditampilkan di href: tautan berskema berbahaya diganti "#". */
+    function safe_href(?string $u): string
+    {
+        $u = (string) $u;
+
+        return url_scheme_ok($u) ? $u : '#';
+    }
+}
+
 if (! function_exists('favicon_tags')) {
     /** Ikon tab browser = logo satker yang diunggah (Pengaturan), sama di situs publik & panel admin. */
     function favicon_tags(): string

@@ -7,7 +7,7 @@ $pv    = PageBlocks::previewUrl((string) $v['url']);
 $small = $small ?? false;
 ?>
 <figure class="video-card h-100 mb-0">
-    <a href="<?= esc($v['url'], 'attr') ?>" class="video-thumb d-block position-relative rounded-3 overflow-hidden"<?= $pv ? ' data-preview="' . esc($pv . (str_contains($pv, 'youtube') ? '?autoplay=1&rel=0' : ''), 'attr') . '"' : '' ?> target="_blank" rel="noopener noreferrer" data-preview-title="<?= esc($v['title'], 'attr') ?>">
+    <a href="<?= esc(safe_href($v['url']), 'attr') ?>" class="video-thumb d-block position-relative rounded-3 overflow-hidden"<?= $pv ? ' data-preview="' . esc($pv . (str_contains($pv, 'youtube') ? '?autoplay=1&rel=0' : ''), 'attr') . '"' : '' ?> target="_blank" rel="noopener noreferrer" data-preview-title="<?= esc($v['title'], 'attr') ?>">
         <?php if ($thumb): ?>
             <img src="<?= esc($thumb, 'attr') ?>" alt="" loading="lazy" decoding="async" width="480" height="270" onerror="this.remove()">
         <?php else: ?>

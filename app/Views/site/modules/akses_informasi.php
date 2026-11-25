@@ -9,4 +9,4 @@
         </tbody>
     </table>
 </div>
-<?php if (setting('ppid_form_url')): ?><a href="<?= esc(setting('ppid_form_url'), 'attr') ?>" class="btn btn-pa-secondary" target="_blank" rel="noopener noreferrer">Formulir Permohonan Informasi</a><?php endif ?>
+<?php if (setting('ppid_form_url')): ?><a href="<?= esc(safe_href(setting('ppid_form_url')), 'attr') ?>" class="btn btn-pa-secondary" target="_blank" rel="noopener noreferrer">Formulir Permohonan Informasi</a><?php endif ?>

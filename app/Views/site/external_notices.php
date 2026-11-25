@@ -28,7 +28,7 @@
                 <h2 class="h6 fw-bold">Situs sumber</h2>
                 <ul class="list-unstyled mb-0">
                     <?php foreach ($sources as [$label, $url]): ?>
-                        <li class="mb-2"><a href="<?= esc($url, 'attr') ?>" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></i>Pengumuman <?= esc($label) ?></a></li>
+                        <li class="mb-2"><a href="<?= esc(safe_href($url), 'attr') ?>" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></i>Pengumuman <?= esc($label) ?></a></li>
                     <?php endforeach ?>
                 </ul>
             </div>

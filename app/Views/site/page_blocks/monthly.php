@@ -29,7 +29,7 @@ $label = $b['heading'] !== '' ? $b['heading'] : 'Arsip Terjadwal ' . $b['year'];
                         <?php if ($u !== ''):
                             $href = PageBlocks::href($u);
                             $pv   = $open === 'popup' ? (PageBlocks::previewUrl($href) ?? $href) : null; ?>
-                            <a class="monthly-card is-done" href="<?= esc($href, 'attr') ?>"<?= $pv ? ' data-preview="' . esc($pv, 'attr') . '"' : '' ?><?= $open === 'same' ? '' : ' target="_blank" rel="noopener noreferrer"' ?> data-preview-title="<?= esc($title, 'attr') ?>" aria-label="Lihat <?= esc($title, 'attr') ?>">
+                            <a class="monthly-card is-done" href="<?= esc(safe_href($href), 'attr') ?>"<?= $pv ? ' data-preview="' . esc($pv, 'attr') . '"' : '' ?><?= $open === 'same' ? '' : ' target="_blank" rel="noopener noreferrer"' ?> data-preview-title="<?= esc($title, 'attr') ?>" aria-label="Lihat <?= esc($title, 'attr') ?>">
                                 <span class="monthly-card__name"><?= $name ?></span>
                                 <span class="monthly-card__state"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Lihat Dokumen</span>
                             </a>

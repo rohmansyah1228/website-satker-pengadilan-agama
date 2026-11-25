@@ -17,6 +17,6 @@ $vals = array_filter([['bi-emoji-smile', 'Indeks Kepuasan Masyarakat (IKM)', set
 </div><?php endif ?>
 <?php if (setting('survey_url')): ?>
 <div class="text-center pt-3">
-    <a href="<?= esc(setting('survey_url'), 'attr') ?>" target="_blank" rel="noopener noreferrer" class="btn btn-pa-secondary fw-bold<?= $nested ? '' : ' btn-lg' ?> px-4"><i class="bi bi-pencil-square me-2" aria-hidden="true"></i>Isi Survei Pelayanan Publik<span class="visually-hidden"> (membuka tab baru)</span></a>
+    <a href="<?= esc(safe_href(setting('survey_url')), 'attr') ?>" target="_blank" rel="noopener noreferrer" class="btn btn-pa-secondary fw-bold<?= $nested ? '' : ' btn-lg' ?> px-4"><i class="bi bi-pencil-square me-2" aria-hidden="true"></i>Isi Survei Pelayanan Publik<span class="visually-hidden"> (membuka tab baru)</span></a>
 </div>
 <?php endif ?>

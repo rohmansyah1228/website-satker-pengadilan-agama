@@ -134,7 +134,7 @@
                         <option value="kartu"<?= ($page['module_param'] ?? '') !== 'tabel' ? ' selected' : '' ?>>Kartu berfoto</option>
                         <option value="tabel"<?= ($page['module_param'] ?? '') === 'tabel' ? ' selected' : '' ?>>Tabel dengan tombol Detail</option>
                     </select>
-                    <div class="form-text">Setiap pegawai punya halaman profil sendiri. Data diisi di <a href="<?= admin_url('data/pegawai') ?>">Pejabat &amp; Pegawai</a>.</div>
+                    <div class="form-text">Setiap pegawai punya halaman profil sendiri. Data diisi di <?php if (can(config('AdminResources')->resources['pegawai']['roles'] ?? [])): ?><a href="<?= admin_url('data/pegawai') ?>">Pejabat &amp; Pegawai</a><?php else: ?>menu Pejabat &amp; Pegawai (Operator Kesekretariatan)<?php endif ?>.</div>
                 </div>
                 <fieldset class="mb-3" data-show-when="module=documents,survei">
                     <legend class="form-label fw-semibold fs-6">Jenis dokumen yang ditampilkan</legend>
@@ -146,7 +146,7 @@
                             </div>
                         <?php endforeach ?>
                     </div>
-                    <a href="<?= admin_url('data/jenis-dokumen/baru') ?>" class="small">+ Jenis dokumen baru</a>
+                    <?php if (can([])): ?><a href="<?= admin_url('data/jenis-dokumen/baru') ?>" class="small">+ Jenis dokumen baru</a><?php endif ?>
                 </fieldset>
                 <div class="mb-3">
                     <label for="status" class="form-label fw-semibold">Status</label>
