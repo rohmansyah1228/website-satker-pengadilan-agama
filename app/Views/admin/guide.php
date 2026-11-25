@@ -228,9 +228,10 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
         <li>Pada <em>Konten Tambahan Halaman</em> klik <strong>Daftar Unduhan</strong>, isi judul daftar (mis. <em>Formulir Layanan PTSP</em>).</li>
         <li>Tiap baris: tulis <strong>nama berkas</strong>, lalu klik <strong>Unggah berkas</strong> (PDF, Word, Excel, PowerPoint, ODT/ODS, RTF, maks. 20 MB) atau tempel tautan Google Drive. Keterangan boleh diisi.</li>
         <li>Banyak formulir sekaligus: klik <strong>Unggah banyak sekaligus</strong> dan pilih semua berkasnya; nama baris diambil dari nama berkas (bisa diubah).</li>
+        <li>Beberapa kelompok dalam satu daftar: klik <strong>Tambah tab</strong> dan beri nama tiap tab, mis. <em>Formulir Layanan PTSP</em> | <em>Contoh Format Gugatan</em> | <em>Tutorial e-Court</em>. Urutan tab bisa digeser dengan tombol panah.</li>
         <li>Klik <strong>Simpan</strong>.</li>
     </ol>
-    <p>Pengunjung melihat tabel bernomor dengan jenis &amp; ukuran berkas dan tombol <strong>Unduh</strong> (PDF: <strong>Lihat / Unduh</strong>), serta kotak pencarian. Untuk beberapa kelompok (mis. Formulir PTSP, Contoh Format Gugatan), tambahkan beberapa blok Daftar Unduhan di halaman yang sama. Berkas Office yang memuat makro ditolak demi keamanan.</p>
+    <p>Pengunjung melihat tabel bernomor dengan jenis &amp; ukuran berkas dan tombol <strong>Unduh</strong> (PDF: <strong>Lihat / Unduh</strong>), serta kotak pencarian yang mencari di semua tab sekaligus. Berkas Office yang memuat makro ditolak demi keamanan.</p>
     <?= $img('05-daftar-unduhan.jpg', 'Blok Daftar Unduhan di halaman publik.') ?>
     <?= $img('05-daftar-unduhan-editor.jpg', 'Mengisi blok Daftar Unduhan di editor halaman.') ?>
     <?= $tip('Bulan yang terisi ikut dihitung Dashboard SINOVA sebagai laporan bulan tersebut, jadi tidak perlu lagi menulis nama bulan di judul tabel.') ?>

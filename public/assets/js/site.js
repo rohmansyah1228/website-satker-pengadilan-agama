@@ -309,16 +309,29 @@
     document.querySelectorAll('[data-year]').forEach((el) => { el.textContent = new Date().getFullYear(); });
 
     // ---------- Daftar Unduhan: saring baris sesuai kata yang diketik ----------
+    // (berlaku di semua tab; jumlah di tiap tab ikut diperbarui, tab pertama yang berisi hasil dibuka otomatis)
     document.querySelectorAll('input[data-dl-filter]').forEach((inp) => {
-        const table = document.getElementById(inp.dataset.dlFilter);
-        if (!table) return;
-        const rows = [...table.querySelectorAll('tr[data-dl-row]')];
-        const empty = table.querySelector('.dl-empty');
+        const box = document.getElementById(inp.dataset.dlFilter);
+        if (!box) return;
+        const panes = [...box.querySelectorAll('[data-dl-pane]')];
+        const sec = box.closest('.dl-list');
+        const tabs = sec ? [...sec.querySelectorAll('.dl-tabs .nav-link')] : [];
         inp.addEventListener('input', () => {
             const q = inp.value.trim().toLowerCase();
-            let n = 0;
-            rows.forEach((r) => { const hit = !q || r.textContent.toLowerCase().includes(q); r.hidden = !hit; if (hit) n++; });
-            if (empty) empty.hidden = n > 0;
+            const hits = panes.map((p, i) => {
+                let n = 0;
+                p.querySelectorAll('tr[data-dl-row]').forEach((r) => { const hit = !q || r.textContent.toLowerCase().includes(q); r.hidden = !hit; if (hit) n++; });
+                const empty = p.querySelector('.dl-empty');
+                if (empty) empty.hidden = n > 0;
+                const c = tabs[i] && tabs[i].querySelector('[data-dl-count]');
+                if (c) c.textContent = n;
+                return n;
+            });
+            const active = tabs.findIndex((t) => t.classList.contains('active'));
+            if (q && tabs.length && active >= 0 && !hits[active]) {
+                const first = hits.findIndex((n) => n > 0);
+                if (first >= 0 && window.bootstrap) bootstrap.Tab.getOrCreateInstance(tabs[first]).show();
+            }
         });
     });
 })();

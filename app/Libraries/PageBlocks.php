@@ -24,7 +24,14 @@ class PageBlocks
         'downloads' => ['label' => 'Daftar Unduhan (Formulir/Berkas)', 'icon' => 'bi-download'],
     ];
 
-    public const MAX_DOWNLOADS = 200;
+    public const MAX_DOWNLOADS = 300;
+    public const MAX_DOWNLOAD_TABS = 12;
+
+    /** Tab blok Daftar Unduhan (data lama tanpa tab = satu tab tanpa nama). */
+    public static function downloadTabs(array $b): array
+    {
+        return isset($b['tabs']) && is_array($b['tabs']) ? $b['tabs'] : [['label' => '', 'items' => (array) ($b['items'] ?? [])]];
+    }
 
     public const MONTHS = [1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
     public const MAX_MONTHLY_ROWS = 20;
@@ -208,41 +215,64 @@ class PageBlocks
                     break;
 
                 case 'downloads':
-                    $items = [];
-                    $src   = array_slice(array_values((array) ($b['items'] ?? [])), 0, self::MAX_DOWNLOADS);
-                    $uuids = array_values(array_filter(array_map(static fn ($it) => is_array($it) && preg_match('/^[a-f0-9]{32}$/', (string) ($it['file'] ?? '')) ? (string) $it['file'] : null, $src)));
-                    $known = $uuids ? array_flip(array_column(db_connect()->table('files')->select('uuid')->whereIn('uuid', $uuids)->get()->getResultArray(), 'uuid')) : [];
-                    foreach ($src as $k => $it) {
-                        if (! is_array($it)) {
-                            continue;
+                    // beberapa tab (mis. Formulir PTSP | Contoh Format Gugatan | Tutorial e-Court); data lama tanpa tab = satu tab
+                    $tabsIn = isset($b['tabs']) && is_array($b['tabs']) ? array_values($b['tabs']) : [['label' => '', 'items' => (array) ($b['items'] ?? [])]];
+                    $tabsIn = array_slice($tabsIn, 0, self::MAX_DOWNLOAD_TABS);
+                    $uuids  = [];
+                    foreach ($tabsIn as $t) {
+                        foreach ((array) ($t['items'] ?? []) as $it) {
+                            if (is_array($it) && preg_match('/^[a-f0-9]{32}$/', (string) ($it['file'] ?? ''))) {
+                                $uuids[] = (string) $it['file'];
+                            }
                         }
-                        $name = $this->str($it['name'] ?? '', 200);
-                        $note = $this->str($it['note'] ?? '', 300);
-                        $file = (string) ($it['file'] ?? '');
-                        $file = isset($known[$file]) ? $file : '';
-                        $url  = $file === '' ? $this->str($it['url'] ?? '', 2000) : '';
-                        if ($url !== '' && self::cleanUrl($url) === null) {
-                            $errors[] = "{$n} (daftar unduhan), " . ($name ?: 'baris ' . ($k + 1)) . ': tautan “' . mb_strimwidth($url, 0, 60, '…') . '” tidak valid. Gunakan alamat lengkap, mis. https://drive.google.com/…';
-                            $url = '';
-                        }
-                        if ($name === '' && $file === '' && $url === '') {
-                            continue;
-                        }
-                        if ($name === '') {
-                            $errors[] = "{$n} (daftar unduhan), baris " . ($k + 1) . ': isi nama berkas.';
-                            continue;
-                        }
-                        $items[] = ['name' => $name, 'note' => $note, 'file' => $file, 'url' => $url !== '' ? (self::cleanUrl($url) ?? '') : ''];
                     }
-                    if (! $items) {
+                    $known = $uuids ? array_flip(array_column(db_connect()->table('files')->select('uuid')->whereIn('uuid', array_values(array_unique($uuids)))->get()->getResultArray(), 'uuid')) : [];
+                    $tabs  = [];
+                    $total = 0;
+                    foreach ($tabsIn as $ti => $t) {
+                        $label = $this->str(is_array($t) ? ($t['label'] ?? '') : '', 80);
+                        $items = [];
+                        foreach (array_values((array) (is_array($t) ? ($t['items'] ?? []) : [])) as $k => $it) {
+                            if (! is_array($it) || $total >= self::MAX_DOWNLOADS) {
+                                continue;
+                            }
+                            $name = $this->str($it['name'] ?? '', 200);
+                            $note = $this->str($it['note'] ?? '', 300);
+                            $file = (string) ($it['file'] ?? '');
+                            $file = isset($known[$file]) ? $file : '';
+                            $url  = $file === '' ? $this->str($it['url'] ?? '', 2000) : '';
+                            $where = "{$n} (daftar unduhan" . ($label !== '' ? ', tab ' . $label : '') . ')';
+                            if ($url !== '' && self::cleanUrl($url) === null) {
+                                $errors[] = $where . ', ' . ($name ?: 'baris ' . ($k + 1)) . ': tautan “' . mb_strimwidth($url, 0, 60, '…') . '” tidak valid. Gunakan alamat lengkap, mis. https://drive.google.com/…';
+                                $url = '';
+                            }
+                            if ($name === '' && $file === '' && $url === '') {
+                                continue;
+                            }
+                            if ($name === '') {
+                                $errors[] = $where . ', baris ' . ($k + 1) . ': isi nama berkas.';
+                                continue;
+                            }
+                            $items[] = ['name' => $name, 'note' => $note, 'file' => $file, 'url' => $url !== '' ? (self::cleanUrl($url) ?? '') : ''];
+                            $total++;
+                        }
+                        if (! $items && $label === '') {
+                            continue;
+                        }
+                        if (count($tabsIn) > 1 && $label === '') {
+                            $label = 'Tab ' . ($ti + 1);
+                        }
+                        $tabs[] = ['label' => $label, 'items' => $items];
+                    }
+                    if (! $total) {
                         $errors[] = "{$n} (daftar unduhan): isi minimal satu berkas atau hapus blok ini.";
                         break;
                     }
                     $out[] = [
-                        'type'     => 'downloads',
-                        'heading'  => $this->str($b['heading'] ?? '', 200),
-                        'search'   => ! empty($b['search']),
-                        'items'    => $items,
+                        'type'    => 'downloads',
+                        'heading' => $this->str($b['heading'] ?? '', 200),
+                        'search'  => ! empty($b['search']),
+                        'tabs'    => $tabs,
                     ];
                     break;
             }
@@ -281,8 +311,13 @@ class PageBlocks
                 $parts[] = '<h2>' . esc($b['heading']) . '</h2>';
             } elseif ($b['type'] === 'downloads') {
                 $lines = $b['heading'] !== '' ? ['<h2>' . esc($b['heading']) . '</h2>'] : [];
-                foreach ($b['items'] as $it) {
-                    $lines[] = '<p>' . esc($it['name']) . ($it['note'] !== '' ? ' — ' . esc($it['note']) : '') . '</p>';
+                foreach (self::downloadTabs($b) as $t) {
+                    if ($t['label'] !== '') {
+                        $lines[] = '<h3>' . esc($t['label']) . '</h3>';
+                    }
+                    foreach ($t['items'] as $it) {
+                        $lines[] = '<p>' . esc($it['name']) . ($it['note'] !== '' ? ' — ' . esc($it['note']) : '') . '</p>';
+                    }
                 }
                 $parts[] = implode("\n", $lines);
             } elseif ($b['type'] === 'monthly') {
