@@ -71,7 +71,13 @@ if ($rel === '') {
         <a href="<?= admin_url('akun') ?>" class="<?= $is('akun') ? 'active' : '' ?>"><i class="bi bi-person-circle" aria-hidden="true"></i>Akun Saya</a>
         <div class="grp">Bantuan</div>
         <a href="<?= admin_url('panduan') ?>" class="<?= $is('panduan') ? 'active' : '' ?>"<?= $is('panduan') ? ' aria-current="page"' : '' ?>><i class="bi bi-book" aria-hidden="true"></i>Panduan Penggunaan</a>
-        <div class="p-3"></div>
+        <?php $vcLocal = (new \App\Libraries\VersionCheck())->local(); $vcBuild = (int) ($vcLocal['build'] ?? 0); $vcNew = can([], true) ? \App\Libraries\VersionCheck::cachedLatest() : 0; ?>
+        <div class="admin-version">
+            <i class="bi bi-tag" aria-hidden="true"></i> <?= esc(\App\Libraries\VersionCheck::label($vcBuild, (string) ($vcLocal['version'] ?? ''))) ?>
+            <?php if ($vcNew > $vcBuild): ?>
+                <a href="<?= admin_url() ?>#pembaruan" class="admin-version__new"><i class="bi bi-arrow-up-circle" aria-hidden="true"></i> Versi <?= $vcNew ?> tersedia</a>
+            <?php endif ?>
+        </div>
     </nav>
     <div>
         <header class="admin-topbar px-3 py-2 d-flex align-items-center gap-2">

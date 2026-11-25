@@ -10,6 +10,22 @@ class VersionCheck
 {
     public const TTL = 6 * 3600;
 
+    /** Nama versi untuk ditampilkan: "Versi 18 (24 November 2026)". */
+    public static function label(int $build, string $date = ''): string
+    {
+        $d = $date !== '' && strtotime($date) ? tanggal_id($date) : '';
+
+        return 'Versi ' . $build . ($d !== '' ? ' (' . $d . ')' : '');
+    }
+
+    /** Versi terbaru dari hasil pemeriksaan terakhir (tanpa menghubungi GitHub), 0 bila belum diperiksa. */
+    public static function cachedLatest(): int
+    {
+        $c = cache('version_check');
+
+        return is_array($c) && is_array($c['data'] ?? null) ? (int) ($c['data']['build'] ?? 0) : 0;
+    }
+
     /** version.json yang ikut terpasang bersama kode (versi yang sedang berjalan). */
     public function local(): array
     {
@@ -28,7 +44,8 @@ class VersionCheck
         $local = $this->local();
         $repo  = (string) ($local['repo'] ?? '');
         $base  = ['available' => false, 'local' => (int) ($local['build'] ?? 0), 'latest' => (int) ($local['build'] ?? 0),
-            'version' => (string) ($local['version'] ?? '-'), 'repo' => $repo,
+            'version' => (string) ($local['version'] ?? '-'), 'localVersion' => (string) ($local['version'] ?? ''), 'repo' => $repo,
+            'history' => array_slice(array_map(static fn ($x) => ['version' => (string) ($x['version'] ?? ''), 'build' => (int) ($x['build'] ?? 0), 'notes' => (string) ($x['notes'] ?? '')], (array) ($local['releases'] ?? [])), 0, 5),
             'url' => $repo ? 'https://github.com/' . $repo : '', 'releases' => [], 'files' => [], 'error' => null, 'checkedAt' => null];
 
         if ($repo === '') {

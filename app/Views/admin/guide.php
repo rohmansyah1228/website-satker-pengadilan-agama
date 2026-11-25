@@ -98,7 +98,8 @@ $site = esc(setting('site_name', 'Pengadilan Agama'));
     <h3>Pindah domain / dipakai PA lain</h3>
     <p>Alamat website terdeteksi otomatis (domain, IP, atau folder berganti tidak perlu diatur). Untuk PA lain cukup ganti <em>Pengaturan → Identitas Satker</em> dan <em>Alamat & Kontak</em>.</p>
     <h3>Pembaruan website (otomatis)</h3>
-    <p>Bila ada versi baru di GitHub, <strong>Dashboard SINOVA</strong> menampilkan kotak <strong>Versi baru website tersedia</strong> beserta isi perubahannya. Super Admin cukup klik <strong>Update Website</strong>, konfirmasi, lalu tunggu sampai muncul pesan berhasil (jangan tutup halaman). Sistem akan:</p>
+    <p><strong>Versi website</strong> yang terpasang tertulis di bagian bawah menu samping panel admin, mis. <em>Versi 18 (24 November 2026)</em>. Bila ada versi baru, di bawahnya muncul tanda oranye <em>Versi 19 tersedia</em>.</p>
+    <p>Bila ada versi baru di GitHub, <strong>Dashboard SINOVA</strong> menampilkan kotak <strong>Versi baru website tersedia</strong>: versi yang terpasang → versi baru, beserta isi perubahan setiap versi. Super Admin cukup klik <strong>Update ke Versi …</strong>, konfirmasi, lalu tunggu sampai muncul pesan berhasil (jangan tutup halaman). Sistem akan:</p>
     <ol>
         <li>mengunduh <strong>hanya berkas yang berubah</strong> dari repositori resmi di GitHub dan memeriksanya lebih dulu — bila satu berkas gagal, tidak ada yang diubah;</li>
         <li>menyimpan <strong>cadangan berkas lama</strong> di <code>writable/backups/pembaruan-…</code>;</li>

@@ -286,3 +286,8 @@ dialog.icon-picker::backdrop { background: rgba(15, 23, 42, .5); }
     .guide-fig { break-inside: avoid; }
     .accordion-collapse { display: block !important; }
 }
+
+/* nomor versi di bawah menu samping */
+.admin-sidebar .admin-version { padding: 1rem 1.25rem 1.5rem; font-size: .75rem; color: rgba(255,255,255,.6); border-top: 1px solid rgba(255,255,255,.1); margin-top: .75rem; }
+.admin-sidebar .admin-version a.admin-version__new { display: inline-flex; margin-top: .4rem; padding: .25rem .6rem; border-radius: 2rem; border: 0; background: var(--pa-secondary, #ff9900); color: #1f2a24; font-weight: 700; }
+.admin-sidebar .admin-version a.admin-version__new:hover { background: #ffb340; color: #000; }
