@@ -1,5 +1,5 @@
 <?php $s = $b['settings']; if (empty($s['image'])) return; $u = ! empty($s['url']) ? link_url($s['url']) : null; ?>
-<?php $img = '<img src="' . media_url($s['image']) . '" alt="' . esc($s['image_alt'] ?? '', 'attr') . '" class="img-fluid rounded-3 shadow-sm w-100" loading="lazy" decoding="async">'; ?>
+<?php $img = '<span class="img-zoom d-block rounded-3 shadow-sm"><img src="' . media_url($s['image']) . '" alt="' . esc($s['image_alt'] ?? '', 'attr') . '" class="img-fluid w-100" loading="lazy" decoding="async"></span>'; ?>
 <figure class="mb-0 text-center">
     <?php if ($u && $u !== '#'): ?>
         <a href="<?= esc($u, 'attr') ?>"<?= is_external($u) ? ' target="_blank" rel="noopener noreferrer"' : '' ?>><?= $img ?></a>

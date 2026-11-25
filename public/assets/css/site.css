@@ -615,3 +615,16 @@ body.high-contrast .float-cctv, body.high-contrast .float-wa { background: #000 
 .monthly-card.is-done:focus-visible { outline: 3px solid var(--pa-secondary, #ff9900); outline-offset: 2px; }
 .high-contrast .monthly-card.is-empty { border-color: #000; background: #fff; }
 .high-contrast .monthly-card.is-done { border: 2px solid #000; }
+
+/* ---------- Gambar sedikit membesar saat kursor diarahkan (banner, gambar halaman, kartu berita, ucapan) ---------- */
+.img-zoom { display: inline-block; max-width: 100%; vertical-align: top; overflow: hidden; position: relative; transition: box-shadow .3s ease; }
+.img-zoom img { display: block; transition: transform .45s cubic-bezier(.2,.7,.3,1); will-change: transform; }
+a:hover > .img-zoom, .img-zoom:hover, .card:hover .img-zoom, a:focus-visible > .img-zoom { box-shadow: 0 .6rem 1.4rem rgba(0,0,0,.16) !important; }
+.img-zoom:hover img, a:hover > .img-zoom img, a:focus-visible > .img-zoom img, .card:hover .img-zoom img,
+.greet-frame:hover img, a:hover .greet-frame img { transform: scale(1.04); }
+.greet-frame { overflow: hidden; }
+.greet-frame img { transition: transform .45s cubic-bezier(.2,.7,.3,1); }
+@media (prefers-reduced-motion: reduce) {
+    .img-zoom img, .greet-frame img { transition: none; }
+    .img-zoom:hover img, a:hover > .img-zoom img, a:focus-visible > .img-zoom img, .card:hover .img-zoom img, .greet-frame:hover img, a:hover .greet-frame img { transform: none; }
+}

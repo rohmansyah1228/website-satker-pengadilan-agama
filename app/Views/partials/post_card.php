@@ -1,7 +1,7 @@
 <?php $small = $small ?? false; ?>
 <article class="card h-100 border<?= $small ? '' : ' shadow-sm' ?>">
     <?php if ($p['image']): ?>
-        <img src="<?= media_url($p['image']) ?>" class="card-img-top" alt="<?= esc($p['image_alt'] ?: $p['title'], 'attr') ?>" loading="lazy" decoding="async" width="600" height="360" style="aspect-ratio: 5/3; height: auto; object-fit: cover;">
+        <span class="img-zoom d-block card-img-top"><img src="<?= media_url($p['image']) ?>" class="w-100" alt="<?= esc($p['image_alt'] ?: $p['title'], 'attr') ?>" loading="lazy" decoding="async" width="600" height="360" style="aspect-ratio: 5/3; height: auto; object-fit: cover;"></span>
     <?php endif ?>
     <div class="card-body">
         <span class="badge <?= in_array($p['category'], ['opini', 'artikel', 'pengumuman'], true) ? 'bg-pa-secondary text-dark' : 'bg-pa-primary' ?> mb-2"><?= esc($cats[$p['category']] ?? $p['category']) ?></span>
