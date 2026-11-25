@@ -49,6 +49,7 @@ class VisitorStats
         } catch (\Throwable $e) {
             log_message('warning', 'Pembersihan harian gagal: ' . $e->getMessage());
         }
+        self::repairUploadsHtaccess();
         // cadangan database terjadwal: dibuat setelah halaman terkirim agar pengunjung tidak menunggu
         if (Backup::due()) {
             register_shutdown_function(static function (): void {
@@ -59,6 +60,44 @@ class VisitorStats
             });
         }
     }
+
+    /**
+     * public/uploads/.htaccess tidak ikut Update Website (folder unggahan dilindungi dari penulisan otomatis),
+     * jadi versi lama yang hanya cocok untuk Apache 2.4 diperbarui di sini (Apache 2.2/LiteSpeed + blok .htaccess/.ini).
+     */
+    public static function repairUploadsHtaccess(): void
+    {
+        $f = FCPATH . 'uploads' . DIRECTORY_SEPARATOR . '.htaccess';
+        if (! is_file($f) || ! is_writable($f)) {
+            return;
+        }
+        $cur = (string) @file_get_contents($f);
+        if (str_contains($cur, 'mod_authz_core') || ! str_contains($cur, 'Require all denied')) {
+            return; // sudah baru, atau sudah diubah sendiri oleh pengelola hosting
+        }
+        @file_put_contents($f, self::UPLOADS_HTACCESS, LOCK_EX);
+    }
+
+    private const UPLOADS_HTACCESS = <<<'HT'
+        # Folder unggahan gambar: larang eksekusi skrip & listing direktori (SK 2722/2026 Bab II A.3)
+        Options -Indexes -ExecCGI
+        <FilesMatch "\.(php|phtml|php\d|phps|phar|pl|py|cgi|sh|jsp|asp|aspx|shtml|htaccess|htpasswd|ini)$">
+            <IfModule mod_authz_core.c>
+                Require all denied
+            </IfModule>
+            <IfModule !mod_authz_core.c>
+                Order allow,deny
+                Deny from all
+            </IfModule>
+        </FilesMatch>
+        <IfModule mod_php.c>
+            php_flag engine off
+        </IfModule>
+        <IfModule mod_php7.c>
+            php_flag engine off
+        </IfModule>
+
+        HT;
 
     public function summary(): array
     {
