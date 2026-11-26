@@ -334,4 +334,100 @@
             }
         });
     });
+
+    // ---------- Foto dapat diklik untuk dilihat besar (Pengaturan → Tampilan) ----------
+    if (document.body.hasAttribute('data-img-zoom') && window.bootstrap) {
+        const IMG_FILE = /\.(jpe?g|png|gif|webp|avif)(\?.*)?$/i;
+        const main = document.getElementById('main-content');
+        const SKIP = 'header, nav, footer, .modal, .no-zoom, [data-no-zoom], .btn, .bi, .navbar, .accordion-button';
+        // foto yang layak diperbesar: di konten utama, bukan ikon/logo kecil
+        const zoomable = (img) => img && main && main.contains(img) && !img.closest(SKIP)
+            && (img.naturalWidth || img.width) >= 200 && (img.naturalHeight || img.height) >= 120;
+        const fullSrc = (img) => {
+            const a = img.closest('a[href]');
+            if (a && IMG_FILE.test(a.getAttribute('href'))) return a.href;       // tautan ke berkas gambar aslinya
+            if (img.srcset) {                                                   // ambil yang terbesar
+                const best = img.srcset.split(',').map((c) => c.trim().split(/\s+/))
+                    .sort((x, y) => parseInt(y[1] || '0', 10) - parseInt(x[1] || '0', 10))[0];
+                if (best && best[0]) return new URL(best[0], location.href).href;
+            }
+            return img.currentSrc || img.src;
+        };
+        // foto yang ditaut ke halaman lain (bukan berkas gambar) tetap membuka tautannya
+        const linkedAway = (img) => { const a = img.closest('a[href]'); return a && !IMG_FILE.test(a.getAttribute('href')); };
+
+        let modal; let pic; let cap; let prev; let next; let group = []; let pos = 0;
+        const build = () => {
+            const el = document.createElement('div');
+            el.className = 'modal fade imgbox';
+            el.tabIndex = -1;
+            el.setAttribute('aria-label', 'Foto ukuran besar');
+            el.setAttribute('aria-modal', 'true');
+            el.setAttribute('role', 'dialog');
+            el.innerHTML = '<div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down imgbox-dialog"><div class="modal-content">'
+                + '<button type="button" class="btn-close btn-close-white imgbox-close" data-bs-dismiss="modal" aria-label="Tutup"></button>'
+                + '<button type="button" class="imgbox-nav imgbox-prev" aria-label="Foto sebelumnya"><i class="bi bi-chevron-left" aria-hidden="true"></i></button>'
+                + '<img class="imgbox-pic" alt="">'
+                + '<button type="button" class="imgbox-nav imgbox-next" aria-label="Foto berikutnya"><i class="bi bi-chevron-right" aria-hidden="true"></i></button>'
+                + '<div class="imgbox-cap"></div></div></div>';
+            document.body.appendChild(el);
+            pic = el.querySelector('.imgbox-pic');
+            cap = el.querySelector('.imgbox-cap');
+            prev = el.querySelector('.imgbox-prev');
+            next = el.querySelector('.imgbox-next');
+            prev.addEventListener('click', () => show(pos - 1));
+            next.addEventListener('click', () => show(pos + 1));
+            pic.addEventListener('click', () => { if (group.length > 1) show(pos + 1); });
+            el.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowLeft') show(pos - 1);
+                if (e.key === 'ArrowRight') show(pos + 1);
+            });
+            let x0 = null; // geser di HP
+            el.addEventListener('touchstart', (e) => { x0 = e.touches[0].clientX; }, { passive: true });
+            el.addEventListener('touchend', (e) => {
+                if (x0 === null) return;
+                const dx = e.changedTouches[0].clientX - x0; x0 = null;
+                if (Math.abs(dx) > 50) show(pos + (dx < 0 ? 1 : -1));
+            });
+            modal = bootstrap.Modal.getOrCreateInstance(el);
+        };
+        const show = (i) => {
+            if (!group.length) return;
+            pos = (i + group.length) % group.length;
+            const img = group[pos];
+            pic.src = fullSrc(img);
+            pic.alt = img.alt || '';
+            const fig = img.closest('figure');
+            const fc = fig && fig.querySelector('figcaption');
+            const text = (fc ? fc.textContent : '') || img.alt || '';
+            cap.textContent = text.trim() + (group.length > 1 ? (text.trim() ? ' · ' : '') + (pos + 1) + ' / ' + group.length : '');
+            cap.hidden = cap.textContent === '';
+            prev.hidden = next.hidden = group.length < 2;
+        };
+        const open = (img) => {
+            if (!modal) build();
+            // kelompok: foto lain di wadah yang sama (slider, isi berita/halaman, galeri) agar bisa digeser
+            const box = img.closest('.carousel, article, .post-content, .page-content, .gallery, .row, section') || main;
+            group = [...box.querySelectorAll('img')].filter((x) => zoomable(x) && !linkedAway(x));
+            if (!group.includes(img)) group = [img];
+            show(group.indexOf(img));
+            modal.show();
+        };
+
+        main && main.addEventListener('click', (e) => {
+            if (e.defaultPrevented || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey) return;
+            let img = e.target.closest('img');
+            // slider Beranda: tulisan menutupi foto — klik di area kosong slide memperbesar fotonya
+            if (!img) {
+                const slide = e.target.closest('.carousel-item.has-img');
+                if (slide && !e.target.closest('a, button, input, select, textarea, label')) img = slide.querySelector('img');
+            }
+            if (!img || !zoomable(img) || linkedAway(img)) return;
+            e.preventDefault();
+            open(img);
+        });
+        // penanda kursor (hanya untuk foto yang benar-benar bisa diperbesar)
+        const mark = (img) => { if (zoomable(img) && !linkedAway(img)) { img.classList.add('zoomable'); const s = img.closest('.carousel-item.has-img'); if (s) s.classList.add('zoomable'); } };
+        main && main.querySelectorAll('img').forEach((img) => (img.complete ? mark(img) : img.addEventListener('load', () => mark(img), { once: true })));
+    }
 })();

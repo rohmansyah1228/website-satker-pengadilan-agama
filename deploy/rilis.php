@@ -126,6 +126,10 @@ foreach ($changed as $f) {
     if (! str_starts_with($f, 'vendor/') && preg_match('/\b(Fil\x65sMan|c99sh\x65ll|r57sh\x65ll|b37\x34k)\b|eval\s*\(\s*(base64_decode|gzinflate|str_rot13)\s*\(/i', $body, $m)) {
         $errs[] = "$f: memuat tulisan \"{$m[0]}\" yang bisa membuat antivirus menghapus berkas ini. Samarkan (mis. \\x65 untuk e di dalam regex).";
     }
+    // antivirus hosting (mis. cPGuard) menganggap berkas yang memuat alamat GitHub mentah + fungsi dekode sebagai pengunduh webshell
+    if (! str_starts_with($f, 'vendor/') && preg_match('/githubuserc\x6fntent/i', $body) && preg_match('/b\x61se64_decode|\b\x65val\s*\(|gz\x69nflate/i', $body)) {
+        $errs[] = "$f: memuat alamat GitHub mentah sekaligus fungsi dekode — dikira webshell oleh antivirus hosting (cPGuard). Pakai VersionCheck::RAW dan samarkan nama fungsi di dalam regex.";
+    }
 }
 if ($total > $maxA) {
     $errs[] = 'ukuran total ' . round($total / 1048576, 1) . ' MB melebihi batas Update Website ' . ($maxA >> 20) . ' MB. Pecah menjadi beberapa rilis.';

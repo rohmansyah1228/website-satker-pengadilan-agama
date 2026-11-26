@@ -17,7 +17,7 @@ Website di hosting tidak bisa menjangkau jaringan kantor, karena itu kantor yang
 | Jadwal sidang | Hari ini s.d. 14 hari ke depan: nomor & jenis perkara, jam, agenda, ruang (nama pihak **tidak** dikirim) | Halaman Jadwal Sidang & blok Beranda |
 | Statistik perkara | Tahun berjalan per bulan: sisa lalu, masuk, putus, sisa; per jenis perkara | Statistik Perkara & Dashboard SINOVA |
 | Panggilan ghaib | Perkara ghaib belum putus (sidang berikutnya) dan yang **sudah putus 1 tahun terakhir** (tanggal putus): nomor, jenis, nama Tergugat/Termohon (alamat tidak dikirim) + **relaas (PDF) terbaru** | Panggilan Ghaib: tabel panggilan & tabel *Sudah Putus*, tombol *Lihat Relaas (PDF)* |
-| Antrian | Bebas, dari query di `config.php` (nonaktif sampai diisi) | Tersedia sebagai data JSON |
+| Antrian | Query SELECT buatan satker sendiri di menu **Query Antrian** (nonaktif sampai diisi) | Tersedia sebagai data JSON |
 
 ## Cara pasang
 
@@ -113,3 +113,27 @@ kantor ──relaas_ghaib (PDF base64, bertanda tangan)──▶ website → Pan
 | Jadwal "Memakai cadangan sipp-publik" | Database SIPP internal tidak bisa diakses. Periksa koneksi database di Pengaturan. |
 
 Kompatibel PHP 5.2 sampai 8.x (mysql_* / mysqli).
+
+## Query Sendiri
+
+Struktur database bisa berbeda di tiap satker, jadi setiap data boleh diambil dengan query `SELECT` buatan sendiri di menu **Query Sendiri**:
+
+| Bagian | Kolom wajib | Penanda tanggal |
+|---|---|---|
+| Jadwal Sidang | `tanggal_sidang`, `nomor_perkara` (tambahan: `jenis_perkara_text`, `agenda`, `ruangan`, `jam_sidang`, `sampai_jam`, `sidang_keliling`, `ditunda`, `pihak1_text`, `pihak2_text`) | `{dari}` `{sampai}` |
+| Statistik — masuk / putus per bulan | `bln`, `jml` | `{awal}` `{akhir}` `{tahun}` |
+| Statistik — sisa tahun lalu | `jml` | `{awal}` |
+| Statistik — masuk / putus per jenis | `jenis`, `jml` | `{awal}` `{akhir}` `{tahun}` |
+| Panggilan Ghaib — belum putus | `perkara_id`, `nomor_perkara` (tambahan: `jenis_perkara_text`, `tanggal_pendaftaran`, `nama_ghaib`, `alamat_ghaib`, `sidang_berikutnya`) | — |
+| Panggilan Ghaib — sudah putus | `perkara_id`, `nomor_perkara`, `tanggal_putusan` (tambahan: `jenis_perkara_text`, `tanggal_pendaftaran`, `nama_ghaib`, `sidang_terakhir`) | — |
+| Antrian Sidang | bebas (dikirim apa adanya; tidak ada query bawaan) | — |
+
+1. Pilih bagian, klik **Isi dengan query bawaan** sebagai titik awal (kecuali antrian), ubah seperlunya.
+2. Klik **Uji query** dan periksa tabel hasilnya (kolom wajib bertanda ✔), lalu **Simpan**. Query yang gagal atau kolom wajibnya kurang tidak disimpan.
+3. Kosongkan query / klik **Kembali ke bawaan** untuk memakai query bawaan lagi.
+4. Muncul `Table 'sipp.xxx' doesn't exist`? Tabelnya ada di database lain. Pakai **Cari tabel**, lalu isi **Database** (atau tulis `nama_database.nama_tabel` di query). Akun database SIPP harus punya izin baca ke database itu.
+
+Penanda tanggal ditulis tanpa tanda petik (mis. `WHERE tanggal_sidang BETWEEN {dari} AND {sampai}`) dan diisi otomatis.
+
+Pengaman: hanya satu perintah SELECT yang dijalankan (dalam transaksi baca-saja bila server mendukung); INSERT/UPDATE/DELETE,
+`INTO OUTFILE`, `LOAD_FILE`, `SLEEP`, `FOR UPDATE`, beberapa perintah sekaligus, dan komentar `/*! */` ditolak.

@@ -301,4 +301,40 @@
         dlg.showModal();
         search.focus();
     }));
+
+})();
+
+(function () {
+    'use strict';
+    // ---------- Pengaturan → Keamanan: kotak uji Cloudflare Turnstile ----------
+    const tsTest = document.querySelector('[data-turnstile-test]');
+    if (tsTest) {
+        const keyInput = document.querySelector('input[name="turnstile_site_key"]');
+        const box = tsTest.querySelector('.ts-test-box');
+        const KEY = /^[0-3]x[0-9A-Za-z_-]{14,}$/;
+        let widget = null; let shown = '';
+        const draw = () => {
+            const key = keyInput ? keyInput.value.trim() : '';
+            if (key === shown) return;
+            if (widget !== null && window.turnstile) { try { window.turnstile.remove(widget); } catch (e) { /* abaikan */ } widget = null; }
+            shown = key;
+            box.innerHTML = '';
+            if (!KEY.test(key)) {
+                box.innerHTML = '<span class="small text-secondary">' + (key ? 'Format Site Key tidak dikenali (diawali 0x…).' : 'Isi Site Key untuk menampilkan kotak uji.') + '</span>';
+                return;
+            }
+            const holder = document.createElement('div');
+            box.appendChild(holder);
+            widget = window.turnstile.render(holder, {
+                sitekey: key, language: 'id', theme: 'light',
+                'error-callback': () => { box.insertAdjacentHTML('beforeend', '<div class="small text-danger mt-1">Kotak uji gagal dimuat. Periksa Site Key dan pastikan domain website ini terdaftar di widget Cloudflare.</div>'); },
+            });
+        };
+        window.__tsReady = () => { draw(); if (keyInput) { keyInput.addEventListener('change', draw); keyInput.addEventListener('input', () => { clearTimeout(keyInput.__t); keyInput.__t = setTimeout(draw, 600); }); } };
+        const sc = document.createElement('script');
+        sc.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=__tsReady';
+        sc.async = true;
+        sc.onerror = () => { box.innerHTML = '<span class="small text-danger">Skrip Cloudflare tidak dapat dimuat dari komputer ini (cek koneksi internet / pemblokir iklan).</span>'; };
+        document.head.appendChild(sc);
+    }
 })();

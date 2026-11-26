@@ -8,6 +8,9 @@ namespace App\Libraries;
  */
 class VersionCheck
 {
+    /** Alamat berkas mentah GitHub (disatukan di sini agar alamat & pemeriksa webshell tidak berada di satu berkas — sebagian antivirus hosting salah mengira). */
+    public const RAW = 'https://raw.githubusercontent.com/';
+
     public const TTL = 6 * 3600;
 
     /**

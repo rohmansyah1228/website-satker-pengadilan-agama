@@ -71,7 +71,12 @@ function url_penerima($alamat) {
  */
 function pesan_ramah($pesan) {
     $p = strtolower($pesan);
+    // galat query sendiri sudah menyebut query mana & tempat memperbaikinya
+    if (strpos($p, 'menu query sendiri') !== false) return array('judul' => $pesan, 'saran' => '', 'teknis' => '');
     $daftar = array(
+        array(array('query antrian belum diisi'),
+              'Data antrian belum diatur.',
+              'Isi query antrian di menu Query Sendiri, atau matikan data Antrian di Pengaturan.'),
         array(array('access denied'),
               'Nama pengguna atau password database SIPP salah.',
               'Buka Pengaturan, periksa "Nama pengguna" dan "Password" database SIPP.'),
@@ -120,9 +125,6 @@ function pesan_ramah($pesan) {
         array(array('http 500'),
               'Terjadi kesalahan di website satker.',
               'Minta pengelola website memeriksa log website (writable/logs).'),
-        array(array('antrian_sql'),
-              'Data antrian belum diatur.',
-              'Isi "Query antrian" di Pengaturan bagian Lanjutan, atau matikan data Antrian.'),
     );
     foreach ($daftar as $d) {
         foreach ($d[0] as $kata) {

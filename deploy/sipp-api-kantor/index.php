@@ -21,7 +21,7 @@ $namaJenis = array(
     'jadwal_sidang'     => array('Jadwal Sidang', 'Jadwal sidang hari ini sampai beberapa hari ke depan'),
     'statistik_perkara' => array('Statistik Perkara', 'Jumlah perkara masuk, putus, dan sisa tahun ini'),
     'panggilan_ghaib'   => array('Panggilan Ghaib', 'Pengumuman perkara yang Tergugat/Termohon-nya ghaib'),
-    'antrian'           => array('Antrian', 'Data antrian (perlu pengaturan lanjutan)'),
+    'antrian'           => array('Antrian', 'Data antrian sidang hari ini (atur query-nya di menu Query Sendiri)'),
 );
 
 /* ================= PASSWORD PERTAMA KALI ================= */
@@ -61,7 +61,10 @@ $login = !empty($_SESSION['sipp_api_login']);
 $csrf  = isset($_SESSION['sipp_api_csrf']) ? $_SESSION['sipp_api_csrf'] : '';
 $csrfOk = isset($_POST['csrf']) && $csrf != '' && $_POST['csrf'] === $csrf;
 $hal = isset($_GET['hal']) ? $_GET['hal'] : 'beranda';
-if (!in_array($hal, array('beranda', 'pengaturan', 'otomatis'))) $hal = 'beranda';
+if ($hal == 'antrian') { $hal = 'query'; $_GET['slot'] = 'antrian'; }
+if (!in_array($hal, array('beranda', 'pengaturan', 'otomatis', 'query'))) $hal = 'beranda';
+$slotDaftar = query_slot_daftar();
+$slot = (isset($_GET['slot']) && isset($slotDaftar[$_GET['slot']])) ? $_GET['slot'] : 'jadwal';
 
 /* ================= AJAX (mode otomatis) ================= */
 if (isset($_GET['ajax'])) {
@@ -104,6 +107,64 @@ if ($login && $csrfOk && isset($_POST['aksi'])) {
         $dbOk = pastikan_db($CONFIG);
         $f = daftar_jenis();
         $pratinjau = array('jenis' => $jenis, 'hasil' => call_user_func($f[$jenis], $CONFIG, $dbOk));
+    } elseif (in_array($aksi, array('q_uji', 'q_simpan', 'q_bawaan', 'q_reset', 'q_cari'))) {
+        $t = query_tersimpan($CONFIG, $slot);
+        $formSql = isset($_POST['q_sql']) ? trim($_POST['q_sql']) : $t[0];
+        $formDb  = isset($_POST['q_db']) ? trim($_POST['q_db']) : $t[1];
+        $formAktif = !empty($_POST['antrian_aktif']);
+        $formCari = isset($_POST['q_kata']) ? trim($_POST['q_kata']) : '';
+        $dbOk = pastikan_db($CONFIG);
+        if ($aksi == 'q_cari') {
+            $qTabel = $dbOk ? query_cari_tabel($formCari) : false;
+            if ($qTabel === false) $notif[] = array('gagal', 'Gagal mencari tabel: ' . db_error());
+        } elseif ($aksi == 'q_bawaan') {
+            $b = $dbOk ? query_bawaan($slot, $CONFIG) : '';
+            if ($b === '') $notif[] = array('info', $slot == 'antrian' ? 'Antrian tidak punya query bawaan; tabel antrian berbeda-beda di tiap satker.' : 'Hubungkan database SIPP dulu.');
+            else { $formSql = $b; $formDb = ''; $notif[] = array('info', 'Query bawaan dimuat ke kotak di bawah. Ubah seperlunya, lalu Uji dan Simpan.'); }
+        } else {
+            $sqlUji = ($aksi == 'q_reset') ? '' : $formSql;
+            $cek = ($sqlUji === '') ? '' : query_cek(query_isi_penanda($sqlUji, $CONFIG));
+            if ($cek == '' && !query_db_sah($formDb)) $cek = 'Nama database hanya boleh huruf, angka, _ - $.';
+            if ($sqlUji === '' && $slot == 'antrian' && $aksi != 'q_reset') $cek = 'Query antrian masih kosong.';
+            if ($cek != '') {
+                $notif[] = array('gagal', $cek);
+            } elseif (!$dbOk) {
+                $r = pesan_ramah(db_error());
+                $notif[] = array('gagal', 'Database SIPP belum terhubung. ' . $r['judul'] . ' ' . $r['saran']);
+            } else {
+                $rows = ($sqlUji === '' && $slot == 'antrian') ? array() : query_ambil($CONFIG, $slot, $sqlUji, $sqlUji === '' ? '' : $formDb);
+                $qUji = array('ok' => $rows !== false, 'rows' => $rows === false ? array() : $rows, 'bawaan' => $sqlUji === '');
+                if ($rows === false) {
+                    $notif[] = array('gagal', 'Query gagal: ' . db_error() . ($aksi == 'q_simpan' ? ' — belum disimpan.' : ''));
+                } elseif ($aksi == 'q_simpan' || $aksi == 'q_reset') {
+                    $p = pengaturan_dasar();
+                    if ($slot == 'antrian') {
+                        $p['antrian_sql'] = $sqlUji;
+                        $p['antrian_db']  = $sqlUji === '' ? '' : $formDb;
+                        if (!isset($p['aktif']) || !is_array($p['aktif'])) $p['aktif'] = $CONFIG['aktif'];
+                        $p['aktif']['antrian'] = ($aksi == 'q_reset') ? false : $formAktif;
+                    } else {
+                        if (!isset($p['query_sendiri']) || !is_array($p['query_sendiri'])) $p['query_sendiri'] = array();
+                        if ($sqlUji === '') unset($p['query_sendiri'][$slot]);
+                        else $p['query_sendiri'][$slot] = array('sql' => $sqlUji, 'db' => $formDb);
+                    }
+                    if (simpan_pengaturan($p)) {
+                        $CONFIG = gabung_array($CONFIG, $p);
+                        if ($slot != 'antrian') $CONFIG['query_sendiri'] = isset($p['query_sendiri']) ? $p['query_sendiri'] : array();
+                        $PENGATURAN_TERSIMPAN = $p;
+                        if ($sqlUji === '') { $formSql = ''; $formDb = ''; }
+                        $notif[] = array('sukses', ($sqlUji === '' ? 'Kembali memakai query bawaan' : 'Query sendiri tersimpan')
+                            . ' untuk ' . $slotDaftar[$slot][1] . ' (' . count($rows) . ' baris saat ini).'
+                            . ($slot == 'antrian' && $aksi == 'q_simpan' ? ($formAktif ? ' Data antrian ikut dikirim ke website.' : ' Pengiriman antrian belum diaktifkan.') : ''));
+                    } else {
+                        $notif[] = array('gagal', 'Gagal menyimpan (' . simpan_keterangan() . ').');
+                    }
+                } else {
+                    $notif[] = array('sukses', ($sqlUji === '' ? 'Query bawaan' : 'Query') . ' berhasil dijalankan: ' . count($rows) . ' baris.'
+                        . ($sqlUji === '' ? '' : ' Periksa hasilnya di bawah, lalu klik Simpan.'));
+                }
+            }
+        }
     } elseif ($aksi == 'simpan' || $aksi == 'uji_db' || $aksi == 'uji_web' || $aksi == 'kunci_baru') {
         $p = pengaturan_dasar();
         $P = $_POST;
@@ -136,7 +197,6 @@ if ($login && $csrfOk && isset($_POST['aksi'])) {
         $p['ghaib_kirim_alamat']      = !empty($P['ghaib_alamat']);
         $p['ghaib_kirim_relaas']      = !empty($P['ghaib_relaas']);
         $p['relaas_dir']              = trim(str_replace('\\', '/', isset($P['relaas_dir']) ? $P['relaas_dir'] : ''));
-        $p['antrian_sql']             = trim($P['antrian_sql']);
         $p['cadangan_api_jadwal']     = trim($P['cadangan']);
         if (isset($P['pass_baru']) && $P['pass_baru'] !== '') {
             if (strlen($P['pass_baru']) < 6) $notif[] = array('gagal', 'Password baru minimal 6 karakter, password tidak diubah.');
@@ -235,6 +295,7 @@ $alamatWeb = preg_replace('#/api/sipp/terima$#', '', $CONFIG['website']['url']);
   <nav>
     <a href="index.php" class="<?php echo $hal == 'beranda' ? 'aktif' : ''; ?>">Beranda</a>
     <a href="?hal=otomatis" class="<?php echo $hal == 'otomatis' ? 'aktif' : ''; ?>">Mode Otomatis</a>
+    <a href="?hal=query" class="<?php echo $hal == 'query' ? 'aktif' : ''; ?>">Query Sendiri</a>
     <a href="?hal=pengaturan" class="<?php echo $hal == 'pengaturan' ? 'aktif' : ''; ?>">Pengaturan</a>
     <a href="?keluar=1">Keluar</a>
   </nav>
@@ -438,6 +499,105 @@ $alamatWeb = preg_replace('#/api/sipp/terima$#', '', $CONFIG['website']['url']);
   }
   </script>
 
+<?php } elseif ($hal == 'query') { /* ======== QUERY SENDIRI ======== */
+  $sd = $slotDaftar[$slot];
+  if (!isset($formSql)) { $t = query_tersimpan($CONFIG, $slot); $formSql = $t[0]; $formDb = $t[1]; $formCari = ''; }
+  if (!isset($formAktif) || !isset($_POST['aksi'])) $formAktif = !empty($CONFIG['aktif']['antrian']); ?>
+  <div class="kartu">
+    <h2>Query Sendiri</h2>
+    <p>Struktur database SIPP / aplikasi pendukung bisa berbeda di tiap satker. Di sini setiap data boleh diambil dengan query
+       <b>SELECT</b> buatan sendiri. Kosongkan query untuk memakai <b>query bawaan</b>.</p>
+    <div class="notif info">Aman: hanya <b>satu</b> perintah SELECT yang boleh dijalankan, database hanya <b>dibaca</b>.
+       Perintah yang mengubah data (INSERT, UPDATE, DELETE, dll.) otomatis ditolak.</div>
+    <table>
+      <tr><th>Data</th><th>Bagian</th><th>Dipakai</th></tr>
+      <?php foreach ($slotDaftar as $k => $d) { $t = query_tersimpan($CONFIG, $k); ?>
+        <tr<?php echo $k == $slot ? ' style="background:#eef7f1"' : ''; ?>>
+          <td><?php echo e($namaJenis[$d[0]][0]); ?></td>
+          <td><a href="?hal=query&amp;slot=<?php echo $k; ?>"><?php echo e($d[1]); ?></a></td>
+          <td><?php echo $t[0] !== '' ? '<b>Query sendiri</b>' : ($k == 'antrian' ? '<span style="color:#999">Belum diisi</span>' : 'Bawaan'); ?></td>
+        </tr>
+      <?php } ?>
+    </table>
+  </div>
+
+  <form method="post" action="?hal=query&amp;slot=<?php echo $slot; ?>">
+  <input type="hidden" name="csrf" value="<?php echo e($csrf); ?>">
+  <div class="kartu">
+    <h2><?php echo e($sd[1]); ?></h2>
+    <p><?php echo e($sd[5]); ?></p>
+    <?php if ($sd[2]) { ?>
+      <p class="bantuan"><b>Kolom wajib</b> (beri nama dengan <code>AS</code>): <code><?php echo e(implode(', ', $sd[2])); ?></code>
+      <?php if ($sd[3]) { ?><br><b>Kolom tambahan</b> (boleh): <code><?php echo e(implode(', ', $sd[3])); ?></code><?php } ?></p>
+    <?php } ?>
+    <?php if ($sd[4] != '') { ?>
+      <p class="bantuan"><b>Penanda tanggal</b> (tulis tanpa tanda petik, diisi otomatis): <code><?php echo e($sd[4]); ?></code>
+        — mis. <code>WHERE tanggal BETWEEN {dari} AND {sampai}</code>. Hari ini: <?php $n = query_nilai($CONFIG); echo e(implode(', ', array_map('strip_tags', array($n['{dari}'], $n['{sampai}'])))); ?>.</p>
+    <?php } ?>
+
+    <label class="f">Database (opsional)</label>
+    <input type="text" name="q_db" value="<?php echo e($formDb); ?>" placeholder="Kosongkan bila tabelnya ada di database SIPP">
+    <div class="bantuan">Muncul pesan <i>Table 'sipp.xxx' doesn't exist</i>? Tabelnya ada di database lain. Pakai <b>Cari tabel</b> di bawah,
+       lalu isi nama database di sini (atau tulis <code>nama_database.nama_tabel</code> di query).</div>
+
+    <label class="f">Query (SQL SELECT)</label>
+    <textarea name="q_sql" rows="16" spellcheck="false" style="font-family: Consolas, monospace; font-size: 13px;" placeholder="<?php echo $slot == 'antrian' ? 'SELECT ... FROM data_antrian_sidang WHERE tgl &gt;= CURDATE() ...' : 'Kosong = memakai query bawaan. Klik &quot;Isi dengan query bawaan&quot; untuk mulai mengubah.'; ?>"><?php echo e($formSql); ?></textarea>
+    <div class="bantuan">Boleh memakai CASE, JOIN, WHERE, ORDER BY, dan sebagainya. Titik koma di akhir boleh.</div>
+
+    <?php if ($slot == 'antrian') { ?>
+      <label class="cek"><input type="checkbox" name="antrian_aktif" value="1"<?php echo $formAktif ? ' checked' : ''; ?>>
+        Kirim data antrian ke website <small>Sama dengan centang "Antrian" di menu Pengaturan.</small></label>
+    <?php } ?>
+
+    <p>
+      <button class="btn abu" name="aksi" value="q_uji">&#9654; Uji query</button>
+      <button class="btn" name="aksi" value="q_simpan">&#128190; Simpan</button>
+      <?php if ($slot != 'antrian') { ?><button class="btn abu" name="aksi" value="q_bawaan">&#128203; Isi dengan query bawaan</button><?php } ?>
+      <?php $t = query_tersimpan($CONFIG, $slot); if ($t[0] !== '') { ?>
+        <button class="btn abu" name="aksi" value="q_reset" onclick="return confirm('Hapus query sendiri dan kembali ke query bawaan?')">&#8634; <?php echo $slot == 'antrian' ? 'Hapus query' : 'Kembali ke bawaan'; ?></button>
+      <?php } ?>
+    </p>
+    <div class="bantuan">Simpan selalu menguji query lebih dulu; query yang gagal atau kolom wajibnya kurang tidak disimpan.
+      Uji dengan kotak kosong = menguji query bawaan.</div>
+
+    <label class="f">Cari tabel</label>
+    <div style="display:flex; gap:8px;">
+      <input type="text" name="q_kata" value="<?php echo e(isset($formCari) && $formCari !== '' ? $formCari : ($slot == 'antrian' ? 'antri' : '')); ?>" placeholder="bagian nama tabel, mis. antri, jadwal, pihak" style="max-width: 320px;">
+      <button class="btn abu kecil" name="aksi" value="q_cari">&#128269; Cari tabel</button>
+    </div>
+  </div>
+  </form>
+
+  <?php if (isset($qTabel) && is_array($qTabel)) { ?>
+  <div class="kartu">
+    <h2>Hasil cari tabel</h2>
+    <?php if (!$qTabel) { ?>
+      <p>Tidak ditemukan di database yang bisa dibaca akun ini. Bila tabelnya ada di server database lain,
+         minta teknisi memberi akses baca akun database SIPP ke database tersebut.</p>
+    <?php } else { ?>
+      <table><tr><th>Database</th><th>Tabel</th><th>Perkiraan baris</th></tr>
+      <?php foreach ($qTabel as $tb) { ?>
+        <tr><td><code><?php echo e($tb['db']); ?></code></td><td><code><?php echo e($tb['tabel']); ?></code></td><td><?php echo e($tb['baris']); ?></td></tr>
+      <?php } ?></table>
+    <?php } ?>
+  </div>
+  <?php } ?>
+
+  <?php if (isset($qUji) && $qUji['ok']) { $rows = $qUji['rows']; ?>
+  <div class="kartu">
+    <h2>Hasil uji<?php echo $qUji['bawaan'] ? ' (query bawaan)' : ''; ?>: <?php echo count($rows); ?> baris</h2>
+    <?php if (!$rows) { ?>
+      <p>Query berjalan, tetapi tidak ada data. Ini bisa wajar (mis. belum ada antrian/jadwal hari ini).</p>
+    <?php } else { $kol = array_keys($rows[0]); ?>
+      <div style="overflow:auto; max-height: 460px;"><table>
+        <tr><?php foreach ($kol as $k) echo '<th>' . e($k) . (in_array($k, $sd[2]) ? ' &#10004;' : '') . '</th>'; ?></tr>
+        <?php foreach (array_slice($rows, 0, 50) as $r) { echo '<tr>'; foreach ($kol as $k) echo '<td>' . e($r[$k]) . '</td>'; echo '</tr>'; } ?>
+      </table></div>
+      <?php if (count($rows) > 50) { ?><p class="bantuan">Menampilkan 50 baris pertama.</p><?php } ?>
+    <?php } ?>
+  </div>
+  <?php } ?>
+
 <?php } else { /* ======== PENGATURAN ======== */ ?>
 
   <?php if (isset($_GET['pertama'])) { ?>
@@ -535,8 +695,8 @@ $alamatWeb = preg_replace('#/api/sipp/terima$#', '', $CONFIG['website']['url']);
   <div class="kartu">
     <details>
       <summary>Pengaturan lanjutan (untuk teknisi)</summary>
-      <label class="f">Query antrian (SQL SELECT ke database SIPP)</label>
-      <textarea name="antrian_sql" rows="3"><?php echo e($CONFIG['antrian_sql']); ?></textarea>
+      <label class="f">Query antrian</label>
+      <div class="bantuan">Diatur di menu <a href="?hal=query&amp;slot=antrian">Query Sendiri</a>.</div>
       <label class="f">API cadangan jadwal sidang (sipp-publik)</label>
       <input type="text" name="cadangan" value="<?php echo e($CONFIG['cadangan_api_jadwal']); ?>">
       <div class="bantuan">Dipakai jika database SIPP tidak bisa dihubungi. Kosongkan untuk menonaktifkan.</div>

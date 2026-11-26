@@ -41,6 +41,16 @@ class Auth extends BaseController
         if ($username === '' || $password === '') {
             return redirect()->back()->withInput()->with('error', 'Nama pengguna dan password wajib diisi.');
         }
+        if (\App\Libraries\Turnstile::active()) {
+            $ts = \App\Libraries\Turnstile::verify((string) $this->request->getPost('cf-turnstile-response'), $ip);
+            if (! $ts['ok']) {
+                if ($ts['reachable']) {
+                    return redirect()->back()->withInput()->with('error', $ts['error']);
+                }
+                // Cloudflare tak terjangkau dari server: jangan kunci semua admin; password, batas percobaan & MFA tetap berlaku
+                log_message('warning', 'Turnstile dilewati saat login: ' . $ts['error']);
+            }
+        }
 
         $user = $this->auth()->checkPassword($username, $password);
         if (! $user) {

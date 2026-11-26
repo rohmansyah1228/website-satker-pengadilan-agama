@@ -81,8 +81,14 @@ class Settings extends AdminController
                 'popup_button'    => ['Teks tombol (opsional)', 'text', 'Mis. Selengkapnya'],
                 'popup_link'      => ['Tautan tombol / gambar (opsional)', 'url', ''],
             ]],
+            'tampilan' => ['Tampilan', [
+                'image_zoom' => ['Foto dapat diklik untuk dilihat besar', 'select', 'Foto di slider Beranda, berita, halaman, dan galeri bisa diklik pengunjung untuk dilihat dalam ukuran besar (layar penuh; tombol panah untuk foto berikutnya, Esc untuk menutup). Foto yang sudah bertaut ke halaman lain tetap membuka tautannya.', ['1' => 'Ya (disarankan)', '0' => 'Tidak']],
+            ]],
             'keamanan' => ['Keamanan', [
                 'cloudflare'  => ['Cloudflare', 'select', 'Otomatis: bila domain dilewatkan Cloudflare, IP asli pengunjung dibaca dari Cloudflare (hanya dari jaringan resmi Cloudflare) agar hitungan pengunjung, kunci login, dan log aktivitas tetap benar. Tanpa Cloudflare pilihan ini tidak berpengaruh. Pilih Nonaktif bila satker tidak memakai Cloudflare.', ['1' => 'Otomatis (dikenali bila memakai Cloudflare)', '0' => 'Nonaktif (tidak memakai Cloudflare)']],
+                'turnstile'   => ['Cloudflare Turnstile di halaman login', 'select', 'Kotak verifikasi "Berhasil!" dari Cloudflare di halaman login admin untuk menahan robot (pengganti CAPTCHA; gratis, tidak perlu memakai Cloudflare untuk domain). Isi Site Key & Secret Key, centang kotak uji di bawah, lalu pilih Aktif dan Simpan.', ['0' => 'Nonaktif', '1' => 'Aktif']],
+                'turnstile_site_key'      => ['Turnstile — Site Key', 'text', 'Dari dash.cloudflare.com → Turnstile → Add widget (masukkan domain website ini). Diawali 0x…'],
+                'turnstile_secret_tempel' => ['Turnstile — Secret Key', 'text', 'Kosongkan bila tidak diganti. Disimpan rahasia, tidak ditampilkan lagi.'],
                 'require_2fa' => ['Wajibkan MFA untuk semua pengguna', 'select', 'SK 2722/2026 Bab II B.3: login admin dilindungi Captcha dan/atau MFA. Dinilai pada kriteria Keamanan.', ['1' => 'Ya (disarankan)', '0' => 'Tidak']],
                 'sk_unlock'   => ['Buka kunci halaman & menu wajib SK', 'select', 'Normalnya halaman dan menu wajib SK terkunci (slug & jenis tidak bisa diubah, tidak bisa dihapus/dipindah) agar alamat yang dinilai SINOVA tetap berlaku. Buka HANYA saat ada SK baru yang mengubah struktur, sesuaikan halaman/menunya, lalu kunci kembali. Saat terbuka, mengubah alamat halaman yang sudah dinilai dapat memengaruhi penilaian SINOVA sampai diperbarui.', ['0' => 'Terkunci (disarankan)', '1' => 'Terbuka — untuk menyesuaikan SK baru']],
             ]],
@@ -101,7 +107,7 @@ class Settings extends AdminController
         }
 
         $values = service('siteSettings')->all();
-        $values += ['cloudflare' => '1']; // nilai bawaan yang berlaku
+        $values += ['cloudflare' => '1', 'image_zoom' => '1']; // nilai bawaan yang berlaku
         if (trim((string) ($values['lhkpn_jabatan'] ?? '')) === '') {
             $values['lhkpn_jabatan'] = \App\Libraries\LhkpnOrder::defaultText();
         }
@@ -209,6 +215,20 @@ class Settings extends AdminController
                 }
                 continue;
             }
+            if ($key === 'turnstile_secret_tempel') { // rahasia: disimpan, tidak pernah ditampilkan lagi
+                if ($v !== '') {
+                    if (\App\Libraries\Turnstile::keyFormatOk($v)) {
+                        $values['turnstile_secret'] = $v;
+                    } else {
+                        $errors[] = "{$label}: format tidak dikenali. Salin Secret Key dari dashboard Cloudflare Turnstile.";
+                    }
+                }
+                continue;
+            }
+            if ($key === 'turnstile_site_key' && $v !== '' && ! \App\Libraries\Turnstile::keyFormatOk($v)) {
+                $errors[] = "{$label}: format tidak dikenali. Salin Site Key dari dashboard Cloudflare Turnstile (diawali 0x).";
+                continue;
+            }
             if ($key === 'lhkpn_jabatan') {
                 $v = implode("\n", \App\Libraries\LhkpnOrder::clean((string) $v));
                 if ($v === \App\Libraries\LhkpnOrder::defaultText()) {
@@ -240,6 +260,9 @@ class Settings extends AdminController
             }
             $values[$key] = mb_substr($v, 0, 2000);
         }
+        if ($tab === 'keamanan') {
+            $this->checkTurnstile($values, $errors);
+        }
         service('siteSettings')->set($values);
         if ($tab === 'tautan') {
             cache()->delete('ann_feed'); // sumber / batas tahun mungkin berubah → ambil lagi saat halaman dibuka
@@ -250,5 +273,32 @@ class Settings extends AdminController
         $r = redirect()->to(admin_url('pengaturan?tab=' . $tab));
 
         return $errors ? $r->with('error', implode('<br>', array_map('esc', $errors))) : $r->with('success', 'Pengaturan tersimpan.');
+    }
+
+    /**
+     * Turnstile hanya boleh diaktifkan bila kotak uji di halaman Pengaturan berhasil diverifikasi dengan kunci yang akan dipakai —
+     * kunci yang salah tidak boleh mengunci semua admin di luar halaman login.
+     */
+    private function checkTurnstile(array &$values, array &$errors): void
+    {
+        if (($values['turnstile'] ?? setting('turnstile', '0')) !== '1') {
+            return;
+        }
+        $site    = $values['turnstile_site_key'] ?? setting('turnstile_site_key');
+        $secret  = $values['turnstile_secret'] ?? setting('turnstile_secret');
+        $changed = setting('turnstile', '0') !== '1' || $site !== setting('turnstile_site_key') || $secret !== setting('turnstile_secret');
+        $why     = '';
+        if ($site === '' || $secret === '') {
+            $why = 'isi Site Key dan Secret Key lebih dulu.';
+        } elseif ($changed) {
+            $r = \App\Libraries\Turnstile::verify((string) $this->request->getPost('cf-turnstile-response'), $this->request->getIPAddress(), $secret);
+            if (! $r['ok']) {
+                $why = $r['error'] . ($r['reachable'] ? '' : ' Server website harus bisa menghubungi challenges.cloudflare.com.');
+            }
+        }
+        if ($why !== '') {
+            $values['turnstile'] = '0';
+            $errors[] = 'Cloudflare Turnstile belum diaktifkan: ' . $why . ' (Kunci lain tetap tersimpan.)';
+        }
     }
 }

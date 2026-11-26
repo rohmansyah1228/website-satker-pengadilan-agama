@@ -35,11 +35,15 @@
                     <button class="btn btn-outline-secondary" type="button" id="togglePw" aria-controls="current-password" aria-pressed="false"><i class="bi bi-eye" aria-hidden="true"></i><span class="visually-hidden">Tampilkan password</span></button>
                 </div>
             </div>
+            <?php if (\App\Libraries\Turnstile::active()): ?>
+                <div class="mb-3 d-flex justify-content-center"><div class="cf-turnstile" data-sitekey="<?= esc(\App\Libraries\Turnstile::siteKey(), 'attr') ?>" data-language="id" data-theme="light" data-size="flexible"></div></div>
+            <?php endif ?>
             <button type="submit" class="btn btn-pa-primary btn-lg w-100"<?= $locked ? ' disabled' : '' ?>>Masuk</button>
         </form>
-        <p class="small text-secondary mt-4 mb-0 text-center"><i class="bi bi-shield-lock" aria-hidden="true"></i> Dilindungi pembatasan percobaan & MFA. Lupa password? Hubungi Super Admin.</p>
+        <p class="small text-secondary mt-4 mb-0 text-center"><i class="bi bi-shield-lock" aria-hidden="true"></i> Dilindungi pembatasan percobaan<?= \App\Libraries\Turnstile::active() ? ', Cloudflare Turnstile' : '' ?> & MFA. Lupa password? Hubungi Super Admin.</p>
     </div>
 </main>
 <script src="<?= asset('assets/js/login.js') ?>" defer></script>
+<?php if (\App\Libraries\Turnstile::active()): ?><script src="<?= \App\Libraries\Turnstile::SCRIPT_URL ?>" async defer></script><?php endif ?>
 </body>
 </html>

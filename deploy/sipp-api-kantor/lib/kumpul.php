@@ -10,6 +10,12 @@ function kumpul_hasil($ok, $sumber, $data, $jumlah, $pesan) {
     return array('ok' => $ok, 'sumber' => $sumber, 'data' => $data, 'jumlah' => $jumlah, 'pesan' => $pesan);
 }
 
+/** Nilai "ya" dari SIPP (Y) atau query sendiri (Y/1/ya/true) */
+function kumpul_ya($v) {
+    $v = strtolower(trim((string)$v));
+    return $v == 'y' || $v == '1' || $v == 'ya' || $v == 'true';
+}
+
 function kumpul_jam($v) {
     if ($v === null || $v === '') return null;
     return substr($v, 0, 5);
@@ -24,21 +30,7 @@ function kumpul_jadwal_sidang($cfg, $dbOk) {
     $sampai = date('Y-m-d', strtotime('+' . ($hari - 1) . ' day'));
 
     if ($dbOk) {
-        $t = 'perkara_jadwal_sidang';
-        $kolom = array('j.tanggal_sidang', 'a.nomor_perkara', 'a.jenis_perkara_text', 'j.agenda', 'j.ruangan');
-        if (db_kolom_ada($t, 'id'))             $kolom[] = 'j.id';
-        if (db_kolom_ada($t, 'jam_sidang'))     $kolom[] = 'j.jam_sidang';
-        if (db_kolom_ada($t, 'sampai_jam'))     $kolom[] = 'j.sampai_jam';
-        if (db_kolom_ada($t, 'sidang_keliling'))$kolom[] = 'j.sidang_keliling';
-        if (db_kolom_ada($t, 'ditunda'))        $kolom[] = 'j.ditunda';
-        if ($cfg['jadwal_kirim_nama_pihak'])    { $kolom[] = 'a.pihak1_text'; $kolom[] = 'a.pihak2_text'; }
-
-        $urut = 'j.tanggal_sidang, j.ruangan' . (db_kolom_ada($t, 'jam_sidang') ? ', j.jam_sidang' : '') . ', a.nomor_perkara';
-        $rows = db_rows("SELECT " . implode(', ', $kolom) . "
-                         FROM perkara_jadwal_sidang j
-                         JOIN perkara a ON a.perkara_id = j.perkara_id
-                         WHERE j.tanggal_sidang BETWEEN '" . $dari . "' AND '" . $sampai . "'
-                         ORDER BY " . $urut);
+        $rows = query_ambil($cfg, 'jadwal');
         if ($rows !== false) {
             $data = array();
             foreach ($rows as $r) {
@@ -47,15 +39,15 @@ function kumpul_jadwal_sidang($cfg, $dbOk) {
                     'jam_mulai'       => isset($r['jam_sidang']) ? kumpul_jam($r['jam_sidang']) : null,
                     'jam_selesai'     => isset($r['sampai_jam']) ? kumpul_jam($r['sampai_jam']) : null,
                     'nomor_perkara'   => $r['nomor_perkara'],
-                    'jenis_perkara'   => $r['jenis_perkara_text'],
-                    'agenda'          => trim(strip_tags((string)$r['agenda'])),
-                    'ruangan'         => trim((string)$r['ruangan']) != '' ? trim($r['ruangan']) : 'Belum Ditentukan',
-                    'sidang_keliling' => (isset($r['sidang_keliling']) && $r['sidang_keliling'] == 'Y'),
-                    'ditunda'         => (isset($r['ditunda']) && $r['ditunda'] == 'Y'),
+                    'jenis_perkara'   => isset($r['jenis_perkara_text']) ? $r['jenis_perkara_text'] : '',
+                    'agenda'          => isset($r['agenda']) ? trim(strip_tags((string)$r['agenda'])) : '',
+                    'ruangan'         => (isset($r['ruangan']) && trim((string)$r['ruangan']) != '') ? trim($r['ruangan']) : 'Belum Ditentukan',
+                    'sidang_keliling' => (isset($r['sidang_keliling']) && kumpul_ya($r['sidang_keliling'])),
+                    'ditunda'         => (isset($r['ditunda']) && kumpul_ya($r['ditunda'])),
                 );
                 if ($cfg['jadwal_kirim_nama_pihak']) {
-                    $item['pihak1'] = strip_tags(str_replace('<br>', ', ', (string)$r['pihak1_text']));
-                    $item['pihak2'] = strip_tags(str_replace('<br>', ', ', (string)$r['pihak2_text']));
+                    $item['pihak1'] = isset($r['pihak1_text']) ? strip_tags(str_replace('<br>', ', ', (string)$r['pihak1_text'])) : '';
+                    $item['pihak2'] = isset($r['pihak2_text']) ? strip_tags(str_replace('<br>', ', ', (string)$r['pihak2_text'])) : '';
                 }
                 $data[] = $item;
             }
@@ -106,22 +98,11 @@ function kumpul_statistik_perkara($cfg, $dbOk) {
     $awal  = $tahun . '-01-01';
     $akhir = $tahun . '-12-31';
 
-    $masuk = db_rows("SELECT MONTH(tanggal_pendaftaran) AS bln, COUNT(*) AS jml FROM perkara
-                      WHERE tanggal_pendaftaran BETWEEN '$awal' AND '$akhir' GROUP BY MONTH(tanggal_pendaftaran)");
-    $putus = db_rows("SELECT MONTH(c.tanggal_putusan) AS bln, COUNT(*) AS jml FROM perkara_putusan c
-                      JOIN perkara a ON a.perkara_id = c.perkara_id
-                      WHERE c.tanggal_putusan BETWEEN '$awal' AND '$akhir' GROUP BY MONTH(c.tanggal_putusan)");
-    $sisaLalu = db_rows("SELECT COUNT(*) AS jml FROM perkara a
-                         LEFT JOIN perkara_putusan c ON c.perkara_id = a.perkara_id
-                         WHERE a.tanggal_pendaftaran < '$awal'
-                           AND (c.tanggal_putusan IS NULL OR c.tanggal_putusan >= '$awal')");
-    $jenisMasuk = db_rows("SELECT a.jenis_perkara_text AS jenis, COUNT(*) AS jml FROM perkara a
-                           WHERE a.tanggal_pendaftaran BETWEEN '$awal' AND '$akhir'
-                           GROUP BY a.jenis_perkara_text ORDER BY jml DESC");
-    $jenisPutus = db_rows("SELECT a.jenis_perkara_text AS jenis, COUNT(*) AS jml FROM perkara_putusan c
-                           JOIN perkara a ON a.perkara_id = c.perkara_id
-                           WHERE c.tanggal_putusan BETWEEN '$awal' AND '$akhir'
-                           GROUP BY a.jenis_perkara_text");
+    $masuk      = query_ambil($cfg, 'stat_masuk');
+    $putus      = query_ambil($cfg, 'stat_putus');
+    $sisaLalu   = query_ambil($cfg, 'stat_sisa');
+    $jenisMasuk = query_ambil($cfg, 'stat_jenis_masuk');
+    $jenisPutus = query_ambil($cfg, 'stat_jenis_putus');
 
     if ($masuk === false || $putus === false || $sisaLalu === false || $jenisMasuk === false || $jenisPutus === false) {
         return kumpul_hasil(false, '', null, 0, db_error());
@@ -132,7 +113,7 @@ function kumpul_statistik_perkara($cfg, $dbOk) {
     $mapMasuk = array(); foreach ($masuk as $r) $mapMasuk[(int)$r['bln']] = (int)$r['jml'];
     $mapPutus = array(); foreach ($putus as $r) $mapPutus[(int)$r['bln']] = (int)$r['jml'];
 
-    $sisa = (int)$sisaLalu[0]['jml'];
+    $sisa = $sisaLalu ? (int)$sisaLalu[0]['jml'] : 0;
     $sisaAwalTahun = $sisa;
     $bulanIni = (int)date('n');
     $perBulan = array();
@@ -176,38 +157,11 @@ function kumpul_statistik_perkara($cfg, $dbOk) {
 function kumpul_panggilan_ghaib($cfg, $dbOk) {
     if (!$dbOk) return kumpul_hasil(false, '', null, 0, 'SIPP internal tidak terhubung');
 
-    $filterGhaib = "(LOWER(h.alamat) LIKE '%tidak diketahui%'
-                  OR LOWER(h.alamat) LIKE '%tdk diketahui%'
-                  OR LOWER(h.alamat) LIKE '%tidak jelas%'
-                  OR LOWER(h.alamat) REGEXP '(^|[^[:alpha:]])(ghaib|gaib)([^[:alpha:]]|$)')";
-
-    $rows = db_rows("SELECT a.perkara_id, a.nomor_perkara, a.jenis_perkara_text, a.tanggal_pendaftaran,
-               (SELECT GROUP_CONCAT(h.nama ORDER BY h.urutan SEPARATOR ', ') FROM perkara_pihak2 h
-                 WHERE h.perkara_id = a.perkara_id AND $filterGhaib)       AS nama_ghaib,
-               (SELECT GROUP_CONCAT(h.alamat ORDER BY h.urutan SEPARATOR ' | ') FROM perkara_pihak2 h
-                 WHERE h.perkara_id = a.perkara_id AND $filterGhaib)       AS alamat_ghaib,
-               (SELECT MIN(i.tanggal_sidang) FROM perkara_jadwal_sidang i
-                 WHERE i.perkara_id = a.perkara_id AND i.tanggal_sidang >= CURDATE()) AS sidang_berikutnya
-        FROM perkara a
-        LEFT JOIN perkara_putusan c ON c.perkara_id = a.perkara_id
-        WHERE c.tanggal_putusan IS NULL
-          AND a.tanggal_pendaftaran >= DATE_SUB(CURDATE(), INTERVAL 2 YEAR)
-          AND EXISTS (SELECT 1 FROM perkara_pihak2 h WHERE h.perkara_id = a.perkara_id AND $filterGhaib)
-        ORDER BY a.tanggal_pendaftaran ASC, a.perkara_id ASC");
+    $rows = query_ambil($cfg, 'ghaib');
     if ($rows === false) return kumpul_hasil(false, '', null, 0, db_error());
 
     // perkara ghaib yang SUDAH PUTUS dalam 1 tahun terakhir (tabel "Sudah Putus" di website)
-    $rowsPutus = db_rows("SELECT a.perkara_id, a.nomor_perkara, a.jenis_perkara_text, a.tanggal_pendaftaran, c.tanggal_putusan,
-               (SELECT GROUP_CONCAT(h.nama ORDER BY h.urutan SEPARATOR ', ') FROM perkara_pihak2 h
-                 WHERE h.perkara_id = a.perkara_id AND $filterGhaib)       AS nama_ghaib,
-               (SELECT MAX(i.tanggal_sidang) FROM perkara_jadwal_sidang i
-                 WHERE i.perkara_id = a.perkara_id AND i.tanggal_sidang <= c.tanggal_putusan) AS sidang_terakhir
-        FROM perkara a
-        JOIN perkara_putusan c ON c.perkara_id = a.perkara_id
-        WHERE c.tanggal_putusan IS NOT NULL
-          AND c.tanggal_putusan >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
-          AND EXISTS (SELECT 1 FROM perkara_pihak2 h WHERE h.perkara_id = a.perkara_id AND $filterGhaib)
-        ORDER BY c.tanggal_putusan DESC, a.perkara_id DESC");
+    $rowsPutus = query_ambil($cfg, 'ghaib_putus');
     if ($rowsPutus === false) return kumpul_hasil(false, '', null, 0, db_error());
 
     // relaas terbaru Tergugat/Termohon (berkas PDF dari folder dokumen SIPP)
@@ -227,12 +181,12 @@ function kumpul_panggilan_ghaib($cfg, $dbOk) {
     foreach ($rows as $r) {
         $item = array(
             'nomor_perkara'      => $r['nomor_perkara'],
-            'jenis_perkara'      => $r['jenis_perkara_text'],
-            'tanggal_daftar'     => $r['tanggal_pendaftaran'],
-            'sidang_berikutnya'  => $r['sidang_berikutnya'],
+            'jenis_perkara'      => isset($r['jenis_perkara_text']) ? $r['jenis_perkara_text'] : '',
+            'tanggal_daftar'     => isset($r['tanggal_pendaftaran']) ? $r['tanggal_pendaftaran'] : null,
+            'sidang_berikutnya'  => isset($r['sidang_berikutnya']) ? $r['sidang_berikutnya'] : null,
         );
-        if ($cfg['ghaib_kirim_nama'])   $item['nama_pihak']   = $r['nama_ghaib'];
-        if ($cfg['ghaib_kirim_alamat']) $item['alamat_pihak'] = $r['alamat_ghaib'];
+        if ($cfg['ghaib_kirim_nama'])   $item['nama_pihak']   = isset($r['nama_ghaib']) ? $r['nama_ghaib'] : '';
+        if ($cfg['ghaib_kirim_alamat']) $item['alamat_pihak'] = isset($r['alamat_ghaib']) ? $r['alamat_ghaib'] : '';
         if (isset($relaas[(int)$r['perkara_id']])) {
             $rl = $relaas[(int)$r['perkara_id']];
             $info = relaas_info($r['nomor_perkara'], $rl[0], $rl[1], $maksByte);
@@ -245,12 +199,12 @@ function kumpul_panggilan_ghaib($cfg, $dbOk) {
         if (empty($r['tanggal_putusan']) || substr($r['tanggal_putusan'], 0, 10) == '0000-00-00') continue;
         $item = array(
             'nomor_perkara'   => $r['nomor_perkara'],
-            'jenis_perkara'   => $r['jenis_perkara_text'],
-            'tanggal_daftar'  => $r['tanggal_pendaftaran'],
+            'jenis_perkara'   => isset($r['jenis_perkara_text']) ? $r['jenis_perkara_text'] : '',
+            'tanggal_daftar'  => isset($r['tanggal_pendaftaran']) ? $r['tanggal_pendaftaran'] : null,
             'tanggal_putusan' => substr($r['tanggal_putusan'], 0, 10),
-            'sidang_terakhir' => $r['sidang_terakhir'],
+            'sidang_terakhir' => isset($r['sidang_terakhir']) ? $r['sidang_terakhir'] : null,
         );
-        if ($cfg['ghaib_kirim_nama']) $item['nama_pihak'] = $r['nama_ghaib'];
+        if ($cfg['ghaib_kirim_nama']) $item['nama_pihak'] = isset($r['nama_ghaib']) ? $r['nama_ghaib'] : '';
         if (isset($relaas[(int)$r['perkara_id']])) {
             $rl = $relaas[(int)$r['perkara_id']];
             $info = relaas_info($r['nomor_perkara'], $rl[0], $rl[1], $maksByte);
@@ -270,12 +224,10 @@ function kumpul_panggilan_ghaib($cfg, $dbOk) {
  * 4. ANTRIAN (query bebas dari config)
  * ==================================================================== */
 function kumpul_antrian($cfg, $dbOk) {
-    if (trim($cfg['antrian_sql']) == '') return kumpul_hasil(false, '', null, 0, 'antrian_sql belum diisi di config.php');
+    $t = query_tersimpan($cfg, 'antrian');
+    if ($t[0] == '') return kumpul_hasil(false, '', null, 0, 'Query antrian belum diisi (menu Query Sendiri).');
     if (!$dbOk) return kumpul_hasil(false, '', null, 0, 'SIPP internal tidak terhubung');
-    if (!preg_match('/^\s*SELECT\s/i', $cfg['antrian_sql'])) {
-        return kumpul_hasil(false, '', null, 0, 'antrian_sql harus berupa query SELECT');
-    }
-    $rows = db_rows($cfg['antrian_sql']);
+    $rows = query_ambil($cfg, 'antrian');
     if ($rows === false) return kumpul_hasil(false, '', null, 0, db_error());
     return kumpul_hasil(true, 'sipp_internal', array('tanggal' => date('Y-m-d'), 'antrian' => $rows), count($rows), 'OK');
 }

@@ -12,6 +12,7 @@ require $BASE . '/lib/pengaturan.php';
 require $BASE . '/lib/kumpul.php';
 require $BASE . '/lib/relaas.php';
 require $BASE . '/lib/kirim.php';
+require $BASE . '/lib/query.php';
 
 // 1. Pengaturan permanen dari config.php hasil unduhan dashboard
 if (is_array($CONFIG_DASHBOARD)) $CONFIG = gabung_array($CONFIG, $CONFIG_DASHBOARD);
@@ -24,6 +25,8 @@ if (!isset($CONFIG['dashboard_hash']))  $CONFIG['dashboard_hash']  = '';
 if (!isset($CONFIG['dashboard_garam'])) $CONFIG['dashboard_garam'] = '';
 // bawaan untuk config.php versi lama (sebelum ada pengiriman relaas)
 if (!isset($CONFIG['ghaib_kirim_relaas'])) $CONFIG['ghaib_kirim_relaas'] = true;
+if (!isset($CONFIG['antrian_db']))         $CONFIG['antrian_db']         = '';
+if (!isset($CONFIG['query_sendiri']) || !is_array($CONFIG['query_sendiri'])) $CONFIG['query_sendiri'] = array();
 if (!isset($CONFIG['relaas_dir']))         $CONFIG['relaas_dir']         = '';
 if (!isset($CONFIG['kirim_ulang_jam']))    $CONFIG['kirim_ulang_jam']    = 6;
 if (!isset($CONFIG['relaas_maks_mb']))     $CONFIG['relaas_maks_mb']     = 20;

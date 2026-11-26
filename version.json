@@ -1,9 +1,35 @@
 {
-  "build": 26,
+  "build": 27,
   "version": "2026-11-26",
   "repo": "rohmansyah1228/website-satker-pengadilan-agama",
   "branch": "main",
   "releases": [
+    {
+      "build": 27,
+      "name": "2.0.0",
+      "version": "2026-11-26",
+      "notes": "Versi 2.0.0 — Fitur baru: Cloudflare Turnstile di halaman login admin (Pengaturan → Keamanan); foto bisa diklik untuk dilihat besar (Pengaturan → Tampilan); menu Query Sendiri di aplikasi SIPP API Kantor (jadwal, statistik, ghaib, antrian). Perbaikan: Pemeriksaan Keamanan tidak lagi dikarantina antivirus hosting (cPGuard).",
+      "files": [
+        "app/Controllers/Admin/Auth.php",
+        "app/Controllers/Admin/Settings.php",
+        "app/Libraries/SecurityScan.php",
+        "app/Libraries/Turnstile.php",
+        "app/Libraries/VersionCheck.php",
+        "app/Views/admin/auth/login.php",
+        "app/Views/admin/settings.php",
+        "app/Views/layouts/site.php",
+        "deploy/rilis.php",
+        "deploy/sipp-api-kantor/README.md",
+        "deploy/sipp-api-kantor/index.php",
+        "deploy/sipp-api-kantor/lib/init.php",
+        "deploy/sipp-api-kantor/lib/kumpul.php",
+        "deploy/sipp-api-kantor/lib/pengaturan.php",
+        "deploy/sipp-api-kantor/lib/query.php",
+        "public/assets/css/site.css",
+        "public/assets/js/admin.js",
+        "public/assets/js/site.js"
+      ]
+    },
     {
       "build": 26,
       "name": "1.9.3",
@@ -450,5 +476,5 @@
       ]
     }
   ],
-  "name": "1.9.3"
+  "name": "2.0.0"
 }

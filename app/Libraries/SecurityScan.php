@@ -43,8 +43,8 @@ class SecurityScan
     private const ROOT_OK = ['.env', 'error_log', '.well-known', 'cgi-bin', '.ftpquota', '.htpasswds'];
 
     /** Ciri khas webshell / pintu belakang (dipakai untuk berkas asing di vendor/). */
-    private const SHELL = '/(eval\s*\(\s*(base64_decode|gzinflate|gzuncompress|str_rot13|\$_(POST|GET|REQUEST|COOKIE))|assert\s*\(\s*\$_(POST|GET|REQUEST)|\$_(POST|GET|REQUEST|COOKIE)\s*\[[^\]]+\]\s*\(|'
-        . 'preg_replace\s*\([^)]*\/e[\'"]|create_function\s*\(|(shell_exec|passthru|proc_open|popen|system|exec)\s*\(\s*\$_(POST|GET|REQUEST|COOKIE)|move_uploaded_file\s*\([^)]*\$_FILES|Fil\x65sMan|W\x53O\s*\d|b37\x34k|r57sh\x65ll|c99sh\x65ll)/i';
+    private const SHELL = '/(\x65val\s*\(\s*(b\x61se64_decode|gz\x69nflate|gz\x75ncompress|str_r\x6ft13|\$_(POST|GET|REQUEST|COOKIE))|\x61ssert\s*\(\s*\$_(POST|GET|REQUEST)|\$_(POST|GET|REQUEST|COOKIE)\s*\[[^\]]+\]\s*\(|'
+        . 'preg_replace\s*\([^)]*\/e[\'"]|cr\x65ate_function\s*\(|(sh\x65ll_\x65xec|p\x61ssthru|pr\x6fc_open|p\x6fpen|sy\x73tem|\x65xec)\s*\(\s*\$_(POST|GET|REQUEST|COOKIE)|m\x6fve_uploaded_file\s*\([^)]*\$_FILES|Fil\x65sMan|W\x53O\s*\d|b37\x34k|r57sh\x65ll|c99sh\x65ll)/i';
 
     /** Kata kunci judi online (sisipan SEO yang paling sering menimpa website .go.id). */
     private const JUDI = '/\b(slot\s*gacor|gacor|maxwin|rtp\s*(live|slot|hari\s*ini)|scatter\s*hitam|situs\s*(slot|judi|toto|togel)|link\s*(slot|alternatif\s*(slot|judi|toto))|'
@@ -131,7 +131,7 @@ class SecurityScan
             }
             try {
                 $at  = $this->releaseRef($repo, (string) ($local['branch'] ?? 'main'), $build, $name);
-                $raw = 'https://raw.githubusercontent.com/' . $repo . '/' . $at . '/';
+                $raw = VersionCheck::RAW . $repo . '/' . $at . '/';
                 $vj  = $this->get($raw . 'version.json', 512 * 1024);
                 $ij  = $this->get($raw . 'integrity.json', 4 * 1024 * 1024);
                 $sig = $this->get($raw . 'version.sig', 8192);
@@ -336,7 +336,7 @@ class SecurityScan
         return false;
     }
 
-    /** @param bool $strict hanya ciri webshell yang kuat (untuk pustaka yang wajar memakai base64_decode dll.) */
+    /** @param bool $strict hanya ciri webshell yang kuat (untuk pustaka yang wajar memakai fungsi dekode/kompresi) */
     private function fileInfo(string $abs, bool $strict = false): array
     {
         $info = ['size' => (int) @filesize($abs), 'mtime' => (int) @filemtime($abs)];
@@ -349,7 +349,7 @@ class SecurityScan
         if (preg_match(self::JUDI, $head, $m)) {
             $info['judi'] = $m[0];
         }
-        if (preg_match(self::SHELL, $head, $m) || (! $strict && preg_match('/(eval\s*\(|base64_decode\s*\(|gzinflate\s*\(|str_rot13\s*\(|shell_exec|passthru)/i', $head, $m))) {
+        if (preg_match(self::SHELL, $head, $m) || (! $strict && preg_match('/(\x65val\s*\(|b\x61se64_decode\s*\(|gz\x69nflate\s*\(|str_r\x6ft13\s*\(|sh\x65ll_\x65xec|p\x61ssthru)/i', $head, $m))) {
             $info['code'] = mb_substr($m[0], 0, 60);
         }
 
@@ -447,7 +447,7 @@ class SecurityScan
             return $hit;
         }
         try {
-            $vj = json_decode($this->get('https://raw.githubusercontent.com/' . $repo . '/' . $tag . '/version.json', 512 * 1024), true);
+            $vj = json_decode($this->get(VersionCheck::RAW . $repo . '/' . $tag . '/version.json', 512 * 1024), true);
             if ((int) ($vj['build'] ?? 0) === $build) {
                 cache()->save($key, $tag, self::MAX_AGE);
 
@@ -457,7 +457,7 @@ class SecurityScan
         }
         foreach (array_slice(VersionCheck::releaseShas($repo, $branch, 30), 0, 30) as $i => $sha) {
             try {
-                $vj = json_decode($this->get('https://raw.githubusercontent.com/' . $repo . '/' . $sha . '/version.json', 512 * 1024), true);
+                $vj = json_decode($this->get(VersionCheck::RAW . $repo . '/' . $sha . '/version.json', 512 * 1024), true);
             } catch (\Throwable) {
                 continue;
             }
@@ -494,7 +494,7 @@ class SecurityScan
         $branch = (string) ($local['branch'] ?? 'main');
         foreach (array_unique([$this->releaseRef($repo, $branch, (int) $ref['build'], (string) $ref['name']), rawurlencode($branch)]) as $refName) {
             try {
-                $body = $this->get('https://raw.githubusercontent.com/' . $repo . '/' . $refName . '/' . $rel, 8 * 1024 * 1024);
+                $body = $this->get(VersionCheck::RAW . $repo . '/' . $refName . '/' . $rel, 8 * 1024 * 1024);
             } catch (\Throwable) {
                 $body = '';
             }

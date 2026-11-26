@@ -47,6 +47,22 @@
             </div>
         <?php endforeach ?>
     </div>
+    <?php if ($tab === 'keamanan'): $tsSecret = setting('turnstile_secret'); ?>
+        <div class="border rounded-3 p-3 mb-3 bg-white" data-turnstile-test>
+            <h2 class="h6 fw-bold"><i class="bi bi-shield-check text-pa-primary" aria-hidden="true"></i> Cloudflare Turnstile — uji sebelum diaktifkan</h2>
+            <p class="small mb-2">Secret Key: <?= $tsSecret !== '' ? '<span class="badge text-bg-success">tersimpan</span> …' . esc(substr($tsSecret, -4)) : '<span class="badge text-bg-warning">belum ada</span>' ?>
+                · Status: <?= \App\Libraries\Turnstile::active() ? '<span class="badge text-bg-success">aktif di halaman login</span>' : (\App\Libraries\Turnstile::killSwitch() ? '<span class="badge text-bg-danger">dimatikan lewat .env (turnstile.nonaktif)</span>' : '<span class="badge text-bg-secondary">nonaktif</span>') ?></p>
+            <ol class="small mb-2">
+                <li>Buka <a href="https://dash.cloudflare.com/?to=/:account/turnstile" target="_blank" rel="noopener">dash.cloudflare.com → Turnstile</a> (daftar akun Cloudflare gratis bila belum punya) → <strong>Add widget</strong>.</li>
+                <li>Isi nama bebas, tambahkan <strong>domain website ini</strong> (<code><?= esc(parse_url(base_url(), PHP_URL_HOST) ?: '') ?></code>), mode <strong>Managed</strong>, lalu <strong>Create</strong>.</li>
+                <li>Salin <strong>Site Key</strong> dan <strong>Secret Key</strong> ke kolom di atas.</li>
+                <li>Kotak verifikasi muncul di bawah ini. Tunggu sampai bertanda <strong>Berhasil!</strong>, pilih <strong>Aktif</strong>, lalu <strong>Simpan Pengaturan</strong>.</li>
+            </ol>
+            <div class="ts-test-box" aria-live="polite"><span class="small text-secondary">Isi Site Key untuk menampilkan kotak uji.</span></div>
+            <p class="small text-secondary mb-0 mt-2">Bila suatu saat tidak bisa login karena Turnstile (mis. widget dihapus di Cloudflare), tambahkan baris
+                <code>turnstile.nonaktif = true</code> ke berkas <code>.env</code> website lewat File Manager hosting.</p>
+        </div>
+    <?php endif ?>
     <div><button class="btn btn-pa-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> Simpan Pengaturan</button></div>
 </form>
 <?php if ($tab === 'sipp' && ! empty($sipp)): ?>

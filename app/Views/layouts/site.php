@@ -23,7 +23,7 @@ $pageTitle = isset($title) && $title !== $siteName ? $title . ' — ' . $siteNam
     <link rel="stylesheet" href="<?= asset('assets/css/site.css') ?>">
     <?= $this->renderSection('head') ?>
 </head>
-<body class="bg-light text-dark">
+<body class="bg-light text-dark"<?= setting('image_zoom', '1') === '1' ? ' data-img-zoom' : '' ?>>
     <a class="skip-link btn btn-pa-secondary" href="#main-content">Lewati ke konten utama</a>
 
     <?= $this->include('partials/header') ?>
