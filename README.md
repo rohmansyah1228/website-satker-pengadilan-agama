@@ -129,7 +129,12 @@ php spark serve                 &:: http://localhost:8080
 
 ---
 
-> **Tanda tangan rilis.** `deploy/rilis.sh` menandatangani rilis dengan kunci pribadi (`RILIS_KEY`, bawaan `~/.satker-rilis/rilis-private.pem`); "Update Website" di semua satker hanya memasang rilis yang tanda tangannya cocok dengan salah satu kunci publik di `app/Config/Release.php`. Ada dua kunci tepercaya: kunci utama dan **kunci cadangan** pengelola (dibuat di komputer kantor dengan `deploy\buat-kunci-cadangan.bat`, tersimpan di `%USERPROFILE%\satker-rilis\`). Bila kunci utama hilang, tandatangani dari clone repositori ini (butuh Git + PHP): `bash deploy/rilis.sh "catatan"` dengan `RILIS_KEY=%USERPROFILE%\satker-rilis\rilis-cadangan-private.pem`. Kunci pribadi tidak boleh berada di dalam folder website/repositori dan tidak boleh dikirim ke siapa pun.
+> **Tanda tangan rilis.** "Update Website" di semua satker hanya memasang rilis yang tanda tangannya cocok dengan salah satu kunci publik di `app/Config/Release.php` (kunci utama & **kunci cadangan** pengelola). Kunci pribadi tidak boleh berada di folder website/repositori dan tidak boleh dikirim ke siapa pun.
+>
+> **Merilis dari komputer kantor (Windows):**
+> 1. Sekali saja: klik dua kali `deploy\buat-kunci-cadangan.bat` (kunci tersimpan di `%USERPROFILE%\satker-rilis\`; salin folder itu ke flashdisk), dan pasang **Git for Windows** (https://git-scm.com/download/win, pilihan bawaan).
+> 2. Setiap rilis: klik dua kali `deploy\rilis-dari-pc.bat`. Skrip mengunduh/memperbarui salinan repositori di `%USERPROFILE%\satker-rilis\repo`, menampilkan berkas yang berubah sejak rilis terakhir, meminta catatan rilis & nomor versi (kosong = otomatis), menandatangani dengan kunci cadangan, lalu (setelah dikonfirmasi) mengirim ke GitHub. Saat pertama kali mengirim, Git meminta login GitHub di peramban.
+> 3. Di Linux/Mac: `php deploy/rilis.php --cek`, lalu `php deploy/rilis.php "catatan" [1.2.3] --kunci=/lokasi/rilis-private.pem` dan `git push`.
 
 ## Instalasi di Server Linux — untuk produksi
 
