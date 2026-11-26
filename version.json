@@ -1,9 +1,21 @@
 {
-  "build": 23,
-  "version": "2026-11-25",
+  "build": 24,
+  "version": "2026-11-26",
   "repo": "rohmansyah1228/website-satker-pengadilan-agama",
   "branch": "main",
   "releases": [
+    {
+      "build": 24,
+      "name": "1.9.1",
+      "version": "2026-11-26",
+      "notes": "Keamanan: kunci cadangan penandatangan rilis ditambahkan ke daftar kunci tepercaya, sehingga Update Website tetap aman dan berjalan walau kunci utama pengelola hilang. Tidak ada perubahan tampilan atau fitur.",
+      "files": [
+        "README.md",
+        "app/Config/Release.php",
+        "deploy/buat-kunci-cadangan.bat",
+        "deploy/buat-kunci-cadangan.php"
+      ]
+    },
     {
       "build": 23,
       "name": "1.9.0",
@@ -403,5 +415,5 @@
       ]
     }
   ],
-  "name": "1.9.0"
+  "name": "1.9.1"
 }
