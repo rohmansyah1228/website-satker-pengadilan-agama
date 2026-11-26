@@ -129,6 +129,8 @@ php spark serve                 &:: http://localhost:8080
 
 ---
 
+> **Tanda tangan rilis.** `deploy/rilis.sh` menandatangani rilis dengan kunci pribadi (`RILIS_KEY`, bawaan `~/.satker-rilis/rilis-private.pem`); "Update Website" di semua satker hanya memasang rilis yang tanda tangannya cocok dengan salah satu kunci publik di `app/Config/Release.php`. Ada dua kunci tepercaya: kunci utama dan **kunci cadangan** pengelola (dibuat di komputer kantor dengan `deploy\buat-kunci-cadangan.bat`, tersimpan di `%USERPROFILE%\satker-rilis\`). Bila kunci utama hilang, tandatangani dari clone repositori ini (butuh Git + PHP): `bash deploy/rilis.sh "catatan"` dengan `RILIS_KEY=%USERPROFILE%\satker-rilis\rilis-cadangan-private.pem`. Kunci pribadi tidak boleh berada di dalam folder website/repositori dan tidak boleh dikirim ke siapa pun.
+
 ## Instalasi di Server Linux — untuk produksi
 
 Contoh untuk **Ubuntu 24.04 LTS** + Nginx + MariaDB.
