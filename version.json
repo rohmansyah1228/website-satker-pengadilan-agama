@@ -1,9 +1,21 @@
 {
-  "build": 24,
+  "build": 25,
   "version": "2026-11-26",
   "repo": "rohmansyah1228/website-satker-pengadilan-agama",
   "branch": "main",
   "releases": [
+    {
+      "build": 25,
+      "name": "1.9.2",
+      "version": "2026-11-26",
+      "notes": "Perbaikan: Update Website tidak lagi gagal karena berkas dokumentasi (README) di GitHub berbeda — berkas dokumentasi/alat yang berbeda kini dilewati, berkas program tetap wajib cocok tanda tangan. Alat rilis dari komputer kantor (deploy/rilis-dari-pc.bat).",
+      "files": [
+        "README.md",
+        "app/Libraries/Updater.php",
+        "deploy/rilis-dari-pc.bat",
+        "deploy/rilis.php"
+      ]
+    },
     {
       "build": 24,
       "name": "1.9.1",
@@ -415,5 +427,5 @@
       ]
     }
   ],
-  "name": "1.9.1"
+  "name": "1.9.2"
 }

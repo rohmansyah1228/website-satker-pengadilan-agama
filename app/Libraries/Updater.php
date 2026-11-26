@@ -194,8 +194,9 @@ class Updater
         }
 
         // 4. unduh & periksa semuanya dulu
-        $new   = [];
-        $total = 0;
+        $new     = [];
+        $skipped = [];
+        $total   = 0;
         foreach ($files as $p) {
             $body  = $this->fetch(self::RAW . $this->repo . '/' . $ref . '/' . implode('/', array_map('rawurlencode', explode('/', $p))), self::MAX_FILE);
             $total += strlen($body);
@@ -203,6 +204,12 @@ class Updater
                 throw new RuntimeException('Ukuran pembaruan terlalu besar untuk pembaruan otomatis. Perbarui secara manual.');
             }
             if (! isset($signed['files'][$p]) || Integrity::hash($body) !== $signed['files'][$p]) {
+                if (self::nonRuntime($p)) {
+                    // berkas dokumentasi/alat (tidak dijalankan website) berbeda: lewati saja, jangan gagalkan pembaruan
+                    $skipped[] = $p;
+
+                    continue;
+                }
                 throw new RuntimeException('Berkas ' . $p . ' dari GitHub tidak cocok dengan sidik resmi bertanda tangan — pembaruan dibatalkan, tidak ada yang diubah.');
             }
             if (str_ends_with(strtolower($p), '.php')) {
@@ -383,6 +390,13 @@ class Updater
                 @opcache_invalidate(ROOTPATH . $p, true);
             }
         }
+    }
+
+    /** Berkas yang tidak dijalankan website (dokumentasi & alat manual). */
+    private static function nonRuntime(string $p): bool
+    {
+        return in_array($p, ['README.md', 'LICENSE', 'SECURITY.md', 'CONTRIBUTING.md'], true)
+            || str_starts_with($p, 'docs/') || str_starts_with($p, 'deploy/');
     }
 
     /** SHA commit terbaru cabang (null bila GitHub tidak dapat dihubungi → pakai nama cabang). */
