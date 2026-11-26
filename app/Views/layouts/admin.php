@@ -67,7 +67,7 @@ if ($rel === '') {
             <a href="<?= admin_url('pengguna') ?>" class="<?= $is('pengguna') ? 'active' : '' ?>"><i class="bi bi-people" aria-hidden="true"></i>Pengguna</a>
             <a href="<?= admin_url('log') ?>" class="<?= $is('log') ? 'active' : '' ?>"><i class="bi bi-journal-text" aria-hidden="true"></i>Log Aktivitas</a>
             <a href="<?= admin_url('cadangan') ?>" class="<?= $is('cadangan') ? 'active' : '' ?>"<?= $is('cadangan') ? ' aria-current="page"' : '' ?>><i class="bi bi-database-down" aria-hidden="true"></i>Cadangan</a>
-            <?php $secN = \App\Libraries\SecurityScan::alerts(); ?>
+            <?php $secN = class_exists(\App\Libraries\SecurityScan::class) ? \App\Libraries\SecurityScan::alerts() : 0; ?>
             <a href="<?= admin_url('keamanan') ?>" class="<?= $is('keamanan') ? 'active' : '' ?>"<?= $is('keamanan') ? ' aria-current="page"' : '' ?>><i class="bi bi-shield-check" aria-hidden="true"></i>Pemeriksaan Keamanan<?php if ($secN): ?> <span class="badge rounded-pill text-bg-danger ms-auto" title="<?= $secN ?> temuan"><?= $secN ?></span><?php endif ?></a>
             <a href="<?= admin_url('impor') ?>" class="<?= $is('impor') ? 'active' : '' ?>"><i class="bi bi-cloud-download" aria-hidden="true"></i>Impor Berita Lama</a>
         <?php endif ?>

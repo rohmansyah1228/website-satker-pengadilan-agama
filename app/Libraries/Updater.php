@@ -111,8 +111,9 @@ class Updater
         $local     = (new VersionCheck())->local();
         $fromBuild = (int) ($local['build'] ?? 0);
 
-        // 1. commit terbaru (konten per-commit tidak berubah → berkas & version.json pasti sepasang)
-        $ref = $this->latestCommit() ?? $this->branch;
+        // 1. commit rilis terbaru (yang mengubah version.sig); bila API GitHub tak terjangkau → commit terbaru cabang.
+        //    Konten per-commit tidak berubah → berkas & version.json pasti sepasang.
+        $ref = $this->latestRelease() ?? $this->latestCommit() ?? $this->branch;
 
         // 2. version.json pada commit tsb.
         $vjRaw  = $this->fetch(self::RAW . $this->repo . '/' . $ref . '/version.json', 512 * 1024);
@@ -256,6 +257,10 @@ class Updater
         $done = [];
         try {
             foreach ($new as $p => $body) {
+                if (basename($p) === '.htaccess' && is_file(ROOTPATH . $p)) {
+                    // pertahankan baris pilihan versi PHP dari hosting (cPanel MultiPHP / CloudLinux)
+                    $body = self::keepHostLines((string) @file_get_contents(ROOTPATH . $p), $body);
+                }
                 $this->writeAtomic(ROOTPATH . $p, $body);
                 $done[] = $p;
             }
@@ -392,11 +397,114 @@ class Updater
         }
     }
 
+    /** Blok pilihan versi PHP yang ditulis cPanel MultiPHP Manager di .htaccess. */
+    private const HOST_BLOCK = '/^[ \t]*# php -- BEGIN cPanel-generated handler[^\n]*\n.*?^[ \t]*# php -- END cPanel-generated handler[^\n]*(\n|$)/ms';
+
+    /**
+     * Baris pemilih versi PHP yang wajar: AddHandler/AddType ke penangan PHP, HANYA untuk ekstensi PHP.
+     * (Baris yang membuat .jpg/.txt dll. dijalankan sebagai PHP tidak termasuk — itu ciri sisipan penyusup.)
+     */
+    private static function handlerOk(string $line): bool
+    {
+        if (! preg_match('/^\s*(?:AddHandler|AddType)\s+(\S*(?:php|lsphp)\S*)\s+(.+?)\s*$/i', $line, $m)) {
+            return false;
+        }
+        foreach (preg_split('/\s+/', $m[2]) as $ext) {
+            if (! preg_match('/^\.?(php[0-9]*|phtml)$/i', $ext)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /** @return list<array{0:int,1:int}> posisi [awal, panjang] blok/baris hosting yang sah di teks (LF) */
+    private static function hostSpans(string $t): array
+    {
+        $spans = [];
+        if (preg_match_all(self::HOST_BLOCK, $t, $m, PREG_OFFSET_CAPTURE)) {
+            foreach ($m[0] as [$block, $pos]) {
+                $ok = true;
+                foreach (explode("\n", $block) as $l) {
+                    $l = trim($l);
+                    if ($l === '' || $l[0] === '#' || preg_match('#^</?IfModule\b[^>]*>$#i', $l) || self::handlerOk($l)) {
+                        continue;
+                    }
+                    $ok = false;
+                    break;
+                }
+                if ($ok) {
+                    $spans[] = [$pos, strlen($block)];
+                }
+            }
+        }
+        $off = 0;
+        foreach (explode("\n", $t) as $l) {
+            $len = strlen($l) + 1;
+            $in  = false;
+            foreach ($spans as [$a, $n]) {
+                if ($off >= $a && $off < $a + $n) {
+                    $in = true;
+                    break;
+                }
+            }
+            if (! $in && self::handlerOk($l)) {
+                $spans[] = [$off, min($len, strlen($t) - $off)];
+            }
+            $off += $len;
+        }
+        usort($spans, static fn ($x, $y) => $x[0] <=> $y[0]);
+
+        return $spans;
+    }
+
+    /** Ambil blok/baris pilihan versi PHP dari hosting di .htaccess lama. */
+    public static function hostLines(string $htaccess): string
+    {
+        $t   = str_replace("\r\n", "\n", $htaccess);
+        $out = [];
+        foreach (self::hostSpans($t) as [$a, $n]) {
+            $out[] = rtrim(substr($t, $a, $n), "\n");
+        }
+
+        return implode("\n", array_unique($out));
+    }
+
+    /** .htaccess tanpa blok/baris pilihan versi PHP dari hosting (untuk dibandingkan dengan sidik resmi). */
+    public static function withoutHostLines(string $htaccess): string
+    {
+        $t = str_replace("\r\n", "\n", $htaccess);
+        foreach (array_reverse(self::hostSpans($t)) as [$a, $n]) {
+            $t = substr($t, 0, $a) . substr($t, $a + $n);
+        }
+
+        return ltrim($t, "\n");
+    }
+
+    /** .htaccess baru dengan baris pilihan versi PHP dari .htaccess lama tetap di bagian atas. */
+    public static function keepHostLines(string $old, string $new): string
+    {
+        $keep = self::hostLines($old);
+        if ($keep === '') {
+            return $new;
+        }
+        $base = self::withoutHostLines($new);
+        $eol  = str_contains($new, "\r\n") ? "\r\n" : "\n";
+
+        return str_replace("\n", $eol, $keep . "\n\n" . $base);
+    }
+
     /** Berkas yang tidak dijalankan website (dokumentasi & alat manual). */
     private static function nonRuntime(string $p): bool
     {
         return in_array($p, ['README.md', 'LICENSE', 'SECURITY.md', 'CONTRIBUTING.md'], true)
             || str_starts_with($p, 'docs/') || str_starts_with($p, 'deploy/');
+    }
+
+    /** SHA commit rilis bertanda tangan terbaru (null bila tidak diketahui). */
+    protected function latestRelease(): ?string
+    {
+        return VersionCheck::releaseShas($this->repo, $this->branch, 1)[0] ?? null;
     }
 
     /** SHA commit terbaru cabang (null bila GitHub tidak dapat dihubungi → pakai nama cabang). */

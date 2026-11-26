@@ -181,6 +181,41 @@ class VersionCheck
         return null;
     }
 
+    /**
+     * Commit-commit rilis bertanda tangan (yang mengubah version.sig), terbaru dulu.
+     * Dipakai agar pembaruan & pemulihan selalu mengambil berkas dari commit rilis, bukan dari commit lain
+     * yang mungkin dikirim sesudahnya. Kosong bila API GitHub tidak dapat dihubungi (mis. batas permintaan).
+     * @return list<string>
+     */
+    public static function releaseShas(string $repo, string $branch, int $n = 1): array
+    {
+        if (! preg_match('#^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$#', $repo) || ! preg_match('#^[A-Za-z0-9_./-]+$#', $branch) || ! function_exists('curl_init')) {
+            return [];
+        }
+        $key = 'release_shas_' . md5($repo . '|' . $branch . '|' . $n);
+        $hit = cache($key);
+        if (is_array($hit)) {
+            return $hit;
+        }
+        $out = [];
+        try {
+            [$code, $body] = (new self())->get('https://api.github.com/repos/' . $repo . '/commits?sha=' . rawurlencode($branch)
+                . '&path=version.sig&per_page=' . max(1, min(50, $n)), ['Accept: application/vnd.github+json'], 1024 * 1024);
+            $list = $code === 200 ? json_decode($body, true) : null;
+            foreach (is_array($list) ? $list : [] as $c) {
+                if (is_string($c['sha'] ?? null) && preg_match('/^[0-9a-f]{40}$/', $c['sha'])) {
+                    $out[] = $c['sha'];
+                }
+            }
+        } catch (\Throwable) {
+        }
+        if ($out) {
+            cache()->save($key, $out, 600);
+        }
+
+        return $out;
+    }
+
     /** GET HTTPS sederhana (host publik saja). @return array{0:int,1:string,2:string} */
     private function get(string $url, array $headers, int $max, string $ua = 'WebsiteSatker-VersionCheck'): array
     {

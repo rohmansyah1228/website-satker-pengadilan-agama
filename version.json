@@ -1,9 +1,32 @@
 {
-  "build": 25,
+  "build": 26,
   "version": "2026-11-26",
   "repo": "rohmansyah1228/website-satker-pengadilan-agama",
   "branch": "main",
   "releases": [
+    {
+      "build": 26,
+      "name": "1.9.3",
+      "version": "2026-11-26",
+      "notes": "Perbaikan: Update Website mempertahankan pilihan versi PHP dari cPanel di .htaccess; panel admin tetap terbuka bila berkas Pemeriksaan Keamanan dihapus antivirus; Update & Pulihkan selalu dari commit rilis resmi; Impor Berita memberi tahu bila website lama ternyata WordPress.",
+      "files": [
+        "README.md",
+        "app/Controllers/Admin/Dashboard.php",
+        "app/Controllers/Admin/Import.php",
+        "app/Controllers/Admin/Security.php",
+        "app/Libraries/LegacyImporter.php",
+        "app/Libraries/SecurityScan.php",
+        "app/Libraries/Updater.php",
+        "app/Libraries/VersionCheck.php",
+        "app/Views/layouts/admin.php",
+        "deploy/cek-tanda-tangan.php",
+        "deploy/hooks/.gitattributes",
+        "deploy/hooks/pre-push",
+        "deploy/rilis-dari-pc.bat",
+        "deploy/rilis.php",
+        "public/index.php"
+      ]
+    },
     {
       "build": 25,
       "name": "1.9.2",
@@ -427,5 +450,5 @@
       ]
     }
   ],
-  "name": "1.9.2"
+  "name": "1.9.3"
 }

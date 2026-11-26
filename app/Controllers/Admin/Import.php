@@ -73,7 +73,7 @@ class Import extends AdminController
             $imp   = $this->importer();
             $items = $imp->listArticles((string) $this->request->getPost('category_url'));
         } catch (\Throwable $e) {
-            return $this->json(['error' => $e->getMessage()]);
+            return $this->json(['error' => $e->getMessage() . (isset($imp) ? $imp->wrongTabHint() : '')]);
         }
         service('siteSettings')->set([$imp->platform() === 'wordpress' ? 'import_wp_url' : 'import_site_url' => trim($site)]);
         $ref  = static fn ($i) => $i['ref'] ?? ('joomla:' . $i['id']);
@@ -117,6 +117,9 @@ class Import extends AdminController
                 ]);
             } catch (\Throwable $e) {
                 $r = ['status' => 'error', 'message' => $e->getMessage()];
+            }
+            if ($r['status'] === 'error') {
+                $r['message'] .= $imp->wrongTabHint();
             }
             if ($r['status'] === 'ok') {
                 $ok++;
@@ -164,6 +167,9 @@ class Import extends AdminController
                 ]);
             } catch (\Throwable $e) {
                 $r = ['status' => 'error', 'message' => $e->getMessage()];
+            }
+            if ($r['status'] === 'error') {
+                $r['message'] .= $imp->wrongTabHint();
             }
             if ($r['status'] === 'ok') {
                 $ok++;

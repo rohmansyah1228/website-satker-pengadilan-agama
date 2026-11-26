@@ -40,6 +40,9 @@ class Dashboard extends AdminController
     /** Hasil Pemeriksaan Keamanan; dijalankan otomatis bila sudah lebih dari 24 jam. */
     private function securityStatus(): ?array
     {
+        if (! class_exists(\App\Libraries\SecurityScan::class)) {
+            return null; // berkas pemeriksa hilang (mis. dihapus antivirus) — Dashboard tetap bisa dibuka
+        }
         try {
             return \App\Libraries\SecurityScan::due() ? (new \App\Libraries\SecurityScan())->run() : \App\Libraries\SecurityScan::last();
         } catch (\Throwable $e) {

@@ -44,7 +44,7 @@ class SecurityScan
 
     /** Ciri khas webshell / pintu belakang (dipakai untuk berkas asing di vendor/). */
     private const SHELL = '/(eval\s*\(\s*(base64_decode|gzinflate|gzuncompress|str_rot13|\$_(POST|GET|REQUEST|COOKIE))|assert\s*\(\s*\$_(POST|GET|REQUEST)|\$_(POST|GET|REQUEST|COOKIE)\s*\[[^\]]+\]\s*\(|'
-        . 'preg_replace\s*\([^)]*\/e[\'"]|create_function\s*\(|(shell_exec|passthru|proc_open|popen|system|exec)\s*\(\s*\$_(POST|GET|REQUEST|COOKIE)|move_uploaded_file\s*\([^)]*\$_FILES|FilesMan|WSO\s*\d|b374k|r57shell|c99shell)/i';
+        . 'preg_replace\s*\([^)]*\/e[\'"]|create_function\s*\(|(shell_exec|passthru|proc_open|popen|system|exec)\s*\(\s*\$_(POST|GET|REQUEST|COOKIE)|move_uploaded_file\s*\([^)]*\$_FILES|Fil\x65sMan|W\x53O\s*\d|b37\x34k|r57sh\x65ll|c99sh\x65ll)/i';
 
     /** Kata kunci judi online (sisipan SEO yang paling sering menimpa website .go.id). */
     private const JUDI = '/\b(slot\s*gacor|gacor|maxwin|rtp\s*(live|slot|hari\s*ini)|scatter\s*hitam|situs\s*(slot|judi|toto|togel)|link\s*(slot|alternatif\s*(slot|judi|toto))|'
@@ -130,7 +130,8 @@ class SecurityScan
                 return $cached['ref'];
             }
             try {
-                $raw = 'https://raw.githubusercontent.com/' . $repo . '/v' . rawurlencode($name) . '/';
+                $at  = $this->releaseRef($repo, (string) ($local['branch'] ?? 'main'), $build, $name);
+                $raw = 'https://raw.githubusercontent.com/' . $repo . '/' . $at . '/';
                 $vj  = $this->get($raw . 'version.json', 512 * 1024);
                 $ij  = $this->get($raw . 'integrity.json', 4 * 1024 * 1024);
                 $sig = $this->get($raw . 'version.sig', 8192);
@@ -214,7 +215,13 @@ class SecurityScan
                 continue;
             }
             $seen[$p] = true;
-            if (Integrity::hash((string) @file_get_contents($abs)) !== $hash) {
+            // berkas pendukung pengembangan yang tidak pernah ditulis Update Website & tidak dijalankan (mis. .gitignore, .env.example):
+            // wajar berbeda di situs yang diperbarui otomatis, jadi tidak dilaporkan
+            if (! Updater::allowedPath($p) && ! preg_match(self::SCRIPT, $p) && ! preg_match(self::SERVERCFG, $p)) {
+                continue;
+            }
+            $cur = (string) @file_get_contents($abs);
+            if (Integrity::hash($cur) !== $hash && ! (basename($p) === '.htaccess' && Integrity::hash(Updater::withoutHostLines($cur)) === $hash)) {
                 $risky = preg_match(self::SCRIPT, $p) || preg_match(self::SERVERCFG, $p) || preg_match('/\.(js|html?)$/i', $p);
                 $out[] = $this->finding('file', 'changed', $risky ? 'danger' : 'warn', $p,
                     'Isi berbeda dengan versi resmi ' . ($ref['name'] ?: 'build ' . $ref['build']) . '.', $this->fileInfo($abs));
@@ -427,6 +434,47 @@ class SecurityScan
 
     // ------------------------------------------------------------------ tindakan
 
+    /**
+     * Ref GitHub untuk versi terpasang: tag vX bila ada, bila tidak commit rilis yang build-nya sama.
+     * Tag tidak selalu dibuat, jadi commit rilis dicari lewat riwayat version.sig.
+     */
+    private function releaseRef(string $repo, string $branch, int $build, string $name): string
+    {
+        $tag = 'v' . rawurlencode($name);
+        $key = 'security_scan_relref_' . $build;
+        $hit = cache($key);
+        if (is_string($hit) && $hit !== '') {
+            return $hit;
+        }
+        try {
+            $vj = json_decode($this->get('https://raw.githubusercontent.com/' . $repo . '/' . $tag . '/version.json', 512 * 1024), true);
+            if ((int) ($vj['build'] ?? 0) === $build) {
+                cache()->save($key, $tag, self::MAX_AGE);
+
+                return $tag;
+            }
+        } catch (\Throwable) {
+        }
+        foreach (array_slice(VersionCheck::releaseShas($repo, $branch, 30), 0, 30) as $i => $sha) {
+            try {
+                $vj = json_decode($this->get('https://raw.githubusercontent.com/' . $repo . '/' . $sha . '/version.json', 512 * 1024), true);
+            } catch (\Throwable) {
+                continue;
+            }
+            $b = (int) ($vj['build'] ?? 0);
+            if ($b === $build) {
+                cache()->save($key, $sha, self::MAX_AGE);
+
+                return $sha;
+            }
+            if ($b > 0 && $b < $build) {
+                break; // sudah lewat (riwayat terbaru dulu)
+            }
+        }
+
+        return $tag;
+    }
+
     /** Kembalikan satu berkas resmi dari GitHub (dicocokkan dengan sidik bertanda tangan). */
     public function restore(string $path): void
     {
@@ -441,8 +489,10 @@ class SecurityScan
         $repo  = (string) ($local['repo'] ?? '');
         $rel   = implode('/', array_map('rawurlencode', explode('/', $path)));
         $body  = '';
-        // tag versi dulu; bila tag belum ada, cabang utama (aman: isi tetap harus cocok dengan sidik resmi bertanda tangan)
-        foreach (array_unique(['v' . rawurlencode($ref['name']), rawurlencode((string) ($local['branch'] ?? 'main'))]) as $refName) {
+        // commit rilis versi terpasang dulu (tag / commit rilis), lalu cabang utama
+        // (aman: isi tetap harus cocok dengan sidik resmi bertanda tangan)
+        $branch = (string) ($local['branch'] ?? 'main');
+        foreach (array_unique([$this->releaseRef($repo, $branch, (int) $ref['build'], (string) $ref['name']), rawurlencode($branch)]) as $refName) {
             try {
                 $body = $this->get('https://raw.githubusercontent.com/' . $repo . '/' . $refName . '/' . $rel, 8 * 1024 * 1024);
             } catch (\Throwable) {
@@ -456,6 +506,10 @@ class SecurityScan
             throw new RuntimeException('Berkas dari GitHub tidak cocok dengan sidik resmi — dibatalkan.');
         }
         $abs = ROOTPATH . $path;
+        if (basename($path) === '.htaccess' && is_file($abs)) {
+            // pertahankan baris pilihan versi PHP dari hosting (cPanel MultiPHP / CloudLinux)
+            $body = Updater::keepHostLines((string) @file_get_contents($abs), $body);
+        }
         if (is_file($abs)) {
             $bak = WRITEPATH . 'backups/pemulihan-' . date('Ymd-His') . '/' . $path;
             @mkdir(dirname($bak), 0755, true);

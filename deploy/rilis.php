@@ -81,6 +81,63 @@ foreach ($changed as $f) {
 foreach ($removed as $f) {
     echo "  - $f\n";
 }
+
+// pemeriksaan agar rilis pasti bisa dipasang di semua satker (hosting Linux, XAMPP Windows, PHP 8.2)
+$upd0 = (string) file_get_contents('app/Libraries/Updater.php');
+$lim  = static fn (string $n, int $d) => preg_match('/' . $n . '\s*=\s*([0-9 *]+);/', $upd0, $m) ? (int) array_product(array_map('intval', explode('*', $m[1]))) : $d;
+$maxN = $lim('MAX_N', 400);
+$maxF = $lim('MAX_FILE', 8 << 20);
+$maxA = $lim('MAX_ALL', 60 << 20);
+$errs = [];
+if (count($changed) > $maxN) {
+    $errs[] = count($changed) . " berkas berubah, batas Update Website $maxN berkas per rilis. Pecah menjadi beberapa rilis.";
+}
+$total = 0;
+$lower = [];
+foreach ($git('ls-files') as $f) {
+    $lower[strtolower($f)][] = $f;
+}
+foreach ($lower as $same) {
+    if (count($same) > 1) {
+        $errs[] = 'nama berkas hanya beda huruf besar/kecil (bentrok di Windows): ' . implode(', ', $same);
+    }
+}
+foreach ($changed as $f) {
+    if (! preg_match('#^[A-Za-z0-9_\-./ ]+$#', $f) || strlen($f) > 255 || str_contains($f, '..')) {
+        $errs[] = "$f: nama berkas memuat karakter yang ditolak Update Website (pakai huruf, angka, - _ . / spasi).";
+    }
+    $size   = (int) @filesize($f);
+    $total += $size;
+    if ($size > $maxF) {
+        $errs[] = "$f: " . round($size / 1048576, 1) . ' MB, batas per berkas ' . ($maxF >> 20) . ' MB.';
+    }
+    $body = (string) @file_get_contents($f);
+    if (preg_match('/\.php$/i', $f)) {
+        $out = [];
+        exec(escapeshellarg(PHP_BINARY) . ' -l ' . escapeshellarg($f) . ' 2>&1', $out, $rc);
+        if ($rc !== 0) {
+            $errs[] = "$f: galat sintaks PHP — " . trim(implode(' ', $out));
+        }
+        if (! str_starts_with($f, 'vendor/') && preg_match('/\bconst\s+(?:string|int|array|bool|float|\?\w+)\s+[A-Z_]+\s*=|#\[\\\\?Override\]|\b(?:json_validate|mb_str_pad|str_increment|str_decrement|array_find|array_find_key|array_any|array_all|mb_trim|mb_ltrim|mb_rtrim|mb_ucfirst|mb_lcfirst)\s*\(|\bnew\s+[\w\\\\]+\([^()]*\)\s*->/', $body, $m)) {
+            $errs[] = "$f: memakai fitur PHP 8.3+ (\"" . trim($m[0]) . '"), padahal sebagian satker masih PHP 8.2.';
+        }
+    }
+    // tulisan yang sering membuat antivirus menghapus berkas (mis. Windows Defender di XAMPP)
+    if (! str_starts_with($f, 'vendor/') && preg_match('/\b(Fil\x65sMan|c99sh\x65ll|r57sh\x65ll|b37\x34k)\b|eval\s*\(\s*(base64_decode|gzinflate|str_rot13)\s*\(/i', $body, $m)) {
+        $errs[] = "$f: memuat tulisan \"{$m[0]}\" yang bisa membuat antivirus menghapus berkas ini. Samarkan (mis. \\x65 untuk e di dalam regex).";
+    }
+}
+if ($total > $maxA) {
+    $errs[] = 'ukuran total ' . round($total / 1048576, 1) . ' MB melebihi batas Update Website ' . ($maxA >> 20) . ' MB. Pecah menjadi beberapa rilis.';
+}
+if ($errs) {
+    echo "\nMASALAH yang harus dibereskan sebelum rilis:\n  - " . implode("\n  - ", $errs) . "\n";
+    if (! $cek) {
+        $fail('rilis dibatalkan.');
+    }
+    exit(1);
+}
+echo "Pemeriksaan rilis: aman (ukuran, nama berkas, sintaks PHP 8.2, antivirus).\n";
 if ($cek) {
     exit(0);
 }

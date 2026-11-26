@@ -10,6 +10,10 @@ class Security extends AdminController
     public function index()
     {
         $this->authorize([], true);
+        if (! class_exists(SecurityScan::class)) {
+            return redirect()->to(admin_url())->with('error', 'Berkas app/Libraries/SecurityScan.php tidak ditemukan — kemungkinan dihapus antivirus. '
+                . 'Pulihkan dari karantina antivirus atau unduh ulang dari GitHub, lalu kecualikan folder website dari pemindaian antivirus.');
+        }
 
         return $this->view('security', ['title' => 'Pemeriksaan Keamanan', 'scan' => SecurityScan::last()]);
     }

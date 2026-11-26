@@ -67,6 +67,33 @@ class LegacyImporter
         return $this->platform = 'joomla';
     }
 
+    private ?bool $isWp = null;
+
+    /**
+     * Petunjuk bila impor dijalankan dari tab Joomla padahal website lama memakai WordPress
+     * (dipanggil hanya saat terjadi galat). Kosong bila tidak relevan.
+     */
+    public function wrongTabHint(): string
+    {
+        if ($this->platform !== 'joomla') {
+            return '';
+        }
+        if ($this->isWp === null) {
+            $this->isWp = false;
+            try {
+                $res = $this->wpGet('/');
+                if ($res['code'] === 200 && is_array($res['data']) && in_array('wp/v2', (array) ($res['data']['namespaces'] ?? []), true)) {
+                    $this->isWp = true;
+                } else {
+                    $this->isWp = (bool) preg_match('#/wp-(content|includes)/#i', $this->fetch($this->base . '/')['body']);
+                }
+            } catch (\Throwable) {
+            }
+        }
+
+        return $this->isWp ? ' Website lama ini memakai WordPress, bukan Joomla — buka tab "Website WordPress" di atas lalu ulangi dari sana.' : '';
+    }
+
     // ------------------------------------------------------------------ daftar artikel
 
     /**

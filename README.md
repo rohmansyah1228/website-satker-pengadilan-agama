@@ -135,6 +135,7 @@ php spark serve                 &:: http://localhost:8080
 > 1. Sekali saja: klik dua kali `deploy\buat-kunci-cadangan.bat` (kunci tersimpan di `%USERPROFILE%\satker-rilis\`; salin folder itu ke flashdisk), dan pasang **Git for Windows** (https://git-scm.com/download/win, pilihan bawaan).
 > 2. Setiap rilis: klik dua kali `deploy\rilis-dari-pc.bat`. Skrip mengunduh/memperbarui salinan repositori di `%USERPROFILE%\satker-rilis\repo`, menampilkan berkas yang berubah sejak rilis terakhir, meminta catatan rilis & nomor versi (kosong = otomatis), menandatangani dengan kunci cadangan, lalu (setelah dikonfirmasi) mengirim ke GitHub. Saat pertama kali mengirim, Git meminta login GitHub di peramban.
 > 3. Di Linux/Mac: `php deploy/rilis.php --cek`, lalu `php deploy/rilis.php "catatan" [1.2.3] --kunci=/lokasi/rilis-private.pem` dan `git push`.
+> 4. **Jangan push perubahan tanpa rilis.** Update Website menolak seluruh pembaruan bila satu berkas di GitHub tidak cocok dengan tanda tangan. Pengaman `deploy/hooks/pre-push` (dipasang otomatis oleh `rilis-dari-pc.bat`; di komputer lain: `git config core.hooksPath deploy/hooks`) menolak push semacam itu. Sebelum menandatangani, `rilis.php` juga memeriksa batas ukuran, nama berkas, sintaks & kecocokan PHP 8.2, dan tulisan yang bisa membuat antivirus menghapus berkas.
 
 ## Instalasi di Server Linux — untuk produksi
 

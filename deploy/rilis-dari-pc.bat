@@ -23,6 +23,9 @@ rem login GitHub lewat peramban (GitHub tidak menerima password biasa)
 git config --global credential.helper >nul 2>nul || git config --global credential.helper manager
 echo Mengambil perubahan terbaru dari GitHub ...
 git pull --ff-only origin main || goto gagal
+rem pengaman: push ditolak bila isi commit tidak cocok dengan tanda tangan rilis (deploy\hooks\pre-push)
+git config core.hooksPath deploy/hooks
+set "SATKER_PHP=%PHPEXE:\=/%"
 echo.
 "%PHPEXE%" deploy\rilis.php --cek || goto gagal
 echo.

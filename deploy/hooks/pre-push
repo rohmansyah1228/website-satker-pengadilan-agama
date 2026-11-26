@@ -1,0 +1,11 @@
+#!/bin/sh
+# Menolak push bila commit yang dikirim bukan rilis bertanda tangan yang utuh.
+# Aktif lewat: git config core.hooksPath deploy/hooks  (dipasang otomatis oleh deploy/rilis-dari-pc.bat)
+z=0000000000000000000000000000000000000000
+PHP_BIN="${SATKER_PHP:-php}"
+while read lref lsha rref rsha; do
+  [ "$lsha" = "$z" ] && continue
+  case "$rref" in refs/heads/*) ;; *) continue ;; esac
+  "$PHP_BIN" "$(git rev-parse --show-toplevel)/deploy/cek-tanda-tangan.php" "$lsha" || exit 1
+done
+exit 0
