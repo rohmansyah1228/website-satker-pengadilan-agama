@@ -19,12 +19,15 @@ if not exist "%REPO%\.git" (
 cd /d "%REPO%"
 git config user.email >nul 2>nul || git config user.email "rohmansyah1228@users.noreply.github.com"
 git config user.name >nul 2>nul || git config user.name "Pengelola Website Satker"
+rem login GitHub lewat peramban (GitHub tidak menerima password biasa)
+git config --global credential.helper >nul 2>nul || git config --global credential.helper manager
 echo Mengambil perubahan terbaru dari GitHub ...
 git pull --ff-only origin main || goto gagal
 echo.
 "%PHPEXE%" deploy\rilis.php --cek || goto gagal
 echo.
 set "CATATAN="
+echo Tulis catatan yang jelas (dibaca semua satker di Dashboard), mis.: Perbaikan tampilan berita di HP
 set /p CATATAN=Catatan rilis (ringkas, kosongkan untuk batal): 
 if "%CATATAN%"=="" goto selesai
 set "VERSI="
@@ -37,9 +40,16 @@ if /i not "%OK%"=="y" (
   echo Belum dikirim. Untuk mengirim nanti: buka %REPO% lalu jalankan: git push origin main
   goto selesai
 )
-git push origin main || goto gagal
+git push origin main || goto gagalkirim
 echo.
 echo SELESAI. Semua satker akan melihat "Versi baru tersedia" di Dashboard.
+goto selesai
+:gagalkirim
+echo.
+echo Pengiriman ke GitHub GAGAL. Rilis yang belum terkirim dibatalkan agar bisa diulang dengan rapi.
+git reset -q --hard origin/main
+echo Bila diminta password di jendela ini: buka Control Panel - Credential Manager - Windows Credentials,
+echo hapus "git:https://github.com", lalu jalankan berkas ini lagi (login lewat peramban).
 goto selesai
 :gagal
 echo.

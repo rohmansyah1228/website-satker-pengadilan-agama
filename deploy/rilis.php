@@ -109,8 +109,8 @@ if ($bad) {
 
 // nomor versi
 $note = trim((string) ($args[0] ?? ''));
-if ($note === '') {
-    $fail('beri catatan rilis, mis.: php deploy/rilis.php "Perbaikan tampilan berita"');
+if (mb_strlen($note) < 15 || ! preg_match('/\s/', $note)) {
+    $fail('catatan rilis terlalu singkat. Catatan ini dibaca semua satker di Dashboard, tulis apa yang berubah, mis.: "Perbaikan tampilan berita di HP".');
 }
 $old  = (string) ($v['name'] ?? '1.0.0');
 $name = trim((string) ($args[1] ?? ''));
