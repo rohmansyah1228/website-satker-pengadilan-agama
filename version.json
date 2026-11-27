@@ -1,9 +1,40 @@
 {
-  "build": 27,
-  "version": "2026-11-26",
+  "build": 28,
+  "version": "2026-11-27",
   "repo": "rohmansyah1228/website-satker-pengadilan-agama",
   "branch": "main",
   "releases": [
+    {
+      "build": 28,
+      "name": "2.0.1",
+      "version": "2026-11-27",
+      "notes": "Statistik Pengunjung di panel admin: rincian perangkat, browser, sistem operasi, dan asal provinsi/kota (perkiraan dari IP, basis data lokal DB-IP) — hanya jumlah, disimpan maks. 30 hari; halaman publik dapat menampilkan perangkat/browser/OS (diatur di Pengaturan → Keamanan), asal daerah hanya di admin. Slider: lama pergantian slide bisa diatur. Log Aktivitas dibersihkan otomatis (bawaan 2 tahun).",
+      "files": [
+        "app/Config/HomeBlocks.php",
+        "app/Config/Routes.php",
+        "app/Controllers/Admin/Logs.php",
+        "app/Controllers/Admin/Settings.php",
+        "app/Controllers/Admin/Visitors.php",
+        "app/Database/Migrations/2026-11-27-000021_VisitorDetails.php",
+        "app/Libraries/AgentInfo.php",
+        "app/Libraries/GeoIpId.php",
+        "app/Libraries/ModuleData.php",
+        "app/Libraries/VisitorStats.php",
+        "app/ThirdParty/geoip-id/LICENSE-DBIP.txt",
+        "app/ThirdParty/geoip-id/README.md",
+        "app/ThirdParty/geoip-id/geoip-id-lokasi.json",
+        "app/ThirdParty/geoip-id/geoip-id-v4.bin",
+        "app/ThirdParty/geoip-id/geoip-id-v6.bin",
+        "app/Views/admin/dashboard.php",
+        "app/Views/admin/logs.php",
+        "app/Views/admin/visitors.php",
+        "app/Views/layouts/admin.php",
+        "app/Views/partials/visitor_details.php",
+        "app/Views/site/blocks/achievements.php",
+        "app/Views/site/blocks/slider.php",
+        "app/Views/site/modules/pengunjung.php"
+      ]
+    },
     {
       "build": 27,
       "name": "2.0.0",
@@ -476,5 +507,5 @@
       ]
     }
   ],
-  "name": "2.0.0"
+  "name": "2.0.1"
 }

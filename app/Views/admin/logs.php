@@ -1,6 +1,9 @@
 <?= $this->extend('layouts/admin') ?>
 <?= $this->section('content') ?>
-<h1 class="h3 font-display fw-bold text-pa-primary mb-3">Log Aktivitas</h1>
+<h1 class="h3 font-display fw-bold text-pa-primary mb-1">Log Aktivitas</h1>
+<p class="small text-secondary mb-3"><?= number_format($total, 0, ',', '.') ?> catatan.
+    <?= $keep > 0 ? 'Catatan lebih dari ' . ($keep % 12 === 0 ? ($keep / 12) . ' tahun' : $keep . ' bulan') . ' dihapus otomatis.' : 'Catatan disimpan selamanya.' ?>
+    <a href="<?= admin_url('pengaturan?tab=keamanan') ?>">Ubah lama penyimpanan</a></p>
 <div class="row g-3">
     <div class="col-xl-8">
         <div class="card"><div class="table-responsive"><table class="table table-sm table-hover align-middle mb-0 small">

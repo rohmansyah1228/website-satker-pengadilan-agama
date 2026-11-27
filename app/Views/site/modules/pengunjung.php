@@ -17,3 +17,7 @@
         </tbody>
     </table>
 </div>
+<?php $d = $details ?? ['days' => 0, 'total' => 0, 'groups' => []]; if ($d['days'] > 0 && setting('visitor_detail_public', '1') === '1'): ?>
+<h2 class="h5 fw-bold text-dark mt-4">Rincian Pengunjung <?= $d['days'] === 1 ? 'Hari Ini' : $d['days'] . ' Hari Terakhir' ?></h2>
+<?= view('partials/visitor_details', ['d' => $d, 'kinds' => ['perangkat', 'browser', 'os']]) ?>
+<?php endif ?>

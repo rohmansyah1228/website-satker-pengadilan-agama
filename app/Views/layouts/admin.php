@@ -63,6 +63,7 @@ if ($rel === '') {
         <?php endforeach ?>
         <div class="grp">Sistem</div>
         <?php if (can([])): ?><a href="<?= admin_url('pengaturan') ?>" class="<?= $is('pengaturan') ? 'active' : '' ?>"><i class="bi bi-gear" aria-hidden="true"></i>Pengaturan</a><?php endif ?>
+        <?php if (can([])): ?><a href="<?= admin_url('statistik-pengunjung') ?>" class="<?= $is('statistik-pengunjung') ? 'active' : '' ?>"<?= $is('statistik-pengunjung') ? ' aria-current="page"' : '' ?>><i class="bi bi-graph-up" aria-hidden="true"></i>Statistik Pengunjung</a><?php endif ?>
         <?php if (can([], true)): ?>
             <a href="<?= admin_url('pengguna') ?>" class="<?= $is('pengguna') ? 'active' : '' ?>"><i class="bi bi-people" aria-hidden="true"></i>Pengguna</a>
             <a href="<?= admin_url('log') ?>" class="<?= $is('log') ? 'active' : '' ?>"><i class="bi bi-journal-text" aria-hidden="true"></i>Log Aktivitas</a>

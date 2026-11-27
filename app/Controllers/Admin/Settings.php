@@ -89,6 +89,9 @@ class Settings extends AdminController
                 'turnstile'   => ['Cloudflare Turnstile di halaman login', 'select', 'Kotak verifikasi "Berhasil!" dari Cloudflare di halaman login admin untuk menahan robot (pengganti CAPTCHA; gratis, tidak perlu memakai Cloudflare untuk domain). Isi Site Key & Secret Key, centang kotak uji di bawah, lalu pilih Aktif dan Simpan.', ['0' => 'Nonaktif', '1' => 'Aktif']],
                 'turnstile_site_key'      => ['Turnstile — Site Key', 'text', 'Dari dash.cloudflare.com → Turnstile → Add widget (masukkan domain website ini). Diawali 0x…'],
                 'turnstile_secret_tempel' => ['Turnstile — Secret Key', 'text', 'Kosongkan bila tidak diganti. Disimpan rahasia, tidak ditampilkan lagi.'],
+                'visitor_detail_days' => ['Statistik pengunjung rinci disimpan selama', 'select', 'Jumlah pengunjung per perangkat, browser, sistem operasi, dan asal daerah (perkiraan dari IP) — lihat di menu Statistik Pengunjung. Hanya jumlah yang disimpan, bukan IP atau data per orang; data yang lebih lama dihapus otomatis.', ['30' => '30 hari (bawaan, maksimal)', '14' => '14 hari', '7' => '7 hari', '3' => '3 hari', '1' => '1 hari (hari ini saja)', '0' => 'Tidak dicatat']],
+                'visitor_detail_public' => ['Tampilkan jenis perangkat, browser & sistem operasi di halaman publik', 'select', 'Di halaman Statistik Kunjungan Website. Asal provinsi & kota hanya tampil di panel admin (menu Statistik Pengunjung).', ['1' => 'Ya, tampilkan', '0' => 'Tidak, hanya di panel admin']],
+                'log_retention' => ['Simpan Log Aktivitas selama', 'select', 'Log Aktivitas yang lebih lama dari ini dihapus otomatis setiap hari agar database tidak terus membesar. Catatan percobaan login selalu disimpan 90 hari.', ['6' => '6 bulan', '12' => '1 tahun', '24' => '2 tahun (bawaan)', '36' => '3 tahun', '60' => '5 tahun', '0' => 'Selamanya (tidak dihapus)']],
                 'require_2fa' => ['Wajibkan MFA untuk semua pengguna', 'select', 'SK 2722/2026 Bab II B.3: login admin dilindungi Captcha dan/atau MFA. Dinilai pada kriteria Keamanan.', ['1' => 'Ya (disarankan)', '0' => 'Tidak']],
                 'sk_unlock'   => ['Buka kunci halaman & menu wajib SK', 'select', 'Normalnya halaman dan menu wajib SK terkunci (slug & jenis tidak bisa diubah, tidak bisa dihapus/dipindah) agar alamat yang dinilai SINOVA tetap berlaku. Buka HANYA saat ada SK baru yang mengubah struktur, sesuaikan halaman/menunya, lalu kunci kembali. Saat terbuka, mengubah alamat halaman yang sudah dinilai dapat memengaruhi penilaian SINOVA sampai diperbarui.', ['0' => 'Terkunci (disarankan)', '1' => 'Terbuka — untuk menyesuaikan SK baru']],
             ]],
@@ -107,7 +110,7 @@ class Settings extends AdminController
         }
 
         $values = service('siteSettings')->all();
-        $values += ['cloudflare' => '1', 'image_zoom' => '1']; // nilai bawaan yang berlaku
+        $values += ['cloudflare' => '1', 'image_zoom' => '1', 'log_retention' => '24', 'visitor_detail_days' => '30', 'visitor_detail_public' => '1']; // nilai bawaan yang berlaku
         if (trim((string) ($values['lhkpn_jabatan'] ?? '')) === '') {
             $values['lhkpn_jabatan'] = \App\Libraries\LhkpnOrder::defaultText();
         }

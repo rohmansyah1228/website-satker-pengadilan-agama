@@ -119,6 +119,7 @@
             <div class="d-flex justify-content-between"><span>Hari ini</span><strong><?= number_format($visitors['today'], 0, ',', '.') ?></strong></div>
             <div class="d-flex justify-content-between"><span>Bulan ini</span><strong><?= number_format($visitors['month'], 0, ',', '.') ?></strong></div>
             <div class="d-flex justify-content-between"><span>Total</span><strong><?= number_format($visitors['total'], 0, ',', '.') ?></strong></div>
+            <?php if (can([])): ?><a href="<?= admin_url('statistik-pengunjung') ?>" class="mt-auto pt-2">Rincian &amp; asal pengunjung &rarr;</a><?php endif ?>
         </div>
     </div>
 </div>

@@ -1,6 +1,7 @@
 <?php $sliders = $data['sliders'] ?? []; if (! $sliders) return; $cid = 'hero-carousel'; ?>
 <!-- Hero Slider Ekonomis (maks. 5 slide — Bab III huruf C) -->
-<section id="<?= $cid ?>" class="carousel slide" data-bs-ride="carousel" aria-roledescription="carousel" aria-label="Informasi utama">
+<?php $sec = (int) ($b['settings']['interval'] ?? 5); $sec = in_array($sec, [0, 3, 4, 5, 6, 7, 8, 10, 12, 15, 20, 30], true) ? $sec : 5; ?>
+<section id="<?= $cid ?>" class="carousel slide"<?= $sec > 0 ? ' data-bs-ride="carousel" data-bs-interval="' . ($sec * 1000) . '"' : ' data-bs-interval="false"' ?> aria-roledescription="carousel" aria-label="Informasi utama">
     <?php if (count($sliders) > 1): ?>
     <div class="carousel-indicators">
         <?php foreach ($sliders as $i => $s): ?>

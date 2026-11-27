@@ -20,7 +20,7 @@ $cid = 'ach-' . (int) $b['id'];
         <?php foreach ($items as $a): ?><div class="col"><?= view('partials/achievement_card', ['a' => $caption ? $a : ['title' => $a['title'], 'image' => $a['image'], 'image_alt' => $a['image_alt'] ?? '']]) ?></div><?php endforeach ?>
     </div>
 <?php else: ?>
-    <div id="<?= $cid ?>" class="carousel slide ach-slider" data-bs-ride="carousel" data-bs-interval="6000" aria-roledescription="carousel" aria-label="Galeri Prestasi">
+    <div id="<?= $cid ?>" class="carousel slide ach-slider" <?php $sec = (int) ($b['settings']['interval'] ?? 6); $sec = in_array($sec, [0, 3, 4, 5, 6, 7, 8, 10, 12, 15, 20, 30], true) ? $sec : 6; ?><?= $sec > 0 ? 'data-bs-ride="carousel" data-bs-interval="' . ($sec * 1000) . '"' : 'data-bs-interval="false"' ?> aria-roledescription="carousel" aria-label="Galeri Prestasi">
         <div class="carousel-inner">
             <?php foreach ($items as $i => $a): $alt = trim((string) ($a['image_alt'] ?? '')) ?: (string) $a['title']; ?>
                 <div class="carousel-item<?= $i === 0 ? ' active' : '' ?>" aria-roledescription="slide" aria-label="<?= $i + 1 ?> dari <?= count($items) ?>">

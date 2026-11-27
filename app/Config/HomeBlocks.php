@@ -65,7 +65,10 @@ class HomeBlocks extends BaseConfig
         $this->types = [
             'slider' => [
                 'Slider Utama', 'bi-images', 'Slide besar di bagian atas. Isi slide dikelola di menu Publikasi → Slider Beranda (maks. 5).',
-                'top' => true, 'child' => false, 'regions' => ['top', 'bottom'], 'fields' => [],
+                'top' => true, 'child' => false, 'regions' => ['top', 'bottom'], 'fields' => [
+                    'interval' => ['Ganti slide setiap', 'select', 'required|in_list[0,3,4,5,6,7,8,10,12,15,20,30]', 'default' => '5', 'options' => ['3' => '3 detik', '4' => '4 detik', '5' => '5 detik (bawaan)', '6' => '6 detik', '7' => '7 detik', '8' => '8 detik', '10' => '10 detik', '12' => '12 detik', '15' => '15 detik', '20' => '20 detik', '30' => '30 detik', '0' => 'Tidak berganti otomatis (pengunjung menggeser sendiri)'],
+                        'help' => 'Lama setiap slide tampil sebelum berganti ke slide berikutnya. Saat kursor berada di atas slider, pergantian berhenti sementara.'],
+                ],
             ],
             'shortcuts' => [
                 'Pintasan Layanan', 'bi-grid-3x3-gap', 'Kartu pintasan bergambar/ikon: SIPP, e-Court, SIWAS, Zona Integritas, aplikasi pendukung, dll. Isi dikelola di Publikasi → Pintasan Layanan.',
@@ -144,6 +147,7 @@ class HomeBlocks extends BaseConfig
                         'grid'   => 'Kartu berjajar (beberapa piagam sekaligus)',
                     ]],
                     'caption' => ['Tampilkan keterangan di bawah piagam', 'checkbox', 'permit_empty', 'default' => 1],
+                    'interval' => ['Ganti piagam setiap (bentuk slider)', 'select', 'required|in_list[0,3,4,5,6,7,8,10,12,15,20,30]', 'default' => '6', 'options' => ['3' => '3 detik', '4' => '4 detik', '5' => '5 detik', '6' => '6 detik (bawaan)', '7' => '7 detik', '8' => '8 detik', '10' => '10 detik', '12' => '12 detik', '15' => '15 detik', '20' => '20 detik', '30' => '30 detik', '0' => 'Tidak berganti otomatis (pengunjung menggeser sendiri)']],
                 ],
             ],
             'stats' => [

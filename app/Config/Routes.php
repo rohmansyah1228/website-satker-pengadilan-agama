@@ -73,6 +73,7 @@ $routes->group($admin, ['namespace' => 'App\Controllers\Admin'], static function
         $routes->post('akun/2fa/nonaktifkan', 'Account::disable2fa');
 
         $routes->get('log', 'Logs::index');
+        $routes->get('statistik-pengunjung', 'Visitors::index');
         $routes->get('panduan', 'Guide::index');
         $routes->get('impor', 'Import::index');
         $routes->get('impor/wordpress', 'Import::wordpress');

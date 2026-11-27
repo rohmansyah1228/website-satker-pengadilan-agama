@@ -28,6 +28,9 @@ class VisitorStats
             $b->set('visitors', 'visitors + 1', false);
         }
         $b->update();
+        if ($new) {
+            $this->detail($today, $ua->getAgentString(), $rq->getIPAddress());
+        }
 
         if (mt_rand(1, 200) === 1) { // bersihkan hash lama sesekali
             $db->table('visitor_hits')->where('date <', date('Y-m-d', strtotime('-2 days')))->delete();
@@ -39,6 +42,8 @@ class VisitorStats
      *  - visitor_hits hanya penanda "IP ini sudah dihitung hari ini" (hash, bukan IP) → cukup 2 hari terakhir.
      *    Jumlah kunjungan sendiri tersimpan permanen di visitor_daily (1 baris per hari).
      *  - catatan percobaan login lebih dari 90 hari.
+     *  - Log Aktivitas lebih lama dari batas simpan (bawaan 2 tahun).
+     *  - statistik rinci pengunjung lebih lama dari batas simpan (maks. 30 hari).
      */
     public function housekeeping(): void
     {
@@ -46,6 +51,17 @@ class VisitorStats
         try {
             $db->table('visitor_hits')->where('date <', date('Y-m-d', strtotime('-1 day')))->delete();
             $db->table('login_attempts')->where('created_at <', date('Y-m-d H:i:s', strtotime('-90 days')))->delete();
+            // statistik rinci (perangkat, browser, asal daerah) hanya disimpan sesuai batas (maks. 30 hari)
+            if ($db->tableExists('visitor_details')) {
+                $keep = self::detailDays();
+                $b    = $db->table('visitor_details');
+                ($keep === 0 ? $b : $b->where('date <', date('Y-m-d', strtotime('-' . ($keep - 1) . ' days'))))->delete();
+            }
+            // Log Aktivitas lebih lama dari batas simpan (Pengaturan → Keamanan); bertahap agar tidak mengunci tabel lama
+            $months = (int) setting('log_retention', '24');
+            if ($months > 0) {
+                $db->table('activity_logs')->where('created_at <', date('Y-m-d H:i:s', strtotime('-' . $months . ' months')))->limit(5000)->delete();
+            }
         } catch (\Throwable $e) {
             log_message('warning', 'Pembersihan harian gagal: ' . $e->getMessage());
         }
@@ -98,6 +114,73 @@ class VisitorStats
         </IfModule>
 
         HT;
+
+    /** Lama simpan statistik rinci (hari, 0 = tidak dicatat; maks. 30). */
+    public static function detailDays(): int
+    {
+        return max(0, min(30, (int) setting('visitor_detail_days', '30')));
+    }
+
+    /**
+     * Statistik rinci pengunjung unik hari ini: hanya JUMLAH per perangkat, OS, browser, provinsi & kota
+     * (perkiraan dari IP memakai basis data lokal). IP dan User-Agent tidak disimpan.
+     */
+    private function detail(string $today, string $agent, string $ip): void
+    {
+        if (self::detailDays() === 0) {
+            return;
+        }
+        try {
+            $db = db_connect();
+            if (! $db->tableExists('visitor_details')) {
+                return;
+            }
+            $a   = AgentInfo::parse($agent);
+            $geo = GeoIpId::lookup($ip);
+            $rows = [
+                'perangkat' => $a['perangkat'],
+                'os'        => $a['os'],
+                'browser'   => $a['browser'],
+                'provinsi'  => $geo ? $geo['provinsi'] : 'Luar negeri / tidak diketahui',
+            ];
+            if ($geo && $geo['kota'] !== '') {
+                $rows['kota'] = mb_substr($geo['kota'] . ' — ' . $geo['provinsi'], 0, 120);
+            }
+            foreach ($rows as $kind => $name) {
+                $db->query('INSERT INTO ' . $db->prefixTable('visitor_details') . ' (`date`, `kind`, `name`, `visitors`) VALUES (?, ?, ?, 1)
+                    ON DUPLICATE KEY UPDATE `visitors` = `visitors` + 1', [$today, $kind, $name]);
+            }
+        } catch (\Throwable $e) {
+            log_message('warning', 'Statistik rinci pengunjung: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Rekap statistik rinci selama masa simpan.
+     * @return array{days:int,total:int,groups:array<string,list<array{name:string,visitors:int}>>}
+     */
+    public function details(): array
+    {
+        $days = self::detailDays();
+        $out  = ['days' => $days, 'total' => 0, 'groups' => []];
+        $db   = db_connect();
+        if ($days === 0 || ! $db->tableExists('visitor_details')) {
+            return $out;
+        }
+        if (is_array($c = cache('visitor_details'))) {
+            return $c;
+        }
+        $from = date('Y-m-d', strtotime('-' . ($days - 1) . ' days'));
+        $rows = $db->table('visitor_details')->select('kind, name, SUM(visitors) AS visitors')->where('date >=', $from)
+            ->groupBy(['kind', 'name'])->orderBy('visitors', 'DESC')->get()->getResultArray();
+        foreach ($rows as $r) {
+            $out['groups'][$r['kind']][] = ['name' => (string) $r['name'], 'visitors' => (int) $r['visitors']];
+        }
+        $out['total'] = array_sum(array_column($out['groups']['perangkat'] ?? [], 'visitors'));
+        cache()->save('visitor_details', $out, 300);
+
+        return $out;
+    }
 
     public function summary(): array
     {

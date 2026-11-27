@@ -96,7 +96,7 @@ class ModuleData
                 return $docs;
 
             case 'pengunjung':
-                return service('visitorStats')->summary() + ['monthly' => service('visitorStats')->monthly(12)];
+                return service('visitorStats')->summary() + ['monthly' => service('visitorStats')->monthly(12), 'details' => service('visitorStats')->details()];
         }
 
         return [];

@@ -16,6 +16,8 @@ class Logs extends AdminController
             'title'  => 'Log Aktivitas',
             'rows'   => $b->orderBy('id', 'DESC')->get($per, ($page - 1) * $per)->getResultArray(),
             'pager'  => service('pager')->makeLinks($page, $per, $total, 'default_full'),
+            'total'  => $total,
+            'keep'   => (int) setting('log_retention', '24'),
             'logins' => $this->db->table('login_attempts')->where('success', 0)->orderBy('id', 'DESC')->get(20)->getResultArray(),
         ]);
     }
