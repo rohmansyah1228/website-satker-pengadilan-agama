@@ -1,9 +1,21 @@
 {
-  "build": 28,
+  "build": 29,
   "version": "2026-11-27",
   "repo": "rohmansyah1228/website-satker-pengadilan-agama",
   "branch": "main",
   "releases": [
+    {
+      "build": 29,
+      "name": "2.0.2",
+      "version": "2026-11-27",
+      "notes": "Perbaikan: website bisa dipasang dan dipakai di hosting yang GD-nya tanpa dukungan WebP — gambar otomatis disimpan sebagai JPG/PNG; di halaman instalasi WebP kini hanya saran, bukan syarat.",
+      "files": [
+        "app/Controllers/Install.php",
+        "app/Database/Seeds/SatkerSeeder.php",
+        "app/Libraries/Uploader.php",
+        "app/Views/install.php"
+      ]
+    },
     {
       "build": 28,
       "name": "2.0.1",
@@ -507,5 +519,5 @@
       ]
     }
   ],
-  "name": "2.0.1"
+  "name": "2.0.2"
 }

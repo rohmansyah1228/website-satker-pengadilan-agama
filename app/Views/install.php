@@ -54,8 +54,8 @@ $v = static fn (string $k, string $d = '') => esc((string) ($old[$k] ?? $d), 'at
     <section class="card p-4 mb-3" aria-labelledby="h-cek">
         <h2 id="h-cek">1. Pemeriksaan server</h2>
         <ul class="list-unstyled check mb-0">
-            <?php foreach ($state['checks'] as [$label, $ok]): ?>
-                <li><i class="bi <?= $ok ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger' ?> me-2" aria-hidden="true"></i><?= esc($label) ?><span class="visually-hidden"><?= $ok ? ' — terpenuhi' : ' — BELUM terpenuhi' ?></span></li>
+            <?php foreach ($state['checks'] as $c): [$label, $ok] = $c; $opt = ! empty($c[2]); ?>
+                <li><i class="bi <?= $ok ? 'bi-check-circle-fill text-success' : ($opt ? 'bi-exclamation-circle-fill text-warning' : 'bi-x-circle-fill text-danger') ?> me-2" aria-hidden="true"></i><?= esc($label) ?><span class="visually-hidden"><?= $ok ? ' — terpenuhi' : ($opt ? ' — tidak tersedia (tidak wajib)' : ' — BELUM terpenuhi') ?></span></li>
             <?php endforeach ?>
         </ul>
         <?php if (! $state['checksOk']): ?>

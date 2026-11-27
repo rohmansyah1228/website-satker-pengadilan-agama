@@ -68,7 +68,8 @@ class Install extends Controller
             ['Ekstensi intl', extension_loaded('intl')],
             ['Ekstensi mbstring', extension_loaded('mbstring')],
             ['Ekstensi mysqli (database MySQL/MariaDB)', extension_loaded('mysqli')],
-            ['Ekstensi gd dengan dukungan WebP (olah gambar)', ! empty($gd['WebP Support'])],
+            ['Ekstensi gd (olah gambar)', extension_loaded('gd') && function_exists('imagecreatetruecolor') && ! empty($gd['JPEG Support']) && ! empty($gd['PNG Support'])],
+            ['Dukungan WebP pada gd (disarankan, tidak wajib — tanpa WebP gambar disimpan sebagai JPG/PNG)', \App\Libraries\Uploader::webpSupported(), true],
             ['Ekstensi fileinfo (cek jenis berkas unggahan)', extension_loaded('fileinfo')],
             ['Folder writable/ dapat ditulis', is_writable(WRITEPATH)],
             ['Folder public/uploads/ dapat ditulis', is_writable(FCPATH . 'uploads')],
@@ -77,7 +78,7 @@ class Install extends Controller
             $checks[] = ['Folder utama website dapat ditulis (untuk membuat .env)', is_writable(ROOTPATH)];
         }
         $s['checks']     = $checks;
-        $s['checksOk']   = ! in_array(false, array_column($checks, 1), true);
+        $s['checksOk']   = ! in_array(false, array_column(array_filter($checks, static fn ($c) => empty($c[2])), 1), true); // butir ke-3 = tidak wajib
         $s['needDbForm'] = ! $hasEnv;                       // .env belum ada → isi koneksi database
         $s['canInstall'] = $s['checksOk'] && (! $hasEnv || $s['dbOk']);
         $s['baseURL']    = config('App')->baseURL;

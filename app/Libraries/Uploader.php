@@ -255,7 +255,7 @@ class Uploader
         return $out; // berakhir rapi tanpa penanda akhir (masih ditampilkan peramban)
     }
 
-    /** @return string path relatif dari public/, mis. uploads/images/2026/abc.webp */
+    /** @return string path relatif dari public/, mis. uploads/images/2026/abc.webp (atau .jpg/.png bila server tanpa WebP) */
     public function storeImage(UploadedFile $file, int $maxWidth = 1600): string
     {
         if (! $file->isValid()) {
@@ -314,6 +314,9 @@ class Uploader
         if (! $info || ! isset($map[$info[2]])) {
             throw new RuntimeException('Gambar harus berformat JPG, PNG, WebP, atau GIF.');
         }
+        if (! function_exists($map[$info[2]])) {
+            throw new RuntimeException('Server website belum mendukung gambar WebP. Unggah gambar JPG atau PNG.');
+        }
         $src = @$map[$info[2]]($tmp);
         if (! $src) {
             throw new RuntimeException('Gambar tidak dapat dibaca.');
@@ -332,15 +335,37 @@ class Uploader
             imagesavealpha($src, true);
         }
 
-        $rel = 'uploads/images/' . date('Y') . '/' . bin2hex(random_bytes(12)) . '.webp';
+        // WebP bila GD server mendukungnya; bila tidak: PNG untuk gambar PNG (menjaga transparansi), selain itu JPG
+        $ext = self::webpSupported() ? 'webp' : ($info[2] === IMAGETYPE_PNG ? 'png' : 'jpg');
+        $rel = 'uploads/images/' . date('Y') . '/' . bin2hex(random_bytes(12)) . '.' . $ext;
         $dir = FCPATH . dirname($rel);
         if (! is_dir($dir)) {
             mkdir($dir, 0755, true);
         }
-        imagewebp($src, FCPATH . $rel, 80);
+        $ok = match ($ext) {
+            'webp'  => imagewebp($src, FCPATH . $rel, 80),
+            'png'   => imagepng($src, FCPATH . $rel, 6),
+            default => imagejpeg($src, FCPATH . $rel, 82),
+        };
         imagedestroy($src);
+        if (! $ok) {
+            throw new RuntimeException('Gambar tidak dapat disimpan.');
+        }
 
         return $rel;
+    }
+
+    /** Untuk pengujian: paksa anggap WebP (tidak) tersedia. */
+    public static ?bool $forceWebp = null;
+
+    /** GD server dapat menulis WebP? (sebagian hosting memasang GD tanpa WebP) */
+    public static function webpSupported(): bool
+    {
+        if (self::$forceWebp !== null) {
+            return self::$forceWebp;
+        }
+
+        return function_exists('imagewebp') && ! empty((function_exists('gd_info') ? gd_info() : [])['WebP Support']);
     }
 
     public function deleteImage(?string $rel): void

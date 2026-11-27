@@ -156,8 +156,9 @@ class SatkerSeeder extends Seeder
         $out    = [];
         $colors = [[5, 110, 79], [3, 77, 55], [4, 94, 67]];
         foreach ($colors as $n => [$r, $g, $b]) {
-            $file = $dir . 'slide-' . ($n + 1) . '.webp';
-            if (! is_file($file) && function_exists('imagewebp')) {
+            $ext  = \App\Libraries\Uploader::webpSupported() ? 'webp' : 'jpg';
+            $file = $dir . 'slide-' . ($n + 1) . '.' . $ext;
+            if (! is_file($file) && function_exists('imagecreatetruecolor')) {
                 $im = imagecreatetruecolor(1600, 700);
                 for ($x = 0; $x < 1600; $x += 4) {
                     $f = $x / 1600;
@@ -168,10 +169,10 @@ class SatkerSeeder extends Seeder
                 for ($k = -700; $k < 1600; $k += 60) {
                     imageline($im, $k, 700, $k + 700, 0, $line);
                 }
-                imagewebp($im, $file, 70);
+                $ext === 'webp' ? imagewebp($im, $file, 70) : imagejpeg($im, $file, 80);
                 imagedestroy($im);
             }
-            $out[] = 'uploads/images/default/slide-' . ($n + 1) . '.webp';
+            $out[] = 'uploads/images/default/slide-' . ($n + 1) . '.' . $ext;
         }
 
         return $out;
